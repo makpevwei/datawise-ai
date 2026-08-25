@@ -1,0 +1,89 @@
+[
+  {
+    "id": 7,
+    "question": "Which product category generated the most revenue, joining orders with products?",
+    "configured": true,
+    "error": null,
+    "executive_summary": "The product category that generated the most revenue is Electronics, totaling $13,264.13, which is 19.01% of the overall revenue. Other significant categories include Accessories and Girls' Apparel.",
+    "key_findings": [
+      {
+        "text": "Electronics generated $13,264.13 in revenue, accounting for 19.01% of total revenue.",
+        "label": "VERIFIED_FROM_DATA",
+        "verification_note": null,
+        "citations": []
+      }
+    ],
+    "tool_calls": [
+      "join_datasets",
+      "inspect_schema",
+      "join_datasets",
+      "group_and_aggregate",
+      "inspect_schema",
+      "group_and_aggregate"
+    ]
+  },
+  {
+    "id": 8,
+    "question": "Which customer segment placed the most orders, joining orders with customers?",
+    "configured": true,
+    "error": null,
+    "executive_summary": "The Consumer segment placed the most orders, totaling 678, which is 53.85% of all orders. This is followed by the Corporate segment with 358 orders and the Home Office segment with 223 orders.",
+    "key_findings": [
+      {
+        "text": "The Consumer segment placed 678 orders, accounting for 53.85% of all orders.",
+        "label": "CALCULATED",
+        "verification_note": null,
+        "citations": []
+      },
+      {
+        "text": "The Corporate segment placed 358 orders, accounting for 28.44% of all orders.",
+        "label": "CALCULATED",
+        "verification_note": null,
+        "citations": []
+      },
+      {
+        "text": "The Home Office segment placed 223 orders, accounting for 17.71% of all orders.",
+        "label": "CALCULATED",
+        "verification_note": null,
+        "citations": []
+      }
+    ],
+    "tool_calls": [
+      "group_and_aggregate",
+      "inspect_schema",
+      "join_datasets",
+      "join_datasets",
+      "find_relationships",
+      "join_datasets",
+      "group_and_aggregate"
+    ]
+  },
+  {
+    "id": 9,
+    "question": "Compare total price between 2023-01 and 2023-02.",
+    "configured": true,
+    "error": null,
+    "executive_summary": "In comparing total prices between January and February 2023, there was a significant increase in both total price and quantity sold. The total price rose from $1,625.64 in January to $2,098.92 in February, marking a 29.11% increase.",
+    "key_findings": [
+      {
+        "text": "Total price in January 2023 was $1,625.64 and in February 2023 was $2,098.92, resulting in an absolute change of $473.28 and a percentage change of 29.11%.",
+        "label": "CALCULATED",
+        "verification_note": null,
+        "citations": []
+      },
+      {
+        "text": "Quantity sold in January 2023 was 137 and in February 2023 was 187, resulting in an absolute change of 50 and a percentage change of 36.5%.",
+        "label": "CALCULATED",
+        "verification_note": null,
+        "citations": []
+      }
+    ],
+    "tool_calls": [
+      "compare_periods",
+      "compare_periods",
+      "inspect_schema",
+      "compare_periods",
+      "compare_periods"
+    ]
+  }
+]

@@ -1,0 +1,351 @@
+Employee_ID,Name,Department,Job_Title,Hire_Date,Age,Gender,Education_Level,Performance_Rating,Salary,Bonus,Years_at_Company,Training_Hours,Attrition,Last_Promotion_Date,Manager_ID
+EMP-1001,Casey Gillespie,IT,Security Analyst,2010-09-10,50,Female,Bachelor's Degree,Excellent,70477,17393.0,15,142.0,No,,EMP-1028
+EMP-1002,Jennifer Simpson DVM,Sales,Sales Manager,2012-05-09,52,Female,High School,Good,117652,14121.0,13,40.0,No,2021-10-01,EMP-1039
+EMP-1003,Tammy Mcdowell,Sales,Sales Manager,2016-07-26,53,Female,PhD,Excellent,118940,20018.0,9,95.0,No,2018-01-25,EMP-1054
+EMP-1004,Keith Rodriguez,HR,HR Director,2010-01-09,58,Female,Master's Degree,Excellent,255832,41772.0,15,35.0,No,2021-02-03,
+EMP-1005,Mrs. Virginia Daniels,Marketing,Marketing Director,2014-12-06,42,Male,Bachelor's Degree,Excellent,208554,,10,91.0,No,,
+EMP-1006,Todd Rosales MD,HR,HR Specialist,2024-01-25,58,Male,High School,Good,53617,6247.0,1,62.0,Yes,,EMP-1085
+EMP-1007,Brian Martin,HR,HR Manager,2015-10-22,23,Male,PhD,Excellent,122607,24416.0,10,25.0,No,,EMP-1068
+EMP-1008,David Lopez,HR,HR Specialist,2016-07-06,46,Female,High School,Good,44439,5945.0,9,34.0,No,,EMP-1022
+EMP-1009,Rachel Bradley,Operations,Operations Manager,2022-06-02,61,Male,High School,Excellent,85337,14016.0,3,47.0,No,2023-07-25,EMP-1026
+EMP-1010,Casey Chase,Finance,CFO,2017-03-21,60,Male,PhD,Excellent,271156,55671.0,8,29.0,No,,
+EMP-1011,Samantha Robertson,Marketing,Marketing Manager,2011-12-25,39,Male,Bachelor's Degree,Good,152546,17547.0,13,111.0,No,2018-06-24,EMP-1069
+EMP-1012,Michael Lopez,IT,IT Support,2016-08-20,57,Female,PhD,Good,69425,5556.0,9,119.0,No,,EMP-1088
+EMP-1013,Franklin Wright,Finance,Finance Manager,2023-06-12,44,Female,Bachelor's Degree,Satisfactory,101601,3503.0,2,27.0,No,,EMP-1093
+EMP-1014,David Molina,Finance,Finance Manager,2010-12-11,49,Female,Master's Degree,Good,179609,26727.0,14,47.0,No,2014-12-10,EMP-1083
+EMP-1015,Elizabeth Sharp,IT,IT Support,2010-02-13,60,Male,Bachelor's Degree,Satisfactory,64318,2190.0,15,49.0,No,,EMP-1086
+EMP-1016,Matthew Schwartz,Marketing,Digital Marketing Analyst,2025-09-09,65,Female,Master's Degree,Satisfactory,56973,3027.0,0,42.0,No,,EMP-1029
+EMP-1017,Bryan Parker,Operations,Operations Manager,2018-03-06,39,Male,Master's Degree,Good,116405,17194.0,7,26.0,No,2021-07-09,EMP-1001
+EMP-1018,Jonathan Jacobson,Customer Service,Customer Service Rep,2010-08-08,62,Male,Master's Degree,Good,55550,7009.0,15,72.0,No,,EMP-1023
+EMP-1019,Emily Wilson,Engineering,Software Engineer,2018-06-26,59,Male,Master's Degree,Excellent,83506,14127.0,7,58.0,No,,EMP-1069
+EMP-1020,Elizabeth Mendez,IT,IT Support,2015-04-20,65,Female,High School,Good,68939,6837.0,10,131.0,No,,EMP-1098
+EMP-1021,Casey Hernandez,Sales,Account Executive,2013-10-04,36,Male,PhD,Satisfactory,89863,6650.0,12,31.0,No,,EMP-1089
+EMP-1022,Lisa Perry,Finance,Accountant,2022-10-29,26,Female,Master's Degree,Good,54474,6188.0,3,26.0,No,,EMP-1043
+EMP-1023,Kaitlin Medina,Marketing,Marketing Director,2015-07-16,37,Female,Master's Degree,Good,201359,29408.0,10,101.0,No,,
+EMP-1024,Colleen Wright,Marketing,Marketing Specialist,2023-09-08,59,Female,High School,Satisfactory,39373,1303.0,2,58.0,Yes,,EMP-1079
+EMP-1025,Shelley Miller,Marketing,Marketing Specialist,2013-01-02,26,Female,High School,Satisfactory,63988,4325.0,12,44.0,No,,EMP-1085
+EMP-1026,Michael Miller,Customer Service,Customer Success Manager,2025-03-24,51,Male,High School,Needs Improvement,73809,1145.0,0,,Yes,,
+EMP-1027,Amy Kelley,Marketing,Marketing Manager,2017-03-12,60,Male,Bachelor's Degree,Good,142890,18679.0,8,67.0,No,,EMP-1017
+EMP-1028,Laura Hernandez,Customer Service,Support Specialist,2016-06-17,59,Female,Bachelor's Degree,Good,39256,4153.0,9,25.0,No,,EMP-1019
+EMP-1029,Joseph Wilson,Sales,Sales Director,2019-05-23,37,Male,Bachelor's Degree,Good,168704,15732.0,6,78.0,No,2022-03-31,
+EMP-1030,Kevin Davis,HR,HR Director,2024-03-03,61,Female,Bachelor's Degree,Good,142277,13567.0,1,25.0,No,,
+EMP-1031,Rhonda Chavez,Finance,Accountant,2013-08-12,61,Female,Master's Degree,Good,78385,10803.0,12,24.0,No,,EMP-1004
+EMP-1032,Joyce Brown,HR,HR Director,2025-08-02,31,Male,Master's Degree,Satisfactory,139959,5583.0,0,31.0,Yes,,
+EMP-1033,Robert Cummings,Operations,Operations Manager,2017-11-03,33,Female,Bachelor's Degree,Good,116170,16054.0,8,33.0,No,,EMP-1027
+EMP-1034,Robert Reese,Finance,Finance Manager,2012-10-12,51,Female,Bachelor's Degree,Excellent,159485,25812.0,13,37.0,No,2022-03-04,EMP-1041
+EMP-1035,Amber Cooper,Finance,Financial Analyst,2016-05-30,62,Female,Bachelor's Degree,Excellent,75627,13213.0,9,80.0,No,,EMP-1066
+EMP-1036,Zachary Michael,Marketing,Marketing Director,2014-03-22,35,Female,Bachelor's Degree,Excellent,170389,28608.0,11,90.0,No,2020-10-07,
+EMP-1037,Timothy Johnson,Customer Service,Customer Service Rep,2011-04-27,39,Female,Bachelor's Degree,Excellent,44399,7630.0,14,64.0,No,,EMP-1048
+EMP-1038,Randy Cannon,Marketing,Marketing Manager,2014-10-24,57,Female,Master's Degree,Satisfactory,119790,6380.0,11,69.0,No,2020-08-29,EMP-1053
+EMP-1039,Maria Fisher,Operations,Supply Chain Manager,2018-10-06,53,Female,High School,Good,113705,11954.0,7,29.0,No,2020-08-21,EMP-1036
+EMP-1040,Janet Kane DVM,Marketing,Marketing Specialist,2015-05-30,28,Male,High School,Excellent,52897,9257.0,10,103.0,No,,EMP-1036
+EMP-1041,Michael Stanley,Engineering,Engineering Manager,2014-04-22,60,Male,Master's Degree,Excellent,163341,39950.0,11,151.0,Yes,2023-11-03,EMP-1020
+EMP-1042,Martha Bailey,Finance,Accountant,2011-03-24,36,Female,Bachelor's Degree,Good,77292,8026.0,14,29.0,No,,EMP-1099
+EMP-1043,Joshua Rice,IT,Security Analyst,2021-06-09,35,Female,High School,Good,64028,9350.0,4,51.0,No,,EMP-1046
+EMP-1044,Courtney Smith,Customer Service,Customer Success Manager,2025-01-25,36,Female,Master's Degree,Good,84678,11429.0,0,32.0,No,,
+EMP-1045,Edwin Nunez,Finance,CFO,2022-05-28,46,Female,PhD,Excellent,167376,34638.0,3,62.0,No,,
+EMP-1046,Kim Morrow,IT,IT Support,2013-07-18,24,Male,Bachelor's Degree,Good,65138,,12,119.0,Yes,,EMP-1067
+EMP-1047,Gregory Hill,Operations,Operations Director,2021-02-11,32,Male,Bachelor's Degree,Good,163331,17850.0,4,29.0,No,,
+EMP-1048,Molly Rodriguez,Customer Service,Customer Success Manager,2011-11-12,41,Male,Master's Degree,Good,89907,13429.0,14,53.0,No,2024-08-27,EMP-1043
+EMP-1049,Jennifer Miranda,IT,IT Support,2010-11-16,51,Female,Master's Degree,Good,69059,9355.0,14,115.0,No,,EMP-1023
+EMP-1050,Alexis Harris,Engineering,Technical Lead,2019-11-21,37,Female,PhD,Good,185498,22223.0,5,117.0,Yes,2021-10-09,EMP-1036
+EMP-1051,Andrew Harper,Marketing,Marketing Manager,2022-05-08,64,Female,PhD,Good,152786,13041.0,3,45.0,No,2023-10-23,EMP-1033
+EMP-1052,Amber Yang,Sales,Sales Director,2011-04-25,54,Male,High School,Needs Improvement,138034,3543.0,14,55.0,Yes,,
+EMP-1053,David Robinson,IT,Security Analyst,2018-04-03,42,Male,High School,Good,66319,5956.0,7,101.0,No,,EMP-1003
+EMP-1054,Amy Gordon,HR,HR Specialist,2024-11-30,33,Male,PhD,Satisfactory,64724,2826.0,0,48.0,No,,EMP-1028
+EMP-1055,Robert Dennis,Finance,CFO,2016-01-12,65,Male,High School,Excellent,150311,22616.0,9,58.0,No,2019-09-15,
+EMP-1056,Kyle Chambers,Sales,Sales Director,2019-10-12,27,Male,High School,Good,127177,12137.0,6,48.0,No,,
+EMP-1057,Eric Thomas,Customer Service,Customer Service Rep,2019-02-09,24,Male,Master's Degree,Excellent,52208,9893.0,6,53.0,No,,EMP-1046
+EMP-1058,Connie Turner,Sales,Sales Director,2019-10-11,33,Female,Master's Degree,Good,187612,23649.0,6,60.0,No,,
+EMP-1059,Travis Hobbs,HR,HR Director,2022-01-09,48,Male,Bachelor's Degree,Needs Improvement,128267,1248.0,3,60.0,No,2024-12-19,
+EMP-1060,Lori Simmons,Engineering,Engineering Manager,2010-12-23,43,Male,High School,Excellent,166489,37323.0,14,132.0,No,,EMP-1079
+EMP-1061,William David DDS,Finance,CFO,2014-08-03,41,Male,High School,Excellent,186872,30865.0,11,42.0,No,2020-07-24,
+EMP-1062,Emma Butler,HR,Recruiter,2016-07-19,30,Female,PhD,Excellent,55623,13054.0,9,49.0,No,,EMP-1007
+EMP-1063,James Webster,Finance,CFO,2025-10-09,65,Male,Master's Degree,Good,222591,31360.0,0,33.0,Yes,,
+EMP-1064,Samuel Turner,Engineering,Software Engineer,2023-04-08,35,Male,Bachelor's Degree,Excellent,66467,14788.0,2,90.0,No,,EMP-1055
+EMP-1065,Renee Melendez,Finance,Finance Manager,2019-03-12,60,Male,PhD,Excellent,152501,24095.0,6,52.0,No,2023-01-09,EMP-1079
+EMP-1066,Tracy Grant,IT,IT Support,2016-08-27,31,Female,PhD,Satisfactory,85159,4908.0,9,,No,,EMP-1060
+EMP-1067,David Harris,HR,HR Director,2021-03-17,51,Female,PhD,Good,174216,16324.0,4,35.0,No,2024-04-21,
+EMP-1068,Tammy Boone,Customer Service,Customer Success Manager,2023-04-17,47,Female,PhD,Good,90620,12863.0,2,32.0,No,,EMP-1025
+EMP-1069,Nathaniel Lee,Operations,Operations Director,2013-07-11,38,Female,Master's Degree,Satisfactory,246965,10401.0,12,22.0,No,2022-06-13,
+EMP-1070,Michael Morrison,Engineering,Engineering Manager,2021-07-05,64,Male,PhD,Excellent,198261,34644.0,4,157.0,No,,EMP-1099
+EMP-1071,Chelsea Gill,Customer Service,Customer Success Manager,2019-08-21,63,Male,High School,Needs Improvement,91180,2269.0,6,36.0,No,2023-08-16,EMP-1085
+EMP-1072,Kristin Mendoza,HR,HR Director,2014-06-30,59,Female,High School,Excellent,194769,43798.0,11,58.0,Yes,,
+EMP-1073,Felicia Krueger,Marketing,Marketing Specialist,2012-05-07,22,Female,PhD,Satisfactory,72959,2868.0,13,38.0,No,,EMP-1024
+EMP-1074,Timothy Hayden,Finance,Accountant,2019-04-18,50,Male,High School,Good,54112,5998.0,6,66.0,No,,EMP-1011
+EMP-1075,Zachary Mendoza,Customer Service,Customer Service Rep,2017-12-04,27,Female,High School,Satisfactory,35416,2409.0,7,20.0,Yes,,EMP-1097
+EMP-1076,Larry Harris,Sales,Sales Representative,2017-03-16,64,Male,High School,Needs Improvement,44927,1020.0,8,68.0,No,,EMP-1048
+EMP-1077,Kristen Rowe,Finance,Finance Manager,2024-05-13,42,Female,PhD,Good,160311,22622.0,1,28.0,No,,EMP-1052
+EMP-1078,Joseph Howard,Marketing,Digital Marketing Analyst,2009-12-12,23,Male,Master's Degree,Needs Improvement,63428,357.0,15,70.0,No,,EMP-1042
+EMP-1079,Jose Crawford,Operations,Operations Analyst,2010-01-06,62,Male,PhD,Good,67860,,15,51.0,No,,EMP-1061
+EMP-1080,William Harrison,HR,HR Manager,2023-06-11,46,Male,High School,Good,86150,11911.0,2,76.0,No,,EMP-1058
+EMP-1081,Suzanne Wood,Finance,Accountant,2023-09-19,52,Male,Bachelor's Degree,Good,53891,5951.0,2,24.0,No,,EMP-1050
+EMP-1082,Justin Walker,HR,HR Director,2009-11-26,36,Female,High School,Good,193247,19961.0,15,46.0,No,2018-08-07,
+EMP-1083,Dean Donovan,Customer Service,Customer Service Manager,2023-09-16,46,Female,,Excellent,76777,12200.0,2,78.0,No,,EMP-1015
+EMP-1084,Jennifer Hernandez,Operations,Operations Director,2019-04-11,30,Female,High School,Good,177289,18149.0,6,57.0,No,,
+EMP-1085,James Whitaker,Customer Service,Customer Service Rep,2016-03-03,28,Male,PhD,Good,50495,6443.0,9,37.0,No,,EMP-1086
+EMP-1086,Mr. Michael Scott PhD,Operations,Supply Chain Manager,2010-07-28,60,Male,High School,Good,139778,16025.0,15,49.0,No,,EMP-1092
+EMP-1087,Maria Henry,Sales,Sales Manager,2020-11-01,36,Male,PhD,Satisfactory,133890,7684.0,5,51.0,No,2023-10-15,EMP-1097
+EMP-1088,Robert Jackson,Marketing,Digital Marketing Analyst,2013-06-02,47,Female,Bachelor's Degree,Good,57068,7570.0,12,91.0,No,,EMP-1091
+EMP-1089,Katherine Stark,Engineering,Senior Engineer,2021-07-28,51,Female,PhD,Good,124612,11871.0,4,85.0,Yes,2023-02-21,EMP-1087
+EMP-1090,Maria Brown,Customer Service,Customer Service Manager,2010-10-20,46,Male,High School,Excellent,71037,11489.0,15,67.0,No,2020-11-10,
+EMP-1091,Ryan Landry,Finance,CFO,2019-12-14,29,Male,Master's Degree,Excellent,228285,51254.0,5,33.0,No,2022-06-29,
+EMP-1092,Pamela Gutierrez,Sales,Sales Representative,2018-01-24,45,Female,High School,Excellent,37264,9268.0,7,70.0,No,,EMP-1076
+EMP-1093,Crystal Mann,IT,Security Analyst,2022-11-12,46,Male,Bachelor's Degree,Good,60073,8627.0,2,124.0,No,,EMP-1003
+EMP-1094,Jonathan Brooks,IT,IT Support,2019-09-14,57,Female,High School,Excellent,74929,12593.0,6,151.0,Yes,,EMP-1058
+EMP-1095,Mary Jensen,Sales,Sales Manager,2017-10-27,29,Female,Bachelor's Degree,Needs Improvement,112319,285.0,8,37.0,No,2024-12-03,EMP-1022
+EMP-1096,Mr. Aaron Arnold,Sales,Sales Manager,2016-03-31,64,Female,High School,Good,116207,10434.0,9,79.0,No,2021-03-12,EMP-1078
+EMP-1097,Joseph Hill,Sales,Sales Manager,2019-01-09,28,Male,Bachelor's Degree,Good,100855,11965.0,6,80.0,No,2020-06-09,EMP-1071
+EMP-1098,Alicia Li,Customer Service,Customer Service Manager,2016-11-23,38,Female,PhD,Good,97118,8743.0,8,36.0,No,2020-01-21,EMP-1092
+EMP-1099,Renee Browning,Engineering,Technical Lead,2012-01-10,58,Female,Master's Degree,Excellent,175743,30711.0,13,84.0,No,2014-07-03,EMP-1043
+EMP-1100,Brent Hernandez,Operations,Supply Chain Manager,2022-05-03,45,Male,Bachelor's Degree,Good,100951,14997.0,3,41.0,No,2023-10-29,EMP-1068
+EMP-1101,Joseph Ochoa,IT,IT Support,2016-01-07,59,Female,Master's Degree,Good,83344,7245.0,9,52.0,No,,EMP-1050
+EMP-1102,James Watson,Customer Service,Customer Success Manager,2020-12-11,44,Male,Bachelor's Degree,Good,85501,,4,55.0,No,2024-01-08,EMP-1091
+EMP-1103,Karl Branch,Customer Service,Customer Success Manager,2011-06-27,65,Male,PhD,Excellent,106361,26086.0,14,73.0,No,2019-05-01,EMP-1082
+EMP-1104,Michael Abbott,Customer Service,Support Specialist,2023-07-13,41,Male,High School,Needs Improvement,42246,1197.0,2,30.0,No,,
+EMP-1105,Shannon Malone,IT,IT Support,2022-04-19,57,Female,Bachelor's Degree,Satisfactory,65425,2008.0,3,64.0,No,,
+EMP-1106,James Tran,Operations,Operations Manager,2019-12-03,49,Male,High School,Good,119717,17372.0,5,72.0,No,2021-09-01,EMP-1066
+EMP-1107,Adam Jackson,Customer Service,Customer Success Manager,2022-05-23,25,Female,Bachelor's Degree,Satisfactory,78867,5970.0,3,35.0,No,2023-09-20,
+EMP-1108,Mr. Richard Knight PhD,HR,Recruiter,2013-06-11,52,Female,High School,Good,52314,7587.0,12,70.0,Yes,,EMP-1060
+EMP-1109,Joseph Williams,Operations,Operations Analyst,2022-11-10,25,Female,Master's Degree,Good,59481,6214.0,3,37.0,Yes,,EMP-1056
+EMP-1110,Sean Clay,Marketing,Marketing Manager,2025-08-24,34,Female,High School,Good,115900,15514.0,0,53.0,No,,EMP-1039
+EMP-1111,Anthony Jones,Engineering,Engineering Manager,2011-05-18,49,Female,PhD,Excellent,172514,38765.0,14,48.0,No,,EMP-1025
+EMP-1112,Stephanie Elliott,Engineering,Technical Lead,2019-12-07,24,Female,Master's Degree,Good,168271,15805.0,5,140.0,No,,EMP-1063
+EMP-1113,Timothy Edwards,Engineering,Engineering Manager,2022-11-02,65,Female,PhD,Good,163708,,3,105.0,No,,EMP-1087
+EMP-1114,Laurie Goodwin,Sales,Sales Director,2023-04-07,49,Female,Master's Degree,Good,163317,15897.0,2,51.0,No,,
+EMP-1115,Jennifer Jones,HR,HR Manager,2021-11-19,29,Female,Bachelor's Degree,Needs Improvement,115805,2537.0,3,59.0,Yes,2024-07-16,EMP-1081
+EMP-1116,David Davenport,Marketing,Marketing Manager,2019-04-09,36,Male,High School,Satisfactory,123266,3806.0,6,42.0,No,,EMP-1053
+EMP-1117,Steven Rivera,Finance,Accountant,2012-06-12,62,Female,PhD,Satisfactory,80659,2863.0,13,43.0,No,,EMP-1045
+EMP-1118,Brenda Hinton,Operations,Operations Analyst,2015-03-18,37,Female,High School,Good,44305,4413.0,10,65.0,No,,EMP-1063
+EMP-1119,Kathryn Mccann,HR,HR Specialist,2021-05-27,43,Female,High School,Satisfactory,41805,2007.0,4,43.0,No,,EMP-1076
+EMP-1120,Jeffrey Roberson,HR,HR Manager,2020-12-25,37,Female,High School,Excellent,108926,24427.0,4,30.0,No,2023-01-19,EMP-1025
+EMP-1121,Randy Friedman,Marketing,Digital Marketing Analyst,2019-08-27,28,Female,PhD,Satisfactory,68705,2211.0,6,42.0,No,,EMP-1092
+EMP-1122,Raymond Johnson,Operations,Supply Chain Manager,2023-03-10,57,Female,High School,Excellent,118326,22706.0,2,69.0,No,,EMP-1036
+EMP-1123,Willie Henry,Sales,Sales Representative,2023-08-20,40,Male,PhD,Satisfactory,48416,2512.0,2,62.0,No,,EMP-1100
+EMP-1124,Todd Reynolds,HR,HR Manager,2019-11-09,47,Female,High School,Excellent,98617,23462.0,6,64.0,No,2022-07-22,EMP-1029
+EMP-1125,Mary Miller,Marketing,Marketing Manager,2016-08-30,39,Female,High School,Satisfactory,105171,8108.0,9,47.0,No,,EMP-1007
+EMP-1126,Rebecca Marquez,Marketing,Marketing Specialist,2017-04-18,35,Male,Master's Degree,Satisfactory,62419,4676.0,8,48.0,No,,EMP-1008
+EMP-1127,Christian Dawson,Finance,Finance Manager,2021-11-25,44,Male,Master's Degree,Excellent,122266,23010.0,3,48.0,No,2024-02-20,EMP-1029
+EMP-1128,Nancy Stewart,Finance,CFO,2012-03-14,39,Female,PhD,Excellent,213636,34046.0,13,38.0,No,,
+EMP-1129,Aaron Parker,HR,HR Specialist,2013-08-10,33,Female,Bachelor's Degree,Needs Improvement,64822,135.0,12,24.0,No,,EMP-1059
+EMP-1130,Derrick Anderson,Engineering,Software Engineer,2025-09-16,28,Female,High School,Good,74805,10312.0,0,51.0,No,,EMP-1035
+EMP-1131,Jerry Peters,Sales,Sales Representative,2023-08-01,62,Male,Master's Degree,Satisfactory,43689,1614.0,2,78.0,No,,EMP-1057
+EMP-1132,Alexander Gomez,Operations,Operations Director,2017-09-11,41,Male,Bachelor's Degree,Good,156360,12740.0,8,24.0,No,2023-05-09,
+EMP-1133,Kyle Nguyen,Finance,Financial Analyst,2014-07-22,22,Male,PhD,Good,74726,10799.0,11,57.0,No,,
+EMP-1134,Edgar Hughes,Marketing,Marketing Manager,2015-10-02,32,Female,Master's Degree,Excellent,111443,26697.0,10,77.0,No,2018-10-13,EMP-1087
+EMP-1135,Steven Stein,HR,Recruiter,2010-07-03,31,Female,High School,Excellent,58742,,15,32.0,No,,EMP-1020
+EMP-1136,Laura Jackson,Engineering,Technical Lead,2022-01-21,42,Male,PhD,Satisfactory,182442,9372.0,3,75.0,No,2023-05-31,EMP-1024
+EMP-1137,Charles Turner,Operations,Operations Director,2011-12-25,44,Female,PhD,Excellent,231822,42503.0,13,42.0,No,2024-01-11,
+EMP-1138,Arthur Hamilton MD,Marketing,Marketing Director,2018-08-01,46,Male,Bachelor's Degree,Good,223821,33477.0,7,37.0,No,,
+EMP-1139,Mr. David Wright,Operations,Supply Chain Manager,2012-07-23,25,Male,Master's Degree,Excellent,124786,,13,31.0,No,,
+EMP-1140,Linda Gonzalez,Operations,Operations Analyst,2020-10-28,49,Male,High School,Good,41198,3719.0,5,32.0,Yes,,EMP-1073
+EMP-1141,Eric Rush,Engineering,Technical Lead,2014-12-19,31,Female,Master's Degree,Satisfactory,155092,10044.0,10,76.0,No,,EMP-1083
+EMP-1142,Manuel Brock,Engineering,Senior Engineer,2011-07-06,60,Male,PhD,Needs Improvement,119707,3300.0,14,104.0,No,,
+EMP-1143,George Ochoa,Customer Service,Customer Service Manager,2018-01-31,27,Female,PhD,Good,93473,11436.0,7,32.0,No,2023-08-17,EMP-1049
+EMP-1144,Valerie Taylor,Operations,Operations Director,2023-05-11,25,Male,Master's Degree,Satisfactory,151446,9110.0,2,41.0,Yes,,
+EMP-1145,Travis Harris,Marketing,Marketing Specialist,2016-08-02,32,Female,,Satisfactory,48949,3030.0,9,32.0,No,,EMP-1011
+EMP-1146,Vincent Novak,IT,IT Support,2016-05-15,58,Male,Master's Degree,Good,57410,7613.0,9,112.0,No,,EMP-1051
+EMP-1147,Michael Henry,Marketing,Digital Marketing Analyst,2021-10-31,30,Female,High School,Needs Improvement,50689,892.0,4,54.0,No,,EMP-1005
+EMP-1148,Dana Bennett,Engineering,Technical Lead,2017-11-30,32,Female,High School,Excellent,141815,30550.0,7,83.0,No,2024-10-12,EMP-1099
+EMP-1149,Jenna Wilson,Engineering,Engineering Manager,2011-11-16,50,Female,Master's Degree,Excellent,171388,38976.0,13,104.0,No,2016-04-16,EMP-1073
+EMP-1150,Leslie Gardner,Sales,Sales Manager,2011-06-17,28,Female,High School,Satisfactory,116286,4427.0,14,47.0,No,2014-01-19,EMP-1023
+EMP-1151,Krista Benton,IT,IT Manager,2010-06-22,38,Female,Bachelor's Degree,Excellent,149601,28438.0,15,163.0,No,2018-07-04,EMP-1048
+EMP-1152,Michael Gonzales,Customer Service,Customer Success Manager,2024-07-09,65,Male,High School,Satisfactory,70819,4602.0,1,55.0,Yes,,EMP-1014
+EMP-1153,Michael Fuentes,Engineering,Technical Lead,2011-05-21,46,Female,Bachelor's Degree,Satisfactory,156948,,14,108.0,No,2014-04-23,EMP-1024
+EMP-1154,Jennifer Porter,Customer Service,Customer Service Manager,2015-03-11,47,Male,Master's Degree,Excellent,94923,16256.0,10,56.0,No,2021-06-16,EMP-1019
+EMP-1155,Dana Hopkins,Sales,Sales Director,2010-07-30,42,Male,Master's Degree,Satisfactory,160079,11749.0,15,78.0,No,,
+EMP-1156,Rachel Jones,Engineering,Software Engineer,2011-02-20,27,Male,PhD,Good,97757,9285.0,14,84.0,No,,EMP-1055
+EMP-1157,Karen Morales DDS,Engineering,Senior Engineer,2019-11-22,41,Female,PhD,Good,120612,13336.0,5,137.0,Yes,2024-03-27,EMP-1026
+EMP-1158,Melissa Stephens,Engineering,Engineering Manager,2011-03-05,64,Male,,Good,165717,23283.0,14,72.0,No,,EMP-1093
+EMP-1159,Heather Woodard,Engineering,Technical Lead,2019-02-07,50,Male,High School,Satisfactory,155818,10707.0,6,116.0,No,2021-03-04,EMP-1087
+EMP-1160,Margaret Miller,Operations,Operations Analyst,2021-11-19,45,Male,Master's Degree,Excellent,54893,10973.0,3,59.0,No,,EMP-1070
+EMP-1161,Mary Kelly,Operations,Operations Analyst,2020-02-03,55,Female,PhD,Good,53277,6480.0,5,66.0,No,,EMP-1085
+EMP-1162,Amanda Terrell,HR,HR Specialist,2024-12-31,62,Female,High School,Satisfactory,38968,2985.0,0,26.0,Yes,,EMP-1097
+EMP-1163,Jennifer Goodwin,IT,IT Support,2011-09-18,62,Male,PhD,Satisfactory,81501,3241.0,14,100.0,No,,EMP-1045
+EMP-1164,Jessica Smith,Customer Service,Customer Service Rep,2017-07-01,48,Female,Bachelor's Degree,Good,42167,4280.0,8,59.0,Yes,,EMP-1054
+EMP-1165,Jorge Stone,Sales,Sales Manager,2012-04-28,22,Male,Master's Degree,Excellent,136292,23069.0,13,86.0,No,2022-12-12,EMP-1017
+EMP-1166,Laura Griffin,Customer Service,Support Specialist,2021-11-14,33,Female,Bachelor's Degree,Good,39316,5350.0,3,59.0,No,,EMP-1051
+EMP-1167,Raymond Chapman,Engineering,Engineering Manager,2012-01-16,57,Female,High School,Excellent,133666,22095.0,13,156.0,No,,EMP-1049
+EMP-1168,Haley Johnson,IT,IT Manager,2018-02-12,30,Male,Bachelor's Degree,Satisfactory,125122,9011.0,7,88.0,No,2022-03-14,EMP-1011
+EMP-1169,Jason Nixon,Sales,Sales Representative,2022-09-19,62,Male,PhD,Good,47871,4304.0,3,62.0,Yes,,EMP-1064
+EMP-1170,Todd Thomas,Customer Service,Customer Service Rep,2010-10-07,35,Female,High School,Excellent,46266,7912.0,15,55.0,No,,
+EMP-1171,Jesse Clark,HR,HR Specialist,2015-03-12,33,Male,High School,Needs Improvement,48050,1434.0,10,58.0,No,,EMP-1021
+EMP-1172,Mr. Jeffrey Horton,Finance,Financial Analyst,2021-07-25,29,Female,High School,Excellent,59546,14093.0,4,36.0,Yes,,EMP-1018
+EMP-1173,Eric Patrick,Engineering,Engineering Manager,2023-05-18,27,Male,PhD,Needs Improvement,155850,3310.0,2,77.0,No,,EMP-1064
+EMP-1174,Samuel Wong,Customer Service,Customer Service Manager,2017-09-22,54,Female,Bachelor's Degree,Good,84725,10239.0,8,,No,2024-03-12,EMP-1056
+EMP-1175,Carly Riggs,HR,Recruiter,2013-12-26,49,Female,PhD,Satisfactory,59537,4225.0,11,48.0,No,,EMP-1005
+EMP-1176,Christopher Moore,Customer Service,Support Specialist,2022-08-12,59,Female,Master's Degree,Good,43477,5940.0,3,,No,,EMP-1010
+EMP-1177,Tina Hall,Operations,Supply Chain Manager,2015-05-30,64,Male,Master's Degree,Excellent,118256,20266.0,10,74.0,No,2020-09-24,EMP-1037
+EMP-1178,Cody Davidson,Finance,Financial Analyst,2023-01-23,55,Male,Master's Degree,Satisfactory,71089,5305.0,2,46.0,No,,EMP-1056
+EMP-1179,Allen Mendez,Finance,Accountant,2017-09-11,42,Female,PhD,Satisfactory,59823,3149.0,8,58.0,No,,EMP-1050
+EMP-1180,Kevin Price,Sales,Account Executive,2016-04-21,58,Male,High School,Satisfactory,58568,,9,64.0,No,,EMP-1083
+EMP-1181,Christine Goodwin,IT,IT Support,2014-02-03,26,Male,Master's Degree,Excellent,80867,18394.0,11,132.0,No,,EMP-1090
+EMP-1182,Amy Garcia,Marketing,Digital Marketing Analyst,2025-09-01,53,Female,High School,Satisfactory,40000,1410.0,0,50.0,No,,EMP-1093
+EMP-1183,Chelsea Nguyen,Engineering,Software Engineer,2024-11-24,36,Female,Master's Degree,Satisfactory,74984,5503.0,0,73.0,No,,EMP-1006
+EMP-1184,Dennis Huffman,HR,HR Specialist,2013-08-19,25,Male,Master's Degree,Good,62798,9089.0,12,70.0,No,,EMP-1019
+EMP-1185,Margaret Harper,IT,IT Support,2010-06-04,62,Female,Bachelor's Degree,Satisfactory,89418,6136.0,15,101.0,No,,EMP-1034
+EMP-1186,Laurie Bailey,Operations,Operations Manager,2010-11-09,27,Female,High School,Satisfactory,104445,6634.0,15,49.0,No,,EMP-1014
+EMP-1187,Lisa Cervantes,Operations,Supply Chain Manager,2022-09-07,35,Female,Bachelor's Degree,Satisfactory,124830,5110.0,3,43.0,No,2025-06-03,EMP-1066
+EMP-1188,Elizabeth Mendez,Finance,Financial Analyst,2016-01-23,47,Male,PhD,Excellent,69677,14969.0,9,35.0,No,,EMP-1015
+EMP-1189,Cesar Wilson,IT,System Administrator,2011-09-16,23,Male,High School,Good,65148,9438.0,14,60.0,No,,EMP-1051
+EMP-1190,Clayton Steele,Operations,Operations Analyst,2023-12-15,54,Female,Master's Degree,Excellent,59197,11143.0,1,54.0,No,,EMP-1023
+EMP-1191,Jennifer Taylor,IT,Security Analyst,2022-07-23,55,Female,High School,Good,51682,4551.0,3,55.0,No,,EMP-1069
+EMP-1192,Cody Reid,Finance,CFO,2017-08-18,39,Male,PhD,Good,234650,31677.0,8,54.0,No,,
+EMP-1193,Maria Cooke,Engineering,Technical Lead,2023-08-19,28,Male,Bachelor's Degree,Excellent,141200,23825.0,2,111.0,Yes,,EMP-1061
+EMP-1194,Katherine Taylor,Sales,Sales Manager,2025-01-11,43,Female,High School,Good,93807,9816.0,0,76.0,No,,EMP-1032
+EMP-1195,Jerry Brown,Sales,Sales Representative,2020-08-29,29,Female,Master's Degree,Excellent,60743,13820.0,5,42.0,No,,EMP-1058
+EMP-1196,Adam Taylor,HR,HR Director,2014-05-28,44,Female,,Satisfactory,173699,12952.0,11,58.0,No,,
+EMP-1197,Tracey Wagner,Customer Service,Customer Service Manager,2017-11-22,31,Male,Master's Degree,Satisfactory,84843,6674.0,7,43.0,No,,EMP-1049
+EMP-1198,Michael Perry PhD,IT,System Administrator,2013-06-26,39,Male,Master's Degree,Excellent,81398,14727.0,12,57.0,No,,EMP-1079
+EMP-1199,Bradley Johnson DDS,IT,IT Manager,2010-09-01,49,Male,High School,Needs Improvement,152372,2131.0,15,59.0,No,,EMP-1072
+EMP-1200,Donald Medina,IT,IT Manager,2024-07-23,41,Male,Master's Degree,Good,109608,,1,130.0,No,,EMP-1001
+EMP-1201,Jim Newton,Sales,Sales Representative,2016-03-01,44,Female,Bachelor's Degree,Excellent,49649,10750.0,9,100.0,No,,EMP-1092
+EMP-1202,Krista Wilson,Finance,CFO,2024-03-14,31,Female,High School,Excellent,201337,48983.0,1,47.0,No,,
+EMP-1203,Reginald Morrow,Marketing,Digital Marketing Analyst,2012-06-02,47,Female,Master's Degree,Good,65811,8970.0,13,49.0,No,,EMP-1018
+EMP-1204,Rodney Williams,Finance,Finance Manager,2011-05-07,57,Female,High School,Good,129269,17421.0,14,53.0,No,2023-08-24,EMP-1088
+EMP-1205,Kimberly Fritz,Operations,Operations Director,2011-02-02,51,Female,PhD,Good,220874,18078.0,14,51.0,No,2017-07-12,
+EMP-1206,Ronald Potter,HR,HR Specialist,2025-03-20,30,Female,Bachelor's Degree,Excellent,53931,12444.0,0,65.0,Yes,,EMP-1008
+EMP-1207,Zachary Cole,Marketing,Digital Marketing Analyst,2010-10-15,63,Female,High School,Excellent,72324,11726.0,15,87.0,No,,EMP-1007
+EMP-1208,Robert Gonzales,Engineering,Technical Lead,2021-06-11,55,Male,Bachelor's Degree,Good,134709,16700.0,4,53.0,No,,EMP-1009
+EMP-1209,Patricia Young PhD,Marketing,Marketing Specialist,2025-02-26,31,Male,Bachelor's Degree,Good,48349,5369.0,0,45.0,Yes,,EMP-1062
+EMP-1210,Heather Page,HR,HR Director,2025-08-09,37,Male,High School,Good,166306,,0,40.0,No,,
+EMP-1211,Carol Taylor,IT,IT Manager,2010-06-28,52,Male,High School,Excellent,139034,26293.0,15,65.0,No,,EMP-1037
+EMP-1212,Daniel Brown,Customer Service,Customer Service Rep,2011-05-18,29,Female,Master's Degree,Satisfactory,46137,3605.0,14,49.0,No,,EMP-1059
+EMP-1213,Douglas Ryan,Engineering,Engineering Manager,2013-08-17,22,Female,Bachelor's Degree,Satisfactory,186974,11741.0,12,85.0,No,2019-10-12,EMP-1092
+EMP-1214,Michael Roberts,HR,HR Director,2010-08-15,39,Male,PhD,Excellent,175782,36493.0,15,69.0,No,,
+EMP-1215,Scott Duke,Operations,Operations Director,2020-07-17,59,Female,High School,Satisfactory,121382,4227.0,5,26.0,No,2023-05-10,
+EMP-1216,Anna Estes,Marketing,Marketing Manager,2024-01-03,37,Male,PhD,Good,142622,13910.0,1,43.0,No,,EMP-1098
+EMP-1217,Tamara Riddle,Sales,Sales Manager,2012-12-23,60,Female,High School,Excellent,115877,,12,48.0,No,2016-07-03,EMP-1026
+EMP-1218,Beth Cline,Finance,Financial Analyst,2022-07-31,49,Male,High School,Good,61697,5079.0,3,38.0,No,,EMP-1053
+EMP-1219,Michael Poole,Engineering,Technical Lead,2010-05-17,43,Male,Bachelor's Degree,Good,163507,20159.0,15,150.0,No,2019-10-23,EMP-1010
+EMP-1220,Megan Burns,HR,HR Specialist,2015-06-19,30,Male,PhD,Needs Improvement,52367,1448.0,10,36.0,No,,
+EMP-1221,Debra Perry,HR,HR Specialist,2016-10-15,32,Male,,Good,65356,7726.0,9,34.0,No,,EMP-1034
+EMP-1222,Mark Beard,Operations,Operations Director,2024-09-01,24,Male,Bachelor's Degree,Good,149557,14102.0,1,56.0,No,,
+EMP-1223,Jose Ramirez,IT,IT Support,2023-04-13,37,Male,High School,Satisfactory,63996,3833.0,2,118.0,No,,EMP-1071
+EMP-1224,Jackie Clements,HR,HR Specialist,2018-04-07,30,Female,High School,Excellent,45965,9090.0,7,37.0,No,,EMP-1100
+EMP-1225,Aaron Schroeder,Customer Service,Customer Service Rep,2013-04-08,56,Male,PhD,Satisfactory,53605,3487.0,12,55.0,No,,EMP-1057
+EMP-1226,Monica Ellis,Operations,Supply Chain Manager,2024-07-13,61,Male,Master's Degree,Good,112307,10808.0,1,62.0,No,,EMP-1097
+EMP-1227,Heather Brown,Finance,Financial Analyst,2020-06-21,22,Male,High School,Good,43361,3601.0,5,53.0,No,,EMP-1038
+EMP-1228,Claudia Jordan,Customer Service,Customer Success Manager,2019-05-15,60,Male,High School,Good,68867,9836.0,6,41.0,No,2023-06-17,EMP-1038
+EMP-1229,Derrick Clayton,HR,Recruiter,2012-01-01,55,Male,High School,Good,64882,7398.0,13,29.0,No,,EMP-1067
+EMP-1230,Kenneth Knight,Finance,Financial Analyst,2017-12-16,41,Male,Bachelor's Degree,Excellent,64170,14529.0,7,29.0,No,,EMP-1035
+EMP-1231,Mr. Michael Williams,Customer Service,Support Specialist,2013-05-03,59,Female,High School,Good,47310,5058.0,12,25.0,No,,EMP-1085
+EMP-1232,Richard Stevens,Sales,Account Executive,2015-07-03,56,Female,Master's Degree,Excellent,73193,16909.0,10,78.0,Yes,2023-06-21,EMP-1056
+EMP-1233,Scott Alexander,Marketing,Marketing Director,2017-05-02,25,Female,PhD,Satisfactory,208024,11101.0,8,45.0,No,,
+EMP-1234,Tyler Harris,Finance,Finance Manager,2016-12-11,27,Female,PhD,Satisfactory,140669,5982.0,8,58.0,Yes,2021-07-17,EMP-1034
+EMP-1235,Bonnie Santos,IT,IT Support,2014-02-03,50,Male,High School,Satisfactory,72931,2982.0,11,47.0,No,,
+EMP-1236,Timothy Hill,Operations,Operations Analyst,2017-03-05,61,Female,Bachelor's Degree,Good,59321,5273.0,8,69.0,No,,EMP-1084
+EMP-1237,Danielle Watson,Marketing,Marketing Specialist,2024-02-02,36,Male,PhD,Good,54645,7115.0,1,45.0,No,,EMP-1033
+EMP-1238,Carol Sanders,Operations,Operations Analyst,2023-02-26,65,Male,Bachelor's Degree,Excellent,60722,11803.0,2,58.0,No,,EMP-1074
+EMP-1239,Michael Young,Customer Service,Customer Service Rep,2021-10-31,65,Female,PhD,Satisfactory,49890,2311.0,4,43.0,No,,EMP-1053
+EMP-1240,Michele Smith,HR,HR Specialist,2021-01-14,52,Female,Master's Degree,Excellent,47717,7279.0,4,67.0,No,,EMP-1092
+EMP-1241,Casey Perez,Customer Service,Customer Service Rep,2023-10-04,35,Female,Bachelor's Degree,Good,41541,6110.0,2,43.0,No,,EMP-1081
+EMP-1242,Alexandra Dominguez,Marketing,Marketing Specialist,2011-08-08,56,Female,PhD,Excellent,83535,19513.0,14,65.0,No,,EMP-1099
+EMP-1243,Virginia Henderson,IT,IT Manager,2012-05-18,36,Female,Bachelor's Degree,Excellent,128909,26561.0,13,67.0,No,2023-06-12,EMP-1054
+EMP-1244,Benjamin Reyes,Engineering,Senior Engineer,2016-09-14,58,Male,Bachelor's Degree,Good,119195,10215.0,9,116.0,No,2019-12-04,EMP-1024
+EMP-1245,Ashley Edwards,Engineering,Software Engineer,2010-09-12,22,Female,Master's Degree,Excellent,103687,24568.0,15,105.0,No,,EMP-1010
+EMP-1246,Breanna Ayala,Customer Service,Customer Success Manager,2018-09-14,54,Male,Bachelor's Degree,Satisfactory,87623,4104.0,7,41.0,No,2020-03-17,EMP-1010
+EMP-1247,Brandi Haney,Customer Service,Customer Success Manager,2021-08-11,50,Female,Master's Degree,Good,89246,11660.0,4,78.0,No,,EMP-1001
+EMP-1248,Joseph Smith,IT,Security Analyst,2017-09-25,65,Female,PhD,Excellent,77999,13511.0,8,123.0,No,,EMP-1068
+EMP-1249,Jessica Bowen,Operations,Operations Director,2024-07-27,40,Female,Bachelor's Degree,Good,158071,17409.0,1,47.0,No,,
+EMP-1250,Brittany Jenkins,HR,HR Manager,2011-08-21,44,Male,Master's Degree,Excellent,114411,20462.0,14,50.0,No,2018-11-19,EMP-1019
+EMP-1251,Shannon Miller,Engineering,Software Engineer,2019-10-31,35,Male,High School,Excellent,83305,15574.0,6,105.0,No,,EMP-1094
+EMP-1252,Paul Lawrence,Engineering,Technical Lead,2022-03-30,55,Female,High School,Satisfactory,135375,10077.0,3,103.0,No,2024-01-09,EMP-1094
+EMP-1253,Victor Edwards,Marketing,Marketing Manager,2014-12-27,44,Male,Master's Degree,Excellent,108948,24355.0,10,97.0,No,2016-06-01,EMP-1056
+EMP-1254,Donald Miller,Operations,Operations Manager,2025-07-09,55,Male,High School,Satisfactory,125936,4639.0,0,44.0,No,,EMP-1029
+EMP-1255,Lindsay Lawson,IT,System Administrator,2015-12-24,38,Male,,Excellent,72606,17250.0,9,143.0,No,,EMP-1001
+EMP-1256,Melissa Abbott,IT,System Administrator,2016-12-25,26,Female,High School,Excellent,58441,12178.0,8,104.0,No,,EMP-1024
+EMP-1257,Elizabeth Holmes,HR,HR Director,2010-07-26,36,Female,PhD,Good,209772,18431.0,15,46.0,No,,
+EMP-1258,Nicole Phillips,Engineering,Technical Lead,2013-03-12,29,Female,High School,Excellent,163442,38247.0,12,130.0,No,,EMP-1035
+EMP-1259,Steven Blevins,Sales,Account Executive,2011-07-05,48,Male,Master's Degree,Excellent,82199,19829.0,14,58.0,No,2013-07-12,EMP-1040
+EMP-1260,Brian Porter MD,Finance,Accountant,2022-01-02,48,Female,Bachelor's Degree,Good,65002,7979.0,3,35.0,Yes,,EMP-1093
+EMP-1261,Vanessa Hatfield,Marketing,Digital Marketing Analyst,2019-08-04,46,Male,High School,Excellent,54068,13437.0,6,77.0,No,,EMP-1038
+EMP-1262,Bonnie Valencia,Operations,Operations Director,2024-11-01,45,Male,Bachelor's Degree,Satisfactory,150904,10224.0,1,53.0,No,,
+EMP-1263,Holly Vega,Sales,Sales Manager,2018-09-11,53,Female,Master's Degree,Good,114797,15716.0,7,70.0,No,2022-09-20,EMP-1011
+EMP-1264,Tiffany Townsend,Customer Service,Customer Service Rep,2013-01-08,26,Male,Bachelor's Degree,Satisfactory,34604,2524.0,12,40.0,No,,EMP-1096
+EMP-1265,Austin Baker,HR,HR Director,2010-04-10,41,Male,High School,Satisfactory,145122,5028.0,15,46.0,No,2023-03-26,
+EMP-1266,Antonio Mccormick,Sales,Sales Director,2022-03-26,46,Male,PhD,Good,208380,19938.0,3,37.0,No,2024-10-22,
+EMP-1267,Lori Mason,HR,Recruiter,2020-07-29,63,Male,High School,Satisfactory,40666,2978.0,5,51.0,No,,EMP-1011
+EMP-1268,Michael Miller,IT,System Administrator,2016-08-28,47,Male,PhD,Good,66416,5483.0,9,143.0,No,,EMP-1035
+EMP-1269,Lisa Ramirez,IT,Security Analyst,2010-10-05,57,Male,Bachelor's Degree,Needs Improvement,73646,2035.0,15,94.0,No,,
+EMP-1270,Jorge Harris,Engineering,Software Engineer,2022-10-24,22,Male,Bachelor's Degree,Excellent,66876,15953.0,3,118.0,No,,EMP-1063
+EMP-1271,Kimberly Myers,Customer Service,Customer Success Manager,2015-12-03,57,Male,Master's Degree,Good,77794,7699.0,9,51.0,No,2018-07-04,EMP-1038
+EMP-1272,Sandra Becker,Operations,Supply Chain Manager,2015-09-06,61,Male,PhD,Excellent,156384,26026.0,10,55.0,No,,EMP-1009
+EMP-1273,Michael Blair,Finance,Accountant,2023-12-28,41,Male,PhD,Good,55269,6234.0,1,33.0,No,,EMP-1029
+EMP-1274,Amy Miller,Sales,Sales Manager,2012-06-11,62,Female,Master's Degree,Good,141884,14998.0,13,96.0,No,2017-12-26,EMP-1010
+EMP-1275,Jesse Lynch,Finance,Finance Manager,2021-02-18,28,Male,Master's Degree,Satisfactory,118033,7007.0,4,44.0,No,2023-09-08,EMP-1095
+EMP-1276,Patrick Yang,Engineering,Software Engineer,2021-08-31,35,Female,Bachelor's Degree,Excellent,67904,11304.0,4,47.0,No,,EMP-1007
+EMP-1277,Michael Miles,IT,Security Analyst,2022-07-12,54,Male,Master's Degree,Excellent,70709,14567.0,3,117.0,No,,EMP-1046
+EMP-1278,Troy Mills,Operations,Operations Analyst,2017-04-04,55,Female,Bachelor's Degree,Satisfactory,70289,4078.0,8,51.0,No,,EMP-1033
+EMP-1279,Michelle Jackson,Customer Service,Support Specialist,2011-05-22,57,Male,High School,Good,40728,5335.0,14,,No,,EMP-1025
+EMP-1280,Richard Adams,Engineering,Software Engineer,2019-06-08,45,Female,PhD,Needs Improvement,80530,793.0,6,87.0,No,,EMP-1065
+EMP-1281,Patricia Johnson,HR,HR Specialist,2017-10-15,60,Male,PhD,Satisfactory,61237,4810.0,8,,No,,EMP-1061
+EMP-1282,Denise Brown,Engineering,Technical Lead,2025-01-02,53,Female,High School,Needs Improvement,140774,3776.0,0,59.0,No,,EMP-1023
+EMP-1283,Laura Jones,Customer Service,Customer Service Rep,2024-06-04,27,Male,PhD,Satisfactory,36966,1289.0,1,54.0,Yes,,EMP-1025
+EMP-1284,Ian Porter,Operations,Operations Manager,2012-12-08,43,Male,Master's Degree,Excellent,167450,36330.0,12,27.0,No,,EMP-1035
+EMP-1285,Holly Scott,IT,IT Support,2012-11-13,33,Male,,Excellent,69278,12547.0,13,133.0,No,,EMP-1073
+EMP-1286,Kenneth Sharp,IT,IT Support,2023-08-09,58,Male,High School,Satisfactory,49410,2266.0,2,120.0,No,,EMP-1099
+EMP-1287,Jordan Williams,Finance,Finance Manager,2017-11-30,22,Male,High School,Good,133617,16697.0,7,42.0,No,2023-03-02,EMP-1091
+EMP-1288,Dana Ruiz,HR,HR Manager,2019-08-03,33,Female,PhD,Excellent,129088,21649.0,6,44.0,No,,EMP-1046
+EMP-1289,Chris Velazquez,IT,System Administrator,2019-04-05,44,Female,PhD,Good,66110,6894.0,6,88.0,No,,EMP-1065
+EMP-1290,Kristen Sloan,Finance,Finance Manager,2022-02-21,27,Female,PhD,Needs Improvement,124509,2459.0,3,31.0,No,2024-01-17,EMP-1048
+EMP-1291,Jennifer Morris,Sales,Account Executive,2025-08-22,64,Female,High School,Good,75089,8222.0,0,61.0,No,,EMP-1024
+EMP-1292,Nathan Nelson,Engineering,Technical Lead,2011-03-27,41,Female,Bachelor's Degree,Excellent,204030,42715.0,14,125.0,No,,EMP-1093
+EMP-1293,Jake Shaw,Operations,Operations Director,2018-02-27,60,Female,,Good,225005,19699.0,7,62.0,No,2019-06-23,
+EMP-1294,Cassie Brock,Engineering,Engineering Manager,2021-09-07,54,Male,Bachelor's Degree,Excellent,166684,36060.0,4,63.0,No,2024-08-15,EMP-1059
+EMP-1295,Dr. Andrea Marshall,IT,IT Support,2016-08-11,32,Female,Bachelor's Degree,Good,61875,5972.0,9,81.0,No,,EMP-1020
+EMP-1296,Ryan Murphy,IT,System Administrator,2013-03-18,22,Female,High School,Good,71969,9124.0,12,129.0,No,,EMP-1013
+EMP-1297,Aimee Gonzalez,Operations,Operations Manager,2012-02-15,30,Female,Master's Degree,Excellent,161509,25383.0,13,66.0,No,,EMP-1078
+EMP-1298,Elizabeth Dean,Operations,Supply Chain Manager,2012-12-19,37,Male,High School,Good,138425,13303.0,12,58.0,No,2017-10-09,EMP-1050
+EMP-1299,Kevin Snyder,Engineering,Engineering Manager,2010-04-14,49,Male,PhD,Excellent,186684,31353.0,15,117.0,No,2013-02-18,EMP-1045
+EMP-1300,Christie Mccullough,Customer Service,Customer Service Rep,2013-11-09,63,Male,Master's Degree,Satisfactory,42915,2330.0,12,45.0,No,,EMP-1007
+EMP-1301,Danielle Smith,HR,HR Specialist,2010-02-15,49,Female,,Satisfactory,87288,,15,27.0,No,,EMP-1055
+EMP-1302,David Reed,Marketing,Marketing Manager,2017-01-03,65,Female,Master's Degree,Excellent,110778,24677.0,8,72.0,No,,EMP-1063
+EMP-1303,Sherry Tapia,Sales,Account Executive,2016-11-01,45,Female,PhD,Good,82019,9677.0,9,48.0,No,2021-03-04,EMP-1082
+EMP-1304,Matthew Sweeney,Marketing,Digital Marketing Analyst,2023-02-12,60,Male,PhD,Good,46855,4058.0,2,86.0,No,,EMP-1036
+EMP-1305,Ashley Moreno,Finance,CFO,2024-08-28,51,Female,High School,Satisfactory,135539,8195.0,1,60.0,No,,
+EMP-1306,Johnathan Brown,Marketing,Digital Marketing Analyst,2020-07-04,46,Male,PhD,Excellent,57883,12859.0,5,105.0,No,,EMP-1056
+EMP-1307,Michelle Davis DVM,HR,Recruiter,2024-05-04,34,Male,Bachelor's Degree,Satisfactory,58817,3450.0,1,33.0,No,,EMP-1056
+EMP-1308,Kelly Haynes,HR,HR Specialist,2016-04-19,33,Female,PhD,Good,79669,7528.0,9,59.0,No,,EMP-1060
+EMP-1309,William Miller,Finance,Accountant,2016-01-07,28,Female,Master's Degree,Excellent,54882,12770.0,9,69.0,No,,EMP-1070
+EMP-1310,Casey Wilkins,Sales,Account Executive,2011-03-05,52,Female,Master's Degree,Excellent,81113,13875.0,14,85.0,No,2024-12-26,EMP-1011
+EMP-1311,Keith Graham,Operations,Operations Analyst,2015-03-20,57,Female,Master's Degree,Good,55374,4544.0,10,75.0,No,,EMP-1073
+EMP-1312,Cynthia Green,Sales,Account Executive,2013-09-08,48,Female,PhD,Good,117413,12503.0,12,41.0,No,2021-01-31,EMP-1038
+EMP-1313,Robert Haynes,Customer Service,Customer Success Manager,2017-05-12,32,Male,Bachelor's Degree,Good,84537,10492.0,8,79.0,No,2022-10-04,EMP-1029
+EMP-1314,Emily Nelson,IT,IT Manager,2020-04-22,53,Female,Bachelor's Degree,Good,135435,13569.0,5,145.0,No,2025-02-19,EMP-1013
+EMP-1315,Dale Chan,Customer Service,Customer Success Manager,2017-12-31,59,Female,Bachelor's Degree,Good,86108,9922.0,7,31.0,No,2022-08-23,EMP-1079
+EMP-1316,Brittney Martin,IT,IT Support,2013-08-08,32,Male,High School,Satisfactory,73272,5313.0,12,60.0,No,,EMP-1093
+EMP-1317,Jason Herrera,IT,System Administrator,2025-07-29,33,Male,Bachelor's Degree,Excellent,61462,12769.0,0,115.0,No,,EMP-1031
+EMP-1318,Christine Parker,Marketing,Digital Marketing Analyst,2023-11-09,51,Male,,Satisfactory,46263,3119.0,2,73.0,No,,EMP-1067
+EMP-1319,Bryan Moore,Marketing,Marketing Director,2025-04-01,46,Female,High School,Good,159418,18118.0,0,84.0,No,,
+EMP-1320,Samantha Terry,Customer Service,Customer Success Manager,2017-01-21,45,Male,High School,Good,81008,,8,35.0,No,2019-08-25,EMP-1032
+EMP-1321,Russell Murphy,HR,HR Specialist,2010-07-05,35,Female,High School,Excellent,60100,11073.0,15,57.0,No,,EMP-1034
+EMP-1322,David Kelly,Sales,Sales Manager,2013-11-14,60,Female,Master's Degree,Excellent,120882,21652.0,11,86.0,No,2019-10-20,EMP-1087
+EMP-1323,Megan Green,Engineering,Senior Engineer,2017-10-30,31,Female,Master's Degree,Good,151562,21152.0,8,135.0,No,,
+EMP-1324,Amanda Sullivan MD,Engineering,Engineering Manager,2013-03-11,52,Female,Master's Degree,Excellent,182738,39259.0,12,133.0,No,2021-09-09,
+EMP-1325,Danielle Murray,HR,HR Manager,2021-12-15,36,Female,Bachelor's Degree,Satisfactory,101087,4028.0,3,,No,2022-12-27,EMP-1096
+EMP-1326,Brenda Smith,Operations,Operations Analyst,2023-06-27,34,Male,High School,Excellent,52802,10841.0,2,73.0,No,,EMP-1011
+EMP-1327,Vickie Anderson,Finance,Accountant,2018-03-25,50,Male,Bachelor's Degree,Good,59253,5476.0,7,68.0,No,,EMP-1096
+EMP-1328,Jacqueline Mccoy,Engineering,Engineering Manager,2010-02-14,26,Male,Bachelor's Degree,Excellent,149581,35624.0,15,55.0,No,,EMP-1015
+EMP-1329,Lauren Green,IT,System Administrator,2016-01-21,27,Female,Bachelor's Degree,Excellent,60731,11719.0,9,71.0,No,,EMP-1083
+EMP-1330,Alison Brown,IT,IT Support,2010-05-31,59,Male,PhD,Excellent,85011,17064.0,15,124.0,No,,EMP-1034
+EMP-1331,Jill Anderson,HR,Recruiter,2020-03-08,43,Male,High School,Good,54295,4368.0,5,64.0,No,,EMP-1009
+EMP-1332,Sandra Rivera,HR,HR Specialist,2020-08-05,65,Female,Master's Degree,Good,60725,8168.0,5,39.0,No,,EMP-1041
+EMP-1333,Joel Jackson,HR,HR Manager,2013-08-26,28,Female,Master's Degree,Excellent,127444,26892.0,12,35.0,No,2021-04-29,EMP-1054
+EMP-1334,Samantha Foster,HR,HR Director,2016-05-16,36,Female,Master's Degree,Good,207410,28632.0,9,49.0,No,2022-01-18,
+EMP-1335,Michael Thompson,Sales,Sales Director,2016-11-18,47,Male,Bachelor's Degree,Good,157953,14872.0,8,94.0,No,2021-06-28,
+EMP-1336,Cody Ramirez,Operations,Operations Manager,2022-10-05,46,Female,PhD,Excellent,127867,22288.0,3,52.0,No,2023-11-21,EMP-1100
+EMP-1337,Amanda Harvey,Finance,Finance Manager,2023-12-20,53,Female,PhD,Good,149436,15539.0,1,65.0,No,,EMP-1015
+EMP-1338,Edward Jenkins,Marketing,Digital Marketing Analyst,2016-01-31,30,Female,Bachelor's Degree,Needs Improvement,61901,163.0,9,45.0,No,,EMP-1070
+EMP-1339,Amy Ramirez,HR,HR Specialist,2015-05-14,57,Female,High School,Good,50440,7230.0,10,63.0,No,,EMP-1042
+EMP-1340,Curtis Wilkerson,IT,IT Manager,2017-11-02,36,Female,Bachelor's Degree,Good,135464,12167.0,8,112.0,No,2024-10-05,EMP-1008
+EMP-1341,Lydia Pham,Customer Service,Customer Service Rep,2010-05-29,23,Female,Master's Degree,Good,49958,6215.0,15,30.0,No,,EMP-1100
+EMP-1342,Virginia Casey,Engineering,Software Engineer,2018-11-28,56,Male,PhD,Satisfactory,105652,5446.0,6,75.0,No,,EMP-1095
+EMP-1343,Joshua Washington,Operations,Operations Analyst,2012-04-23,63,Male,Master's Degree,Satisfactory,64324,3778.0,13,20.0,No,,EMP-1050
+EMP-1344,Kathryn Price,Finance,Finance Manager,2018-05-30,22,Male,Bachelor's Degree,Good,138093,16193.0,7,42.0,No,2021-02-13,EMP-1025
+EMP-1345,Francis Robinson,HR,HR Manager,2024-09-07,35,Male,High School,Needs Improvement,87337,1415.0,1,24.0,No,,EMP-1041
+EMP-1346,Paula Brown,Finance,Accountant,2017-07-25,64,Male,Bachelor's Degree,Excellent,60202,13679.0,8,23.0,No,,EMP-1057
+EMP-1347,Kendra Wang DVM,Sales,Sales Director,2011-08-06,46,Male,Bachelor's Degree,Excellent,214045,36508.0,14,68.0,No,2023-12-16,
+EMP-1348,Ariel Sandoval,Finance,Financial Analyst,2015-07-30,32,Male,Master's Degree,Satisfactory,74935,5939.0,10,52.0,No,,EMP-1033
+EMP-1349,Robert Stark,Sales,Sales Representative,2022-05-15,51,Male,PhD,Satisfactory,55046,2643.0,3,49.0,No,,EMP-1056
+EMP-1350,Zachary Robinson,Marketing,Marketing Director,2017-06-01,36,Female,High School,Excellent,214315,33119.0,8,51.0,Yes,2019-12-27,

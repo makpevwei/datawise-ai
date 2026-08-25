@@ -1,0 +1,23 @@
+Machine Learning Basics
+
+Machine learning is a branch of artificial intelligence (AI) that enables computers to learn from data without being explicitly programmed. 
+There are three main types of machine learning: supervised learning, unsupervised learning, and reinforcement learning.
+
+Supervised learning involves training a model on labeled data, where the output is known. 
+Examples include regression and classification tasks. 
+Unsupervised learning discovers hidden patterns in unlabeled data.
+Reinforcement learning trains agents to make decisions by maximizing cumulative rewards.
+
+Key algorithms include:
+- Linear Regression for continuous predictions
+- Decision Trees for interpretable classifications
+- Neural Networks for complex pattern recognition
+- K-Means Clustering for grouping similar data points
+
+A typical machine learning workflow includes:
+1. Data collection and preprocessing
+2. Feature engineering
+3. Model selection and training
+4. Evaluation and validation
+5. Hyperparameter tuning
+6. Deployment and monitoring

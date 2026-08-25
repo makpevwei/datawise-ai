@@ -1,0 +1,953 @@
+[
+  {
+    "id": 1,
+    "category": "simple_aggregation",
+    "question": "What was the total price across all orders?",
+    "latency_ms": 49115,
+    "error": null,
+    "configured": true,
+    "agent_error": null,
+    "executive_summary": "The total price across all orders is calculated to be $69,788.81.",
+    "key_findings": [
+      {
+        "text": "The total price across all orders is $69,788.81.",
+        "label": "CALCULATED",
+        "verification_note": null,
+        "citations": []
+      }
+    ],
+    "claim_comparisons": [],
+    "citations": [],
+    "tool_calls": [
+      "calculate_metric",
+      "inspect_schema",
+      "calculate_metric"
+    ]
+  },
+  {
+    "id": 2,
+    "category": "simple_aggregation",
+    "question": "What is the average order price?",
+    "latency_ms": 8146,
+    "error": null,
+    "configured": true,
+    "agent_error": null,
+    "executive_summary": "The average order price is approximately $55.43.",
+    "key_findings": [
+      {
+        "text": "The calculated average order price is $55.43.",
+        "label": "CALCULATED",
+        "verification_note": null,
+        "citations": []
+      }
+    ],
+    "claim_comparisons": [],
+    "citations": [],
+    "tool_calls": [
+      "calculate_metric",
+      "inspect_schema",
+      "calculate_metric"
+    ]
+  },
+  {
+    "id": 3,
+    "category": "filtering",
+    "question": "What is the total price for orders paid by CASH?",
+    "latency_ms": 9685,
+    "error": null,
+    "configured": true,
+    "agent_error": null,
+    "executive_summary": "The total price for orders paid by CASH is $21,767.21.",
+    "key_findings": [
+      {
+        "text": "The total price for orders paid by CASH is $21,767.21.",
+        "label": "CALCULATED",
+        "verification_note": null,
+        "citations": []
+      }
+    ],
+    "claim_comparisons": [],
+    "citations": [],
+    "tool_calls": [
+      "calculate_metric",
+      "inspect_schema",
+      "group_and_aggregate"
+    ]
+  },
+  {
+    "id": 4,
+    "category": "filtering",
+    "question": "How many orders had a late delivery risk?",
+    "latency_ms": 9007,
+    "error": null,
+    "configured": true,
+    "agent_error": null,
+    "executive_summary": "There are 625 orders identified with a late delivery risk based on the analysis of the dataset.",
+    "key_findings": [
+      {
+        "text": "There are 625 orders that had a late delivery risk.",
+        "label": "VERIFIED_FROM_DATA",
+        "verification_note": null,
+        "citations": []
+      }
+    ],
+    "claim_comparisons": [],
+    "citations": [],
+    "tool_calls": [
+      "calculate_metric",
+      "inspect_schema",
+      "calculate_metric"
+    ]
+  },
+  {
+    "id": 5,
+    "category": "ranking",
+    "question": "Which region generated the most total price?",
+    "latency_ms": 12768,
+    "error": null,
+    "configured": true,
+    "agent_error": null,
+    "executive_summary": "The region that generated the most total price is North Africa, with a total of $18,050.80. This represents 25.86% of the total price generated across all regions.",
+    "key_findings": [
+      {
+        "text": "North Africa generated a total price of $18,050.80, which is the highest among all regions.",
+        "label": "VERIFIED_FROM_DATA",
+        "verification_note": null,
+        "citations": []
+      },
+      {
+        "text": "West Africa generated a total price of $17,318.54, which is the second highest.",
+        "label": "VERIFIED_FROM_DATA",
+        "verification_note": null,
+        "citations": []
+      },
+      {
+        "text": "Central Africa generated a total price of $17,277.97.",
+        "label": "VERIFIED_FROM_DATA",
+        "verification_note": null,
+        "citations": []
+      },
+      {
+        "text": "South Africa generated a total price of $17,141.50.",
+        "label": "VERIFIED_FROM_DATA",
+        "verification_note": null,
+        "citations": []
+      }
+    ],
+    "claim_comparisons": [],
+    "citations": [],
+    "tool_calls": [
+      "group_and_aggregate",
+      "inspect_schema",
+      "group_and_aggregate"
+    ]
+  },
+  {
+    "id": 6,
+    "category": "ranking",
+    "question": "Which shipping mode is used the most?",
+    "latency_ms": 10488,
+    "error": null,
+    "configured": true,
+    "agent_error": null,
+    "executive_summary": "The most used shipping mode is 'First Class,' accounting for 28.12% of total orders. Other modes include 'Same Day' at 24.62%, 'Second Class' at 23.67%, and 'Standard Class' at 23.59%.",
+    "key_findings": [
+      {
+        "text": "First Class shipping mode accounts for 28.12% of total orders with 354 records.",
+        "label": "VERIFIED_FROM_DATA",
+        "verification_note": null,
+        "citations": []
+      },
+      {
+        "text": "Same Day shipping mode accounts for 24.62% of total orders with 310 records.",
+        "label": "VERIFIED_FROM_DATA",
+        "verification_note": null,
+        "citations": []
+      },
+      {
+        "text": "Second Class shipping mode accounts for 23.67% of total orders with 298 records.",
+        "label": "VERIFIED_FROM_DATA",
+        "verification_note": null,
+        "citations": []
+      },
+      {
+        "text": "Standard Class shipping mode accounts for 23.59% of total orders with 297 records.",
+        "label": "VERIFIED_FROM_DATA",
+        "verification_note": null,
+        "citations": []
+      }
+    ],
+    "claim_comparisons": [],
+    "citations": [],
+    "tool_calls": [
+      "group_and_aggregate",
+      "inspect_schema",
+      "group_and_aggregate"
+    ]
+  },
+  {
+    "id": 7,
+    "category": "joins",
+    "question": "Which product category generated the most revenue, joining orders with products?",
+    "latency_ms": 15780,
+    "error": null,
+    "configured": true,
+    "agent_error": null,
+    "executive_summary": "The product category that generated the most revenue is Electronics, totaling $13,264.13, which is 19.01% of the overall revenue.",
+    "key_findings": [
+      {
+        "text": "Electronics generated $13,264.13 in revenue, accounting for 19.01% of total revenue.",
+        "label": "VERIFIED_FROM_DATA",
+        "verification_note": null,
+        "citations": []
+      }
+    ],
+    "claim_comparisons": [],
+    "citations": [],
+    "tool_calls": [
+      "inspect_schema",
+      "inspect_schema",
+      "inspect_schema",
+      "inspect_schema",
+      "join_datasets",
+      "group_and_aggregate"
+    ]
+  },
+  {
+    "id": 8,
+    "category": "joins",
+    "question": "Which customer segment placed the most orders, joining orders with customers?",
+    "latency_ms": 17343,
+    "error": null,
+    "configured": true,
+    "agent_error": null,
+    "executive_summary": "The Consumer segment placed the most orders, totaling 678, which is 53.85% of all orders. Corporate and Home Office segments followed with 358 and 223 orders, respectively.",
+    "key_findings": [
+      {
+        "text": "The Consumer segment placed 678 orders, accounting for 53.85% of all orders.",
+        "label": "VERIFIED_FROM_DATA",
+        "verification_note": null,
+        "citations": []
+      },
+      {
+        "text": "The Corporate segment placed 358 orders, accounting for 28.44% of all orders.",
+        "label": "VERIFIED_FROM_DATA",
+        "verification_note": null,
+        "citations": []
+      },
+      {
+        "text": "The Home Office segment placed 223 orders, accounting for 17.71% of all orders.",
+        "label": "VERIFIED_FROM_DATA",
+        "verification_note": null,
+        "citations": []
+      }
+    ],
+    "claim_comparisons": [],
+    "citations": [],
+    "tool_calls": [
+      "group_and_aggregate",
+      "inspect_schema",
+      "join_datasets",
+      "inspect_schema",
+      "inspect_schema",
+      "join_datasets",
+      "group_and_aggregate"
+    ]
+  },
+  {
+    "id": 9,
+    "category": "time_comparison",
+    "question": "Compare total price between 2023-01 and 2023-02.",
+    "latency_ms": 16304,
+    "error": null,
+    "configured": true,
+    "agent_error": null,
+    "executive_summary": "The total price increased from January 2023 to February 2023 by $473.28, representing a 29.11% rise. Additionally, the quantity sold also saw a significant increase of 36.5% during the same period.",
+    "key_findings": [
+      {
+        "text": "Total price in January 2023 was $1,625.64 and in February 2023 was $2,098.92, showing an absolute change of $473.28 and a percentage change of 29.11%.",
+        "label": "CALCULATED",
+        "verification_note": null,
+        "citations": []
+      },
+      {
+        "text": "Quantity sold increased from 137 in January 2023 to 187 in February 2023, with an absolute change of 50 and a percentage change of 36.5%.",
+        "label": "CALCULATED",
+        "verification_note": null,
+        "citations": []
+      }
+    ],
+    "claim_comparisons": [],
+    "citations": [],
+    "tool_calls": [
+      "compare_periods",
+      "compare_periods",
+      "inspect_schema",
+      "compare_periods",
+      "compare_periods"
+    ]
+  },
+  {
+    "id": 10,
+    "category": "time_comparison",
+    "question": "Show me the monthly trend of order price over time.",
+    "latency_ms": 21453,
+    "error": null,
+    "configured": true,
+    "agent_error": null,
+    "executive_summary": "No data was found to analyze the monthly trend of order prices over time.",
+    "key_findings": [
+      {
+        "text": "Insufficient evidence in the uploaded data.",
+        "label": "INSUFFICIENT_DATA",
+        "verification_note": null,
+        "citations": []
+      }
+    ],
+    "claim_comparisons": [],
+    "citations": [],
+    "tool_calls": [
+      "generate_chart",
+      "generate_chart",
+      "generate_chart",
+      "inspect_schema",
+      "inspect_schema",
+      "inspect_schema",
+      "inspect_schema",
+      "inspect_schema"
+    ]
+  },
+  {
+    "id": 11,
+    "category": "anomaly_detection",
+    "question": "Are there any unusual or anomalous values in the order price column?",
+    "latency_ms": 9655,
+    "error": null,
+    "configured": true,
+    "agent_error": null,
+    "executive_summary": "No unusual or anomalous values were found in the order price column after analysis.",
+    "key_findings": [
+      {
+        "text": "No anomalies were detected in the price column.",
+        "label": "VERIFIED_FROM_DATA",
+        "verification_note": null,
+        "citations": []
+      }
+    ],
+    "claim_comparisons": [],
+    "citations": [],
+    "tool_calls": [
+      "detect_anomalies",
+      "inspect_schema",
+      "detect_anomalies"
+    ]
+  },
+  {
+    "id": 12,
+    "category": "anomaly_detection",
+    "question": "Detect anomalies in the cost column of the orders dataset.",
+    "latency_ms": 5131,
+    "error": null,
+    "configured": true,
+    "agent_error": null,
+    "executive_summary": "No anomalies were detected in the cost column of the orders dataset.",
+    "key_findings": [
+      {
+        "text": "No anomalies were found in the cost column of the orders dataset.",
+        "label": "VERIFIED_FROM_DATA",
+        "verification_note": null,
+        "citations": []
+      }
+    ],
+    "claim_comparisons": [],
+    "citations": [],
+    "tool_calls": [
+      "detect_anomalies"
+    ]
+  },
+  {
+    "id": 13,
+    "category": "multi_dataset",
+    "question": "What relationships exist between the uploaded datasets?",
+    "latency_ms": 13567,
+    "error": null,
+    "configured": true,
+    "agent_error": null,
+    "executive_summary": "The investigation reveals strong relationships between the datasets, primarily based on matching identifiers for products, orders, and customers. All identified relationships have high confidence and are suitable for joining.",
+    "key_findings": [
+      {
+        "text": "Products and Orders can be joined on product_id with high confidence.",
+        "label": "VERIFIED_FROM_DATA",
+        "verification_note": null,
+        "citations": []
+      },
+      {
+        "text": "Products and Joined Orders/Products can be joined on product_id with high confidence.",
+        "label": "VERIFIED_FROM_DATA",
+        "verification_note": null,
+        "citations": []
+      },
+      {
+        "text": "Products and Joined Orders/Products can also be joined by product_category_name with high confidence.",
+        "label": "VERIFIED_FROM_DATA",
+        "verification_note": null,
+        "citations": []
+      },
+      {
+        "text": "Products and Joined Orders/Customers can be joined on product_id with high confidence.",
+        "label": "VERIFIED_FROM_DATA",
+        "verification_note": null,
+        "citations": []
+      },
+      {
+        "text": "Orders and Customers can be joined on customer_id with high confidence.",
+        "label": "VERIFIED_FROM_DATA",
+        "verification_note": null,
+        "citations": []
+      },
+      {
+        "text": "Orders and Joined Orders/Products can be joined on order_id with high confidence.",
+        "label": "VERIFIED_FROM_DATA",
+        "verification_note": null,
+        "citations": []
+      }
+    ],
+    "claim_comparisons": [],
+    "citations": [],
+    "tool_calls": [
+      "find_relationships"
+    ]
+  },
+  {
+    "id": 14,
+    "category": "multi_dataset",
+    "question": "List the datasets currently available and how many rows each has.",
+    "latency_ms": 6453,
+    "error": null,
+    "configured": true,
+    "agent_error": null,
+    "executive_summary": "The investigation identified five datasets currently available, detailing their respective row counts.",
+    "key_findings": [
+      {
+        "text": "The datasets available are: products.csv with 59 rows, orders.csv with 1259 rows, customers.csv with 1037 rows, and two joined datasets (orders.csv \u22c8 products.csv and orders.csv \u22c8 customers.csv), both with 1259 rows.",
+        "label": "VERIFIED_FROM_DATA",
+        "verification_note": null,
+        "citations": []
+      }
+    ],
+    "claim_comparisons": [],
+    "citations": [],
+    "tool_calls": [
+      "list_datasets"
+    ]
+  },
+  {
+    "id": 15,
+    "category": "chart_generation",
+    "question": "Create a chart showing total price by region.",
+    "latency_ms": 14370,
+    "error": null,
+    "configured": true,
+    "agent_error": null,
+    "executive_summary": "No datasets were found to generate the requested chart showing total price by region.",
+    "key_findings": [
+      {
+        "text": "Insufficient evidence in the uploaded data.",
+        "label": "INSUFFICIENT_DATA",
+        "verification_note": null,
+        "citations": []
+      }
+    ],
+    "claim_comparisons": [],
+    "citations": [],
+    "tool_calls": [
+      "generate_chart",
+      "generate_chart",
+      "generate_chart",
+      "inspect_schema",
+      "inspect_schema",
+      "inspect_schema",
+      "inspect_schema",
+      "inspect_schema"
+    ]
+  },
+  {
+    "id": 16,
+    "category": "chart_generation",
+    "question": "Build a small dashboard for the orders dataset.",
+    "latency_ms": 11377,
+    "error": null,
+    "configured": true,
+    "agent_error": null,
+    "executive_summary": "A dashboard for the orders dataset has been created, showcasing key performance indicators and trends. It highlights total price, cost, quantity, and distinct order IDs, along with detailed breakdowns by shipping mode and price trends over time.",
+    "key_findings": [
+      {
+        "text": "Total Price: $69,788.81",
+        "label": "CALCULATED",
+        "verification_note": null,
+        "citations": []
+      },
+      {
+        "text": "Total Cost: $60,166.61",
+        "label": "CALCULATED",
+        "verification_note": null,
+        "citations": []
+      },
+      {
+        "text": "Total Quantity: 6,269",
+        "label": "CALCULATED",
+        "verification_note": null,
+        "citations": []
+      },
+      {
+        "text": "Distinct Order IDs: 1,259",
+        "label": "CALCULATED",
+        "verification_note": null,
+        "citations": []
+      }
+    ],
+    "claim_comparisons": [],
+    "citations": [],
+    "tool_calls": [
+      "generate_dashboard"
+    ]
+  },
+  {
+    "id": 17,
+    "category": "insufficient_data",
+    "question": "What was our total profit margin in Japanese yen last decade?",
+    "latency_ms": 3755,
+    "error": null,
+    "configured": true,
+    "agent_error": null,
+    "executive_summary": "Insufficient evidence in the uploaded data.",
+    "key_findings": [
+      {
+        "text": "Insufficient evidence in the uploaded data.",
+        "label": "INSUFFICIENT_DATA",
+        "verification_note": null,
+        "citations": []
+      }
+    ],
+    "claim_comparisons": [],
+    "citations": [],
+    "tool_calls": []
+  },
+  {
+    "id": 18,
+    "category": "insufficient_data",
+    "question": "How many customers churned last year?",
+    "latency_ms": 18445,
+    "error": null,
+    "configured": true,
+    "agent_error": null,
+    "executive_summary": "The investigation into customer churn data for last year was inconclusive due to missing or incompatible data fields. No customers churned data could be retrieved.",
+    "key_findings": [
+      {
+        "text": "Insufficient evidence in the uploaded data.",
+        "label": "INSUFFICIENT_DATA",
+        "verification_note": null,
+        "citations": []
+      }
+    ],
+    "claim_comparisons": [],
+    "citations": [],
+    "tool_calls": [
+      "calculate_metric",
+      "inspect_schema",
+      "find_relationships",
+      "group_and_aggregate",
+      "inspect_schema",
+      "group_and_aggregate",
+      "group_and_aggregate",
+      "group_and_aggregate"
+    ]
+  },
+  {
+    "id": 19,
+    "category": "document_retrieval",
+    "question": "According to the management commentary, why did the West Africa region underperform?",
+    "latency_ms": 59925,
+    "error": null,
+    "configured": true,
+    "agent_error": null,
+    "executive_summary": "The West Africa region underperformed due to slower fulfillment through Standard Class shipping, as noted in the management commentary.",
+    "key_findings": [
+      {
+        "text": "Management believes the West Africa region underperformed relative to other regions this quarter, and attributes the softness primarily to slower fulfillment through Standard Class shipping.",
+        "label": "DOCUMENT_EVIDENCE",
+        "verification_note": "Reclassified from VERIFIED_FROM_DATA: this is a document-grounded statement, not a calculated data fact.",
+        "citations": [
+          {
+            "document_id": "04a54a16244b4e27aeeb0c1633630c3a",
+            "document_name": "management_commentary.md",
+            "chunk_id": "04a54a16244b4e27aeeb0c1633630c3a_2",
+            "location": {
+              "heading": "Regional Performance",
+              "line_start": 15,
+              "line_end": 18
+            },
+            "excerpt": "Management believes the West Africa region underperformed relative to\nother regions this quarter, and attributes the softness primarily to\nslower fulfillment through Standard Class shipping.",
+            "relevance_score": 1.0,
+            "source_type": "document",
+            "url": null
+          }
+        ]
+      }
+    ],
+    "claim_comparisons": [],
+    "citations": [
+      {
+        "document_id": "04a54a16244b4e27aeeb0c1633630c3a",
+        "document_name": "management_commentary.md",
+        "chunk_id": "04a54a16244b4e27aeeb0c1633630c3a_2",
+        "location": {
+          "heading": "Regional Performance",
+          "line_start": 15,
+          "line_end": 18
+        },
+        "excerpt": "Management believes the West Africa region underperformed relative to\nother regions this quarter, and attributes the softness primarily to\nslower fulfillment through Standard Class shipping.",
+        "relevance_score": 1.0,
+        "source_type": "document",
+        "url": null
+      }
+    ],
+    "tool_calls": [
+      "search_documents"
+    ]
+  },
+  {
+    "id": 20,
+    "category": "document_retrieval",
+    "question": "What risk did management flag regarding shipping?",
+    "latency_ms": 9019,
+    "error": null,
+    "configured": true,
+    "agent_error": null,
+    "executive_summary": "Management has identified late-delivery risk as a significant operational concern, especially for Standard Class and Second Class shipping methods. They have recommended further investigation into carrier performance to address this issue.",
+    "key_findings": [
+      {
+        "text": "Management flagged late-delivery risk as an ongoing operational concern, particularly for Standard Class and Second Class shipping modes.",
+        "label": "DOCUMENT_EVIDENCE",
+        "verification_note": "Reclassified from VERIFIED_FROM_DATA: this is a document-grounded statement, not a calculated data fact.",
+        "citations": [
+          {
+            "document_id": "04a54a16244b4e27aeeb0c1633630c3a",
+            "document_name": "management_commentary.md",
+            "chunk_id": "04a54a16244b4e27aeeb0c1633630c3a_5",
+            "location": {
+              "heading": "Risks Flagged by Management",
+              "line_start": 32,
+              "line_end": 35
+            },
+            "excerpt": "Management flagged late-delivery risk as an ongoing operational concern,\nparticularly for Standard Class and Second Class shipping modes, and\nrecommended further investigation into carrier performance in that area.",
+            "relevance_score": 1.0,
+            "source_type": "document",
+            "url": null
+          }
+        ]
+      }
+    ],
+    "claim_comparisons": [],
+    "citations": [
+      {
+        "document_id": "04a54a16244b4e27aeeb0c1633630c3a",
+        "document_name": "management_commentary.md",
+        "chunk_id": "04a54a16244b4e27aeeb0c1633630c3a_5",
+        "location": {
+          "heading": "Risks Flagged by Management",
+          "line_start": 32,
+          "line_end": 35
+        },
+        "excerpt": "Management flagged late-delivery risk as an ongoing operational concern,\nparticularly for Standard Class and Second Class shipping modes, and\nrecommended further investigation into carrier performance in that area.",
+        "relevance_score": 1.0,
+        "source_type": "document",
+        "url": null
+      }
+    ],
+    "tool_calls": [
+      "search_documents"
+    ]
+  },
+  {
+    "id": 21,
+    "category": "cross_data_document",
+    "question": "Management says West Africa underperformed due to slower Standard Class fulfillment. Does the order data support this explanation?",
+    "latency_ms": 19711,
+    "error": null,
+    "configured": true,
+    "agent_error": null,
+    "executive_summary": "The order data for West Africa shows a total of 303 orders, with Standard Class accounting for 27.72% of these. However, there is no evidence to support that slower fulfillment of Standard Class orders contributed to underperformance in the region.",
+    "key_findings": [
+      {
+        "text": "Total orders in West Africa were 303, with Standard Class orders totaling 84.",
+        "label": "CALCULATED",
+        "verification_note": null,
+        "citations": []
+      }
+    ],
+    "claim_comparisons": [],
+    "citations": [],
+    "tool_calls": [
+      "group_and_aggregate",
+      "group_and_aggregate",
+      "group_and_aggregate",
+      "group_and_aggregate",
+      "inspect_schema",
+      "group_and_aggregate",
+      "group_and_aggregate"
+    ]
+  },
+  {
+    "id": 22,
+    "category": "cross_data_document",
+    "question": "Management says Footwear is the strongest category by order volume. Does the data support this?",
+    "latency_ms": 15896,
+    "error": null,
+    "configured": true,
+    "agent_error": null,
+    "executive_summary": "The claim that Footwear is the strongest category by order volume is contradicted by the data, which shows Electronics leading in order volume. Document evidence supports the management's claim, but the actual order counts do not align.",
+    "key_findings": [
+      {
+        "text": "The Footwear category is claimed to be the strongest contributor to order volume, but the data shows that 'Men's Footwear' had only 22 orders, significantly lower than other categories.",
+        "label": "AI_INTERPRETATION",
+        "verification_note": null,
+        "citations": [
+          {
+            "document_id": "04a54a16244b4e27aeeb0c1633630c3a",
+            "document_name": "management_commentary.md",
+            "chunk_id": "04a54a16244b4e27aeeb0c1633630c3a_3",
+            "location": {
+              "heading": "Product Category Commentary",
+              "line_start": 21,
+              "line_end": 24
+            },
+            "excerpt": "The Footwear category remained the strongest contributor to order volume.\nGolf category orders were comparatively small but management does not\nconsider this a concern given the category's niche positioning.",
+            "relevance_score": 1.0,
+            "source_type": "document",
+            "url": null
+          }
+        ]
+      }
+    ],
+    "claim_comparisons": [
+      {
+        "document_claim": "The Footwear category remained the strongest contributor to order volume.",
+        "citation": {
+          "document_id": "04a54a16244b4e27aeeb0c1633630c3a",
+          "document_name": "management_commentary.md",
+          "chunk_id": "04a54a16244b4e27aeeb0c1633630c3a_3",
+          "location": {
+            "heading": "Product Category Commentary",
+            "line_start": 21,
+            "line_end": 24
+          },
+          "excerpt": "The Footwear category remained the strongest contributor to order volume.\nGolf category orders were comparatively small but management does not\nconsider this a concern given the category's niche positioning.",
+          "relevance_score": 1.0,
+          "source_type": "document",
+          "url": null
+        },
+        "data_finding": "Men's Footwear had only 22 orders, while Electronics had 234 orders.",
+        "label": "CONTRADICTED_BY_DATA",
+        "explanation": "The document claims Footwear is the strongest category, but the data shows Electronics has a significantly higher order volume."
+      }
+    ],
+    "citations": [
+      {
+        "document_id": "04a54a16244b4e27aeeb0c1633630c3a",
+        "document_name": "management_commentary.md",
+        "chunk_id": "04a54a16244b4e27aeeb0c1633630c3a_3",
+        "location": {
+          "heading": "Product Category Commentary",
+          "line_start": 21,
+          "line_end": 24
+        },
+        "excerpt": "The Footwear category remained the strongest contributor to order volume.\nGolf category orders were comparatively small but management does not\nconsider this a concern given the category's niche positioning.",
+        "relevance_score": 1.0,
+        "source_type": "document",
+        "url": null
+      }
+    ],
+    "tool_calls": [
+      "group_and_aggregate",
+      "search_documents",
+      "group_and_aggregate",
+      "inspect_schema",
+      "group_and_aggregate"
+    ]
+  },
+  {
+    "id": 23,
+    "category": "conversational_memory",
+    "question": "Show total price by region.",
+    "latency_ms": 10863,
+    "error": null,
+    "configured": true,
+    "agent_error": null,
+    "executive_summary": "The total price by region shows a fairly even distribution across four regions, with North Africa having the highest total price. A donut chart is recommended for visualization.",
+    "key_findings": [
+      {
+        "text": "North Africa: $18,050.80 (25.86% of total), West Africa: $17,318.54 (24.82% of total), Central Africa: $17,277.97 (24.76% of total), South Africa: $17,141.50 (24.56% of total).",
+        "label": "CALCULATED",
+        "verification_note": null,
+        "citations": []
+      }
+    ],
+    "claim_comparisons": [],
+    "citations": [],
+    "tool_calls": [
+      "group_and_aggregate",
+      "inspect_schema",
+      "group_and_aggregate"
+    ]
+  },
+  {
+    "id": 24,
+    "category": "conversational_memory",
+    "question": "Now show only the top 2.",
+    "latency_ms": 21989,
+    "error": null,
+    "configured": true,
+    "agent_error": null,
+    "executive_summary": "The top two customers by total price are Customer ID 3754 and Customer ID 474, while the top two products are Product ID 822 and Product ID 249. These results are based on calculated aggregations from the dataset.",
+    "key_findings": [
+      {
+        "text": "Customer ID 3754 has a total price of $196.03, representing 52.31% of the total.",
+        "label": "CALCULATED",
+        "verification_note": null,
+        "citations": []
+      },
+      {
+        "text": "Customer ID 474 has a total price of $178.71, representing 47.69% of the total.",
+        "label": "CALCULATED",
+        "verification_note": null,
+        "citations": []
+      },
+      {
+        "text": "Product ID 822 has a total price of $1544.47, representing 52.66% of the total.",
+        "label": "CALCULATED",
+        "verification_note": null,
+        "citations": []
+      },
+      {
+        "text": "Product ID 249 has a total price of $1388.51, representing 47.34% of the total.",
+        "label": "CALCULATED",
+        "verification_note": null,
+        "citations": []
+      }
+    ],
+    "claim_comparisons": [],
+    "citations": [],
+    "tool_calls": [
+      "group_and_aggregate",
+      "group_and_aggregate",
+      "group_and_aggregate",
+      "group_and_aggregate",
+      "inspect_schema",
+      "inspect_schema",
+      "group_and_aggregate",
+      "group_and_aggregate"
+    ]
+  },
+  {
+    "id": 25,
+    "category": "conversational_memory",
+    "question": "What about broken down by shipping mode instead?",
+    "latency_ms": 24526,
+    "error": null,
+    "configured": true,
+    "agent_error": null,
+    "executive_summary": "The analysis of order quantities by shipping mode indicates that 'First Class' is the most utilized shipping option, followed closely by 'Same Day' shipping. The data reveals both total quantities and order counts for each shipping mode.",
+    "key_findings": [
+      {
+        "text": "First Class shipping accounts for 1,807 units, representing 28.82% of total orders.",
+        "label": "VERIFIED_FROM_DATA",
+        "verification_note": null,
+        "citations": []
+      },
+      {
+        "text": "Same Day shipping accounts for 1,569 units, representing 25.03% of total orders.",
+        "label": "VERIFIED_FROM_DATA",
+        "verification_note": null,
+        "citations": []
+      },
+      {
+        "text": "Second Class shipping accounts for 1,448 units, representing 23.1% of total orders.",
+        "label": "VERIFIED_FROM_DATA",
+        "verification_note": null,
+        "citations": []
+      },
+      {
+        "text": "Standard Class shipping accounts for 1,445 units, representing 23.05% of total orders.",
+        "label": "VERIFIED_FROM_DATA",
+        "verification_note": null,
+        "citations": []
+      },
+      {
+        "text": "First Class shipping has 354 orders, which is 28.12% of total orders.",
+        "label": "VERIFIED_FROM_DATA",
+        "verification_note": null,
+        "citations": []
+      },
+      {
+        "text": "Same Day shipping has 310 orders, which is 24.62% of total orders.",
+        "label": "VERIFIED_FROM_DATA",
+        "verification_note": null,
+        "citations": []
+      },
+      {
+        "text": "Second Class shipping has 298 orders, which is 23.67% of total orders.",
+        "label": "VERIFIED_FROM_DATA",
+        "verification_note": null,
+        "citations": []
+      },
+      {
+        "text": "Standard Class shipping has 297 orders, which is 23.59% of total orders.",
+        "label": "VERIFIED_FROM_DATA",
+        "verification_note": null,
+        "citations": []
+      }
+    ],
+    "claim_comparisons": [
+      {
+        "document_claim": "First Class shipping accounts for 1,807 units, representing 28.82% of total orders.",
+        "citation": null,
+        "data_finding": "Calculated total quantity for First Class is 1,807 units.",
+        "label": "INSUFFICIENT_EVIDENCE",
+        "explanation": "The calculated data confirms the document claim regarding First Class shipping."
+      },
+      {
+        "document_claim": "Same Day shipping accounts for 1,569 units, representing 25.03% of total orders.",
+        "citation": null,
+        "data_finding": "Calculated total quantity for Same Day is 1,569 units.",
+        "label": "INSUFFICIENT_EVIDENCE",
+        "explanation": "The calculated data confirms the document claim regarding Same Day shipping."
+      },
+      {
+        "document_claim": "Second Class shipping accounts for 1,448 units, representing 23.1% of total orders.",
+        "citation": null,
+        "data_finding": "Calculated total quantity for Second Class is 1,448 units.",
+        "label": "INSUFFICIENT_EVIDENCE",
+        "explanation": "The calculated data confirms the document claim regarding Second Class shipping."
+      },
+      {
+        "document_claim": "Standard Class shipping accounts for 1,445 units, representing 23.05% of total orders.",
+        "citation": null,
+        "data_finding": "Calculated total quantity for Standard Class is 1,445 units.",
+        "label": "INSUFFICIENT_EVIDENCE",
+        "explanation": "The calculated data confirms the document claim regarding Standard Class shipping."
+      }
+    ],
+    "citations": [],
+    "tool_calls": [
+      "group_and_aggregate",
+      "group_and_aggregate",
+      "group_and_aggregate",
+      "group_and_aggregate",
+      "inspect_schema",
+      "inspect_schema",
+      "group_and_aggregate",
+      "group_and_aggregate"
+    ]
+  }
+]

@@ -1,0 +1,73 @@
+[
+  {
+    "id": 21,
+    "question": "Management says West Africa underperformed due to slower Standard Class fulfillment. Does the order data support this explanation?",
+    "executive_summary": "The order data indicates that Standard Class fulfillment in West Africa accounted for 27.72% of total orders, suggesting it is a significant factor but not the sole reason for underperformance. Further analysis is needed to identify other contributing factors.",
+    "claim_comparisons": [],
+    "citations": [],
+    "tool_calls": [
+      "group_and_aggregate",
+      "group_and_aggregate",
+      "inspect_dataset",
+      "list_datasets",
+      "group_and_aggregate",
+      "group_and_aggregate",
+      "inspect_schema",
+      "group_and_aggregate",
+      "group_and_aggregate"
+    ]
+  },
+  {
+    "id": 22,
+    "question": "Management says Footwear is the strongest category by order volume. Does the data support this?",
+    "executive_summary": "The data indicates that the Golf category leads in order volume, contradicting management's claim that Footwear is the strongest category. Footwear is a strong category but ranks second in total units sold.",
+    "claim_comparisons": [
+      {
+        "document_claim": "The Footwear category remained the strongest contributor to order volume.",
+        "citation": {
+          "document_id": "21710c14b3764bf09766b41451a66bcb",
+          "document_name": "management_commentary.md",
+          "chunk_id": "21710c14b3764bf09766b41451a66bcb_3",
+          "location": {
+            "heading": "Product Category Commentary",
+            "line_start": 21,
+            "line_end": 24
+          },
+          "excerpt": "The Footwear category remained the strongest contributor to order volume.\nGolf category orders were comparatively small but management does not\nconsider this a concern given the category's niche positioning.",
+          "relevance_score": 1.0,
+          "source_type": "document",
+          "url": null
+        },
+        "data_finding": "Golf category has the highest order volume with 1,316 units, while Footwear has 1,296 units.",
+        "label": "CONTRADICTED_BY_DATA",
+        "explanation": "The document claims Footwear is the strongest contributor, but the data shows Golf leads in order volume."
+      }
+    ],
+    "citations": [
+      {
+        "document_id": "21710c14b3764bf09766b41451a66bcb",
+        "document_name": "management_commentary.md",
+        "chunk_id": "21710c14b3764bf09766b41451a66bcb_3",
+        "location": {
+          "heading": "Product Category Commentary",
+          "line_start": 21,
+          "line_end": 24
+        },
+        "excerpt": "The Footwear category remained the strongest contributor to order volume.\nGolf category orders were comparatively small but management does not\nconsider this a concern given the category's niche positioning.",
+        "relevance_score": 1.0,
+        "source_type": "document",
+        "url": null
+      }
+    ],
+    "tool_calls": [
+      "group_and_aggregate",
+      "search_documents",
+      "group_and_aggregate",
+      "inspect_dataset",
+      "list_datasets",
+      "group_and_aggregate",
+      "inspect_schema",
+      "group_and_aggregate"
+    ]
+  }
+]
