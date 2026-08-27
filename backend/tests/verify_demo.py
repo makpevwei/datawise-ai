@@ -1,9 +1,9 @@
-"""Comprehensive verification script for DataWise AI Hackathon Demo Readiness.
+"""Comprehensive verification script for DataWise AI demo readiness.
 
 Runs empirical verification across:
 1. All structured formats (CSV, multi-sheet Excel) & PDF RAG docs
 2. Deterministic calculations, aggregations, charts, and KPI discovery
-3. Case Study 4 Gap Analysis & Unsupported Question Guarding
+3. Unsupported-Metric Gap Analysis & Guarding
 4. Agent Quality & Semantic Resolver Safety
 5. Multi-turn analytical conversation memory
 6. Cross-dataset joins (orders + products, orders + customers)
@@ -37,7 +37,7 @@ def _upload_file(filename: str, content: bytes, store: DatasetStore):
     return [r for r in records if r is not None]
 
 
-def test_hackathon_demo_flow():
+def test_demo_flow():
     tmp_path = Path("/tmp/datawise_demo_verification")
     tmp_path.mkdir(parents=True, exist_ok=True)
     
@@ -123,9 +123,9 @@ def test_hackathon_demo_flow():
     assert len(retrieved_chunks) > 0
 
     # -------------------------------------------------------------
-    # 3. DETERMINISTIC CALCULATIONS & CHARTS (HACKATHON QUESTIONS)
+    # 3. DETERMINISTIC CALCULATIONS & CHARTS (DEMO QUESTIONS)
     # -------------------------------------------------------------
-    print("\n--- 3. Testing Hackathon Questions & Deterministic Engine ---")
+    print("\n--- 3. Testing Demo Questions & Deterministic Engine ---")
 
     # Question: "Show total price by region."
     res_region = run_analysis(
@@ -241,9 +241,9 @@ def test_hackathon_demo_flow():
         print(f"   - {row['product_name']}: ${row[val_key_prod]:,.2f}")
 
     # -------------------------------------------------------------
-    # 5. CASE STUDY 4 GAP ANALYSIS & UNSUPPORTED QUESTION GUARDS
+    # 5. GAP ANALYSIS & UNSUPPORTED QUESTION GUARDS
     # -------------------------------------------------------------
-    print("\n--- 5. Testing Case Study 4 Gap Analysis & Semantic Resolver Safety ---")
+    print("\n--- 5. Testing Gap Analysis & Semantic Resolver Safety ---")
 
     unsupported_concepts = [
         "return rate",
@@ -288,9 +288,9 @@ def test_hackathon_demo_flow():
     assert len(kpis) > 0
 
     print("\n=======================================================")
-    print("ALL EMPIRICAL HACKATHON VERIFICATION CHECKS PASSED 100%!")
+    print("ALL EMPIRICAL VERIFICATION CHECKS PASSED 100%!")
     print("=======================================================\n")
 
 
 if __name__ == "__main__":
-    test_hackathon_demo_flow()
+    test_demo_flow()

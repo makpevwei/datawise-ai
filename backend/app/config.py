@@ -100,8 +100,8 @@ class Settings(BaseSettings):
     max_research_tool_calls: int = 12
 
     # Auth. JWT_SECRET_KEY must be set for the app to issue/verify tokens --
-    # see app/auth/security.py. A long expiry suits a single-tenant
-    # hackathon/demo deployment; there is no refresh-token flow.
+    # see app/auth/security.py. A long expiry suits an early-stage
+    # single-tenant deployment; there is no refresh-token flow yet.
     jwt_secret_key: str | None = None
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 60 * 24 * 7

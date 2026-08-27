@@ -1,8 +1,8 @@
 # DataWise AI
 
-> **AI Business Intelligence Agent — AI BuildFest 2026 · Case Study 4**
+> **An agentic business intelligence platform**
 
-DataWise AI is an agentic business intelligence platform that lets managers ask natural-language business questions against their own data — CSV, Excel, and PDF — and receive evidence-backed analysis, charts, and actionable recommendations without writing SQL, configuring dashboards, or understanding database structure.
+DataWise AI lets managers ask natural-language business questions against their own data — CSV, Excel, and PDF — and receive evidence-backed analysis, charts, and actionable recommendations without writing SQL, configuring dashboards, or understanding database structure.
 
 ---
 
@@ -10,7 +10,7 @@ DataWise AI is an agentic business intelligence platform that lets managers ask 
 
 Traditional BI tools require analysts who understand data structure, SQL, and chart selection. Business managers — the people who most need the insights — are locked out. They submit report requests and wait days for answers that may already be stale.
 
-**Case Study 4 (AI BuildFest 2026):** Design an AI assistant that allows managers in organisations with fragmented, multi-source data to ask business questions in plain English and receive trustworthy, evidence-backed answers immediately.
+Organizations with fragmented, multi-source data (spreadsheets, exports, PDFs, scattered across teams) need a way for a non-technical manager to ask a plain-English business question and get a trustworthy, evidence-backed answer immediately — not a stale report, and not a hallucinated guess.
 
 ---
 
@@ -166,7 +166,7 @@ DataWise-AI/
 │   │   ├── config.py
 │   │   └── main.py
 │   ├── alembic/             # Database migrations
-│   ├── tests/               # pytest suite including hackathon verification
+│   ├── tests/               # pytest suite including end-to-end demo verification
 │   └── pyproject.toml
 ├── frontend/                # Next.js app (App Router)
 │   └── src/
@@ -236,8 +236,8 @@ Open http://localhost:3000 — sign up, then start uploading data.
 # Backend
 cd backend && uv run pytest
 
-# Hackathon verification (end-to-end, takes ~20 min due to embedding model loading)
-cd backend && uv run pytest tests/verify_hackathon_demo.py -v
+# Full end-to-end demo verification (takes ~20 min due to embedding model loading)
+cd backend && uv run pytest tests/verify_demo.py -v
 
 # Frontend
 cd frontend && npm test
@@ -246,7 +246,7 @@ cd frontend && npx tsc --noEmit
 
 ---
 
-## Demo Instructions (3-Minute Judge Flow)
+## Demo Instructions (3-Minute Walkthrough)
 
 ### Step 1 — Upload datasets
 1. Sign up / log in
@@ -358,11 +358,8 @@ Copy `.env.example` to `.env` and fill in real values.
 
 ---
 
-## Hackathon Submission
+## Status
 
-**Event:** AI BuildFest 2026  
-**Case Study:** 4 — AI Business Intelligence Assistant  
-**Team:** AgentOps Africa  
-**Status:** Demo-ready ✅
+DataWise AI is a working MVP: upload data, ask questions in plain English, get evidence-backed answers with charts and recommendations. All core capabilities above are verified end-to-end by `tests/verify_demo.py`.
 
-All capabilities verified by `tests/verify_hackathon_demo.py` (1 passed, 100%).
+We're building toward our first cohort of pilot customers — reach out if you'd like a walkthrough.
