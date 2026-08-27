@@ -214,3 +214,72 @@ def test_extract_html_rejects_document_with_no_extractable_text():
     html = b"<html><head><style>.a{}</style></head><body><script>1;</script></body></html>"
     with pytest.raises(ExtractionError, match="no extractable text"):
         extract_html(html, "onlyscript.html")
+
+
+# -- PDF multi-stage extraction (PyMuPDF + OCR) --------------------------------
+
+
+def test_ocr_capability_detection():
+    """OCR capability flags are booleans; they may be True or False depending
+    on the environment, but they must never raise."""
+    from app.documents.extraction import _ocr_available, _pdf2image_available, _pymupdf_available
+    assert isinstance(_pymupdf_available(), bool)
+    assert isinstance(_ocr_available(), bool)
+    assert isinstance(_pdf2image_available(), bool)
+
+
+def test_pymupdf_available_in_current_environment():
+    """PyMuPDF (pymupdf package) is listed in pyproject.toml and must be
+    importable in this test environment."""
+    from app.documents.extraction import _pymupdf_available
+    assert _pymupdf_available() is True, (
+        "PyMuPDF is required and should be installed. "
+        "Run: uv add pymupdf"
+    )
+
+
+def test_ocr_available_in_current_environment():
+    """pytesseract + tesseract binary must be available in this environment."""
+    from app.documents.extraction import _ocr_available
+    assert _ocr_available() is True, (
+        "pytesseract + tesseract binary must be installed. "
+        "Run: uv add pytesseract  and  brew install tesseract"
+    )
+
+
+def _make_minimal_pdf_bytes() -> bytes:
+    """Create a minimal valid digital PDF with real selectable text."""
+    try:
+        import pymupdf as fitz
+    except ImportError:
+        import fitz  # type: ignore[no-redef]
+    doc = fitz.open()
+    page = doc.new_page()
+    page.insert_text((72, 144), "Revenue declined 12% in Q2 2024.", fontsize=12)
+    page.insert_text((72, 164), "West region led the performance gap.", fontsize=12)
+    return doc.tobytes()
+
+
+def test_extract_pdf_digital_text_uses_pymupdf():
+    """A digital PDF with native text must be extracted without OCR."""
+    pdf_bytes = _make_minimal_pdf_bytes()
+    segments, warnings = extract_pdf(pdf_bytes, "digital.pdf")
+    assert len(segments) >= 1
+    combined = " ".join(s.text for s in segments)
+    assert "Revenue" in combined or "revenue" in combined.lower()
+    # No OCR warnings expected for a clean digital PDF
+    ocr_warnings = [w for w in warnings if "OCR" in w.upper()]
+    assert len(ocr_warnings) == 0
+
+
+def test_extract_pdf_page_numbers_are_preserved():
+    """Segment location.page must be populated."""
+    pdf_bytes = _make_minimal_pdf_bytes()
+    segments, _ = extract_pdf(pdf_bytes, "paged.pdf")
+    assert all(s.location.page is not None and s.location.page >= 1 for s in segments)
+
+
+def test_extract_pdf_raises_on_garbage_bytes():
+    """Random bytes must raise ExtractionError, never crash the server."""
+    with pytest.raises(ExtractionError):
+        extract_pdf(b"\x89PNG garbage not a pdf", "notapdf.pdf")

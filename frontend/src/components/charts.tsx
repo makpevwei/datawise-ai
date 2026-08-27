@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { ChartSpec } from "@/lib/types";
-import { formatCurrency, formatNumber, MONETARY_LABEL_HINTS } from "./ui";
+import { formatCurrency, formatNumber, looksMonetary } from "./ui";
 
 const SERIES_1 = "var(--series-1)";
 const DONUT_COLORS = [
@@ -18,10 +18,35 @@ const DONUT_COLORS = [
  * own label looks monetary and a currency is set, otherwise a plain number.
  * Presentation only -- never changes the underlying calculated value. */
 function formatChartValue(value: number, valueLabel: string | undefined, currency?: string, decimalPlaces?: number): string {
-  if (currency && valueLabel && MONETARY_LABEL_HINTS.test(valueLabel)) {
+  if (currency && valueLabel && looksMonetary(valueLabel)) {
     return formatCurrency(value, currency, decimalPlaces ?? 2);
   }
   return formatNumber(value);
+}
+
+/** Scale large numbers to an executive-friendly abbreviated form that always
+ *  fits a card, e.g. 109_809_274 -> "109.8M" | 274_776 -> "274.8K" | 905 -> "905".
+ *  The full-precision value is always available (hover title + click-to-reveal).
+ */
+export function scaleNumber(value: number): { display: string; full: string } {
+  const full = value.toLocaleString(undefined, { maximumFractionDigits: 2 });
+  const abs = Math.abs(value);
+  const sign = value < 0 ? "−" : "";
+  if (abs >= 1_000_000_000) return { display: `${sign}${(abs / 1_000_000_000).toFixed(1)}B`, full };
+  if (abs >= 1_000_000) return { display: `${sign}${(abs / 1_000_000).toFixed(1)}M`, full };
+  if (abs >= 10_000) return { display: `${sign}${(abs / 1_000).toFixed(1)}K`, full };
+  return { display: full, full };
+}
+
+export function scaleCurrency(value: number, currency: string, decimalPlaces: number): { display: string; full: string } {
+  const full = formatCurrency(value, currency, decimalPlaces);
+  const abs = Math.abs(value);
+  const sign = value < 0 ? "−" : "";
+  const sym = full.replace(/[\d,. ]/g, "").trim().slice(0, 3); // extract currency symbol
+  if (abs >= 1_000_000_000) return { display: `${sign}${sym}${(abs / 1_000_000_000).toFixed(1)}B`, full };
+  if (abs >= 1_000_000) return { display: `${sign}${sym}${(abs / 1_000_000).toFixed(1)}M`, full };
+  if (abs >= 10_000) return { display: `${sign}${sym}${(abs / 1_000).toFixed(1)}K`, full };
+  return { display: full, full };
 }
 
 export function StatCard({
@@ -40,19 +65,39 @@ export function StatCard({
   currency?: string;
   decimalPlaces?: number;
 }) {
-  const isMonetary = typeof value === "number" && !!currency && MONETARY_LABEL_HINTS.test(label);
-  const display =
-    typeof value !== "number"
-      ? value
-      : isMonetary
-        ? formatCurrency(value, currency!, decimalPlaces ?? 2)
-        : decimalPlaces !== undefined
-          ? value.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: decimalPlaces })
-          : formatNumber(value);
+  const [expanded, setExpanded] = useState(false);
+  const isMonetary = typeof value === "number" && !!currency && looksMonetary(label);
+
+  let display: string;
+  let full: string | null = null;
+  // Whether there's actually an abbreviation to toggle -- computed from the
+  // scaled value itself, never from what's currently on screen (that flips
+  // with `expanded`, so comparing against it would make this go false the
+  // moment the user expands, leaving no way to click back to collapsed).
+  let canExpand = false;
+  if (typeof value !== "number") {
+    display = value;
+  } else {
+    const scaled = isMonetary ? scaleCurrency(value, currency!, decimalPlaces ?? 2) : scaleNumber(value);
+    canExpand = scaled.display !== scaled.full;
+    display = expanded ? scaled.full : scaled.display;
+    full = scaled.full;
+  }
+
   return (
-    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-6">
-      <p className="text-sm font-medium text-[var(--text-secondary)]">{label}</p>
-      <p className="mt-2 text-4xl font-semibold tabular-nums text-[var(--text-primary)]">{display}</p>
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-6 min-w-0">
+      <p className="text-sm font-medium text-[var(--text-secondary)] truncate">{label}</p>
+      <button
+        type="button"
+        onClick={canExpand ? () => setExpanded((v) => !v) : undefined}
+        title={full ?? undefined}
+        className={`mt-2 block w-full truncate text-left text-4xl font-semibold tabular-nums text-[var(--text-primary)] ${canExpand ? "cursor-pointer hover:text-[var(--series-1)]" : "cursor-default"}`}
+      >
+        {display}
+      </button>
+      {canExpand && (
+        <p className="mt-1 text-xs text-[var(--text-muted)]">{expanded ? "Click to collapse" : "Click for exact value"}</p>
+      )}
       {description && (
         <p className="mt-2 text-xs text-[var(--text-muted)]">{description}</p>
       )}

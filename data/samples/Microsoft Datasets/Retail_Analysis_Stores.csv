@@ -1,0 +1,101 @@
+Store ID,Store Name,City,State,Territory,Open Date,Store Type,Selling Area SqFt
+S001,Store 1,Charlotte,NC,East,2010-01-01,Superstore,15000
+S002,Store 2,Atlanta,GA,South,2010-01-31,Regular,8000
+S003,Store 3,Dallas,TX,Central,2010-03-02,Express,3500
+S004,Store 4,Chicago,IL,Midwest,2010-04-01,Regular,10000
+S005,Store 5,Houston,TX,Central,2010-05-01,Superstore,22000
+S006,Store 6,Miami,FL,South,2010-05-31,Superstore,15000
+S007,Store 7,New York,NY,East,2010-06-30,Regular,8000
+S008,Store 8,Los Angeles,CA,West,2010-07-30,Express,3500
+S009,Store 9,Seattle,WA,West,2010-08-29,Regular,10000
+S010,Store 10,Denver,CO,Central,2010-09-28,Superstore,22000
+S011,Store 11,Charlotte,NC,East,2010-10-28,Superstore,15000
+S012,Store 12,Atlanta,GA,South,2010-11-27,Regular,8000
+S013,Store 13,Dallas,TX,Central,2010-12-27,Express,3500
+S014,Store 14,Chicago,IL,Midwest,2011-01-26,Regular,10000
+S015,Store 15,Houston,TX,Central,2011-02-25,Superstore,22000
+S016,Store 16,Miami,FL,South,2011-03-27,Superstore,15000
+S017,Store 17,New York,NY,East,2011-04-26,Regular,8000
+S018,Store 18,Los Angeles,CA,West,2011-05-26,Express,3500
+S019,Store 19,Seattle,WA,West,2011-06-25,Regular,10000
+S020,Store 20,Denver,CO,Central,2011-07-25,Superstore,22000
+S021,Store 21,Charlotte,NC,East,2011-08-24,Superstore,15000
+S022,Store 22,Atlanta,GA,South,2011-09-23,Regular,8000
+S023,Store 23,Dallas,TX,Central,2011-10-23,Express,3500
+S024,Store 24,Chicago,IL,Midwest,2011-11-22,Regular,10000
+S025,Store 25,Houston,TX,Central,2011-12-22,Superstore,22000
+S026,Store 26,Miami,FL,South,2012-01-21,Superstore,15000
+S027,Store 27,New York,NY,East,2012-02-20,Regular,8000
+S028,Store 28,Los Angeles,CA,West,2012-03-21,Express,3500
+S029,Store 29,Seattle,WA,West,2012-04-20,Regular,10000
+S030,Store 30,Denver,CO,Central,2012-05-20,Superstore,22000
+S031,Store 31,Charlotte,NC,East,2012-06-19,Superstore,15000
+S032,Store 32,Atlanta,GA,South,2012-07-19,Regular,8000
+S033,Store 33,Dallas,TX,Central,2012-08-18,Express,3500
+S034,Store 34,Chicago,IL,Midwest,2012-09-17,Regular,10000
+S035,Store 35,Houston,TX,Central,2012-10-17,Superstore,22000
+S036,Store 36,Miami,FL,South,2012-11-16,Superstore,15000
+S037,Store 37,New York,NY,East,2012-12-16,Regular,8000
+S038,Store 38,Los Angeles,CA,West,2013-01-15,Express,3500
+S039,Store 39,Seattle,WA,West,2013-02-14,Regular,10000
+S040,Store 40,Denver,CO,Central,2013-03-16,Superstore,22000
+S041,Store 41,Charlotte,NC,East,2013-04-15,Superstore,15000
+S042,Store 42,Atlanta,GA,South,2013-05-15,Regular,8000
+S043,Store 43,Dallas,TX,Central,2013-06-14,Express,3500
+S044,Store 44,Chicago,IL,Midwest,2013-07-14,Regular,10000
+S045,Store 45,Houston,TX,Central,2013-08-13,Superstore,22000
+S046,Store 46,Miami,FL,South,2013-09-12,Superstore,15000
+S047,Store 47,New York,NY,East,2013-10-12,Regular,8000
+S048,Store 48,Los Angeles,CA,West,2013-11-11,Express,3500
+S049,Store 49,Seattle,WA,West,2013-12-11,Regular,10000
+S050,Store 50,Denver,CO,Central,2014-01-10,Superstore,22000
+S051,Store 51,Charlotte,NC,East,2014-02-09,Superstore,15000
+S052,Store 52,Atlanta,GA,South,2014-03-11,Regular,8000
+S053,Store 53,Dallas,TX,Central,2014-04-10,Express,3500
+S054,Store 54,Chicago,IL,Midwest,2014-05-10,Regular,10000
+S055,Store 55,Houston,TX,Central,2014-06-09,Superstore,22000
+S056,Store 56,Miami,FL,South,2014-07-09,Superstore,15000
+S057,Store 57,New York,NY,East,2014-08-08,Regular,8000
+S058,Store 58,Los Angeles,CA,West,2014-09-07,Express,3500
+S059,Store 59,Seattle,WA,West,2014-10-07,Regular,10000
+S060,Store 60,Denver,CO,Central,2014-11-06,Superstore,22000
+S061,Store 61,Charlotte,NC,East,2014-12-06,Superstore,15000
+S062,Store 62,Atlanta,GA,South,2015-01-05,Regular,8000
+S063,Store 63,Dallas,TX,Central,2015-02-04,Express,3500
+S064,Store 64,Chicago,IL,Midwest,2015-03-06,Regular,10000
+S065,Store 65,Houston,TX,Central,2015-04-05,Superstore,22000
+S066,Store 66,Miami,FL,South,2015-05-05,Superstore,15000
+S067,Store 67,New York,NY,East,2015-06-04,Regular,8000
+S068,Store 68,Los Angeles,CA,West,2015-07-04,Express,3500
+S069,Store 69,Seattle,WA,West,2015-08-03,Regular,10000
+S070,Store 70,Denver,CO,Central,2015-09-02,Superstore,22000
+S071,Store 71,Charlotte,NC,East,2015-10-02,Superstore,15000
+S072,Store 72,Atlanta,GA,South,2015-11-01,Regular,8000
+S073,Store 73,Dallas,TX,Central,2015-12-01,Express,3500
+S074,Store 74,Chicago,IL,Midwest,2015-12-31,Regular,10000
+S075,Store 75,Houston,TX,Central,2016-01-30,Superstore,22000
+S076,Store 76,Miami,FL,South,2016-02-29,Superstore,15000
+S077,Store 77,New York,NY,East,2016-03-30,Regular,8000
+S078,Store 78,Los Angeles,CA,West,2016-04-29,Express,3500
+S079,Store 79,Seattle,WA,West,2016-05-29,Regular,10000
+S080,Store 80,Denver,CO,Central,2016-06-28,Superstore,22000
+S081,Store 81,Charlotte,NC,East,2016-07-28,Superstore,15000
+S082,Store 82,Atlanta,GA,South,2016-08-27,Regular,8000
+S083,Store 83,Dallas,TX,Central,2016-09-26,Express,3500
+S084,Store 84,Chicago,IL,Midwest,2016-10-26,Regular,10000
+S085,Store 85,Houston,TX,Central,2016-11-25,Superstore,22000
+S086,Store 86,Miami,FL,South,2016-12-25,Superstore,15000
+S087,Store 87,New York,NY,East,2017-01-24,Regular,8000
+S088,Store 88,Los Angeles,CA,West,2017-02-23,Express,3500
+S089,Store 89,Seattle,WA,West,2017-03-25,Regular,10000
+S090,Store 90,Denver,CO,Central,2017-04-24,Superstore,22000
+S091,Store 91,Charlotte,NC,East,2017-05-24,Superstore,15000
+S092,Store 92,Atlanta,GA,South,2017-06-23,Regular,8000
+S093,Store 93,Dallas,TX,Central,2017-07-23,Express,3500
+S094,Store 94,Chicago,IL,Midwest,2017-08-22,Regular,10000
+S095,Store 95,Houston,TX,Central,2017-09-21,Superstore,22000
+S096,Store 96,Miami,FL,South,2017-10-21,Superstore,15000
+S097,Store 97,New York,NY,East,2017-11-20,Regular,8000
+S098,Store 98,Los Angeles,CA,West,2017-12-20,Express,3500
+S099,Store 99,Seattle,WA,West,2018-01-19,Regular,10000
+S100,Store 100,Denver,CO,Central,2018-02-18,Superstore,22000

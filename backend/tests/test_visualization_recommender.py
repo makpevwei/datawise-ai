@@ -17,9 +17,12 @@ def test_ranking_recommends_ranking_chart():
     assert chart_type == ChartType.RANKING
 
 
-def test_low_cardinality_breakdown_recommends_donut():
+def test_low_cardinality_breakdown_recommends_bar():
+    # Bar is the correct default for category comparison regardless of
+    # cardinality -- pie/donut are only used when explicitly requested
+    # and should never be the automatic default for a general breakdown.
     chart_type, _ = recommend_chart_type(result_type="table", dimension_cardinality=4)
-    assert chart_type == ChartType.DONUT
+    assert chart_type == ChartType.BAR
 
 
 def test_high_cardinality_breakdown_recommends_bar():

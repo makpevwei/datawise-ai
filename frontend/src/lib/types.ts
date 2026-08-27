@@ -200,6 +200,9 @@ export type ChartType =
 export interface ChartSpec {
   chart_type: ChartType;
   dataset_id: string;
+  title?: string;
+  dataset_name?: string;
+  dataset_sheet?: string | null;
   x_column: string | null;
   y_column: string | null;
   series_column: string | null;
@@ -225,6 +228,8 @@ export interface AnalysisResult {
 export interface KPISuggestion {
   name: string;
   dataset_id: string;
+  dataset_name?: string;
+  dataset_sheet?: string | null;
   metric_column: string | null;
   aggregation: Aggregation;
   dimension_column: string | null;
@@ -244,12 +249,12 @@ export interface Insight {
   id: string;
   dataset_id: string;
   category:
-    | "top_performer"
-    | "concentration_risk"
-    | "significant_change"
-    | "anomaly"
-    | "data_quality"
-    | "distribution";
+  | "top_performer"
+  | "concentration_risk"
+  | "significant_change"
+  | "anomaly"
+  | "data_quality"
+  | "distribution";
   finding: string;
   evidence: Evidence;
   calculation: string;
@@ -319,11 +324,13 @@ export interface ToolInvocation {
 
 export type TraceStage =
   | "understanding_question"
+  | "routing"
   | "datasets"
   | "documents"
   | "relationships"
   | "analysis"
   | "document_research"
+  | "web_research"
   | "verification"
   | "answer";
 

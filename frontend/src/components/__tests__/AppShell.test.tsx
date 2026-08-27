@@ -57,6 +57,8 @@ describe("AppShell", () => {
       expect(screen.getByRole("link", { name: label })).toBeInTheDocument();
     }
     expect(screen.getByText("secret content")).toBeInTheDocument();
-    expect(screen.getByText("Ada Lovelace")).toBeInTheDocument();
+    // Full name appears in multiple places: sidebar bottom section + top-right account menu
+    const nameElements = screen.getAllByText("Ada Lovelace");
+    expect(nameElements.length).toBeGreaterThan(0);
   });
 });

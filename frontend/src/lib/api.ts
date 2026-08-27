@@ -3,6 +3,7 @@ import type {
   AnalysisRequest,
   AnalysisResult,
   AskRequest,
+  ChartSpec,
   DatasetProfile,
   DatasetSummary,
   DocumentSummary,
@@ -176,6 +177,15 @@ export function getKpiSuggestions(datasetId: string): Promise<KPISuggestion[]> {
 
 export function getInsights(datasetId: string): Promise<Insight[]> {
   return request<Insight[]>(`/analysis/insights/${datasetId}`);
+}
+
+export function getDashboardCharts(datasetId: string): Promise<ChartSpec[]> {
+  return request<ChartSpec[]>(`/analysis/dashboard-charts/${datasetId}`);
+}
+
+export function getDashboardChartsMulti(datasetIds: string[]): Promise<ChartSpec[]> {
+  if (datasetIds.length === 0) return Promise.resolve([]);
+  return request<ChartSpec[]>(`/analysis/dashboard-charts-multi?dataset_ids=${datasetIds.join(",")}`);
 }
 
 // ---- Phase 3: Documents / RAG ----

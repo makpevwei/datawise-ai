@@ -16,12 +16,18 @@ vi.mock("@/lib/auth-context", () => ({
   useAuth: () => ({ user: baseUser, loading: false, login: vi.fn(), register: vi.fn(), logout: vi.fn(), setUser }),
 }));
 
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
+  usePathname: () => "/settings",
+}));
+
 import * as api from "@/lib/api";
 import SettingsPage from "../page";
 
 describe("SettingsPage", () => {
-  it("shows the authenticated user's profile", () => {
+  it("shows the authenticated user's profile on the Profile tab", () => {
     render(<SettingsPage />);
+    // Profile tab is active by default
     expect(screen.getByText("Ada Lovelace")).toBeInTheDocument();
     expect(screen.getByText("ada@example.com")).toBeInTheDocument();
   });
@@ -34,6 +40,9 @@ describe("SettingsPage", () => {
     });
 
     render(<SettingsPage />);
+
+    // Switch to Preferences tab
+    fireEvent.click(screen.getByRole("button", { name: /preferences/i }));
 
     fireEvent.change(screen.getByLabelText(/currency/i), { target: { value: "NGN" } });
     fireEvent.change(screen.getByLabelText(/decimal places/i), { target: { value: "0" } });
@@ -48,6 +57,8 @@ describe("SettingsPage", () => {
 
   it("disables Save until a setting actually changes", () => {
     render(<SettingsPage />);
+    // Switch to Preferences tab
+    fireEvent.click(screen.getByRole("button", { name: /preferences/i }));
     expect(screen.getByRole("button", { name: /save settings/i })).toBeDisabled();
   });
 });

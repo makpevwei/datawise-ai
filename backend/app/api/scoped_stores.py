@@ -50,6 +50,40 @@ class ScopedDatasetStore:
     def delete(self, dataset_id: str) -> bool:
         return self._store.delete(dataset_id)
 
+    def grant(self, dataset_id: str) -> None:
+        """Extend this request's ownership view to a dataset just created ON
+        BEHALF OF this same owner within the current request -- e.g. a join
+        performed automatically during dashboard-chart discovery. _owned_ids
+        is a snapshot taken from Postgres before the request started, so a
+        dataset created mid-request (via perform_join, called directly
+        rather than through the /relationships/join endpoint that would
+        normally register a Dataset row) is otherwise invisible to get()
+        for the rest of THIS request even though it's unambiguously ours.
+        Never call this for an id whose ownership hasn't actually been
+        established by the caller."""
+        self._owned_ids.add(dataset_id)
+
+    def all_records_derived_from_owned(self) -> list[DatasetRecord]:
+        """Every record in the underlying store whose join lineage traces
+        back to one of THIS request's owned datasets -- broader than
+        all_records(), which only sees ids already in _owned_ids. A dataset
+        auto-joined in an earlier request never got a Postgres Dataset row
+        (see grant()), so plain all_records() can never find it again on a
+        later request, and each dashboard load would otherwise perform_join
+        a fresh duplicate. Safe to search the full underlying store here
+        specifically because the match is on lineage pointing at a dataset
+        this caller owns -- a derived dataset can only match if the caller
+        actually owns one of its two join inputs."""
+        return [
+            r
+            for r in self._store.all_records()
+            if r.profile.lineage is not None
+            and (
+                r.profile.lineage.left_dataset_id in self._owned_ids
+                or r.profile.lineage.right_dataset_id in self._owned_ids
+            )
+        ]
+
     def narrowed(self, ids: set[str]) -> "ScopedDatasetStore":
         """A further-restricted view over the same underlying store, for
         when the caller explicitly selected a subset of their own datasets

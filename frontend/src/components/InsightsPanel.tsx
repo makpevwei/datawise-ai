@@ -2,7 +2,7 @@
 
 import { askAgent, getDatasetSample, getInsights, getKpiSuggestions, runAnalysis } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
-import { buildStarterQuestions, CASE_STUDY_STARTER_QUESTIONS } from "@/lib/starterQuestions";
+import { buildStarterQuestions, BUSINESS_STARTER_QUESTIONS } from "@/lib/starterQuestions";
 import type { AgentAnswer, AgentFinding, AnalysisResult, DatasetSummary, Insight, KPISuggestion } from "@/lib/types";
 import { useEffect, useState } from "react";
 import { ChartFromSpec } from "./charts";
@@ -73,9 +73,30 @@ function InsightsWorkspace({ datasets, primaryDataset }: { datasets: DatasetSumm
   const [insights, setInsights] = useState<Insight[] | null>(null);
   const [insightsError, setInsightsError] = useState<string | null>(null);
   const [kpis, setKpis] = useState<KPISuggestion[] | null>(null);
-  const [sample, setSample] = useState<Record<string, unknown>[] | null>(null);
   const [answer, setAnswer] = useState<AgentAnswer | null>(null);
 
+  // Data Explorer preview is independently single-select — switching the
+  // preview dataset does NOT change which datasets are used for analysis,
+  // insights, or Q&A above.
+  const [previewDatasetId, setPreviewDatasetId] = useState<string>(primaryDataset.id);
+  const [sample, setSample] = useState<Record<string, unknown>[] | null>(null);
+  const [sampleLoading, setSampleLoading] = useState(false);
+
+  // When the analysis dataset list changes (user toggles the analysis
+  // picker), reset the preview to the first available dataset so it's
+  // never pointing at a dataset that's no longer in scope.
+  // Async even in the "nothing to fetch" case -- setState synchronously
+  // inside an effect body risks cascading renders (same pattern as
+  // auth-context.tsx and my-data/page.tsx throughout this codebase).
+  useEffect(() => {
+    let cancelled = false;
+    Promise.resolve().then(() => !cancelled && setPreviewDatasetId(primaryDataset.id));
+    return () => {
+      cancelled = true;
+    };
+  }, [primaryDataset.id]);
+
+  // Fetch insights + kpis whenever the analysis datasets change.
   useEffect(() => {
     let cancelled = false;
     Promise.all(datasets.map((d) => getInsights(d.id)))
@@ -84,13 +105,30 @@ function InsightsWorkspace({ datasets, primaryDataset }: { datasets: DatasetSumm
     Promise.all(datasets.map((d) => getKpiSuggestions(d.id)))
       .then((results) => !cancelled && setKpis(results.flat()))
       .catch(() => !cancelled && setKpis([]));
-    getDatasetSample(primaryDataset.id, 20)
-      .then((s) => !cancelled && setSample(s))
-      .catch(() => !cancelled && setSample([]));
     return () => {
       cancelled = true;
     };
-  }, [datasets, primaryDataset.id]);
+  }, [datasets]);
+
+  // Fetch sample rows whenever the preview dataset changes.
+  useEffect(() => {
+    let cancelled = false;
+    // setSample(null) / setSampleLoading(true) deferred to avoid
+    // synchronous setState inside an effect (react-hooks/set-state-in-effect).
+    Promise.resolve()
+      .then(() => {
+        if (!cancelled) {
+          setSample(null);
+          setSampleLoading(true);
+        }
+        return getDatasetSample(previewDatasetId, 20);
+      })
+      .then((s) => { if (!cancelled) { setSample(s); setSampleLoading(false); } })
+      .catch(() => { if (!cancelled) { setSample([]); setSampleLoading(false); } });
+    return () => {
+      cancelled = true;
+    };
+  }, [previewDatasetId]);
 
   return (
     <div className="flex flex-col gap-8">
@@ -109,31 +147,34 @@ function InsightsWorkspace({ datasets, primaryDataset }: { datasets: DatasetSumm
         )}
         {insights && insights.length > 0 && (
           <div className="grid gap-4 md:grid-cols-2">
-            {insights.slice(0, MAX_INSIGHTS).map((insight) => (
-              <Card key={insight.id} className={`border-l-4 ${CATEGORY_COLORS[insight.category]}`}>
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <span className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
-                    {CATEGORY_LABELS[insight.category]}
-                  </span>
-                  <SourceLabelBadge label={insight.confidence_label} />
-                </div>
-                <p className="mb-3 text-sm font-medium text-[var(--text-primary)]">{insight.finding}</p>
-                <dl className="flex flex-col gap-2 text-xs text-[var(--text-secondary)]">
-                  <div>
-                    <dt className="font-semibold text-[var(--text-muted)]">Evidence</dt>
-                    <dd>{insight.evidence.description}</dd>
+            {insights
+              .filter((insight) => insight.confidence_label !== "INSUFFICIENT_DATA")
+              .slice(0, MAX_INSIGHTS)
+              .map((insight) => (
+                <Card key={insight.id} className={`border-l-4 ${CATEGORY_COLORS[insight.category]}`}>
+                  <div className="mb-2 flex items-center justify-between gap-2">
+                    <span className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
+                      {CATEGORY_LABELS[insight.category]}
+                    </span>
+                    <SourceLabelBadge label={insight.confidence_label} />
                   </div>
-                  <div>
-                    <dt className="font-semibold text-[var(--text-muted)]">Calculation</dt>
-                    <dd className="font-mono">{insight.calculation}</dd>
-                  </div>
-                  <div>
-                    <dt className="font-semibold text-[var(--text-muted)]">Interpretation</dt>
-                    <dd>{insight.interpretation}</dd>
-                  </div>
-                </dl>
-              </Card>
-            ))}
+                  <p className="mb-3 text-sm font-medium text-[var(--text-primary)]">{insight.finding}</p>
+                  <dl className="flex flex-col gap-2 text-xs text-[var(--text-secondary)]">
+                    <div>
+                      <dt className="font-semibold text-[var(--text-muted)]">Evidence</dt>
+                      <dd>{insight.evidence.description}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-semibold text-[var(--text-muted)]">Calculation</dt>
+                      <dd className="font-mono">{insight.calculation}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-semibold text-[var(--text-muted)]">Interpretation</dt>
+                      <dd>{insight.interpretation}</dd>
+                    </div>
+                  </dl>
+                </Card>
+              ))}
           </div>
         )}
       </section>
@@ -161,7 +202,39 @@ function InsightsWorkspace({ datasets, primaryDataset }: { datasets: DatasetSumm
 
       <section>
         <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-[var(--text-muted)]">Data Explorer</h3>
-        {sample === null ? (
+
+        {/* Single-select — independent of the analysis dataset picker above.
+            Switching this dataset only changes the preview table; it does
+            NOT affect which datasets are used for insights, charts, or Q&A. */}
+        {datasets.length > 1 && (
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <span className="text-xs text-[var(--text-muted)]">Preview dataset:</span>
+            <div className="flex flex-wrap gap-1.5">
+              {datasets.map((d) => (
+                <label
+                  key={d.id}
+                  className={`flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition-colors ${previewDatasetId === d.id
+                    ? "border-[var(--series-1)] bg-[var(--series-1)]/10 font-medium text-[var(--series-1)]"
+                    : "border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--series-1)]/50 hover:text-[var(--text-primary)]"
+                    }`}
+                >
+                  <input
+                    type="radio"
+                    name="explorer-preview-dataset"
+                    value={d.id}
+                    checked={previewDatasetId === d.id}
+                    onChange={() => setPreviewDatasetId(d.id)}
+                    className="sr-only"
+                    aria-label={`Preview ${d.sheet_name ?? d.name}`}
+                  />
+                  {d.sheet_name ?? d.name}
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {sampleLoading || sample === null ? (
           <div className="flex items-center gap-2 py-4 text-sm text-[var(--text-secondary)]">
             <Spinner /> Loading sample rows…
           </div>
@@ -170,7 +243,11 @@ function InsightsWorkspace({ datasets, primaryDataset }: { datasets: DatasetSumm
         ) : (
           <Card>
             <p className="mb-3 text-xs text-[var(--text-secondary)]">
-              First {sample.length} rows of {primaryDataset.row_count.toLocaleString()} total.
+              First {sample.length} rows of{" "}
+              {(datasets.find((d) => d.id === previewDatasetId) ?? datasets[0]).row_count.toLocaleString()} total
+              {datasets.length > 1 && (
+                <> — <span className="font-medium text-[var(--text-primary)]">{datasets.find((d) => d.id === previewDatasetId)?.sheet_name ?? datasets.find((d) => d.id === previewDatasetId)?.name}</span></>
+              )}.
             </p>
             <Table columns={Object.keys(sample[0])} rows={sample} currency={currency} decimalPlaces={decimalPlaces} />
           </Card>
@@ -278,7 +355,7 @@ function AiDataAnalyst({
   currency: string;
   decimalPlaces: number;
 }) {
-  const starterQuestions = [...CASE_STUDY_STARTER_QUESTIONS, ...buildStarterQuestions(kpis)].slice(0, 12);
+  const starterQuestions = [...BUSINESS_STARTER_QUESTIONS, ...buildStarterQuestions(kpis)].slice(0, 12);
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

@@ -50,11 +50,24 @@ def test_no_concentration_insight_when_evenly_distributed():
     assert not any(i.category == "concentration_risk" for i in insights)
 
 
-def test_insufficient_data_insight_when_no_metric_or_dimension():
+def test_no_findings_when_no_metric_or_dimension():
+    """When a dataset has no usable metric or dimension, generate_insights returns
+    an empty list rather than a fake 'Insufficient data' finding card.
+    Data-quality / coverage notices are surfaced separately in the UI.
+    """
     df = pd.DataFrame({"free_text": [f"note {i}" for i in range(30)]})
     insights = generate_insights(_record(df, "notes"))
-    assert insights[0].finding == "Insufficient data to determine this."
-    assert insights[0].confidence_label == "INSUFFICIENT_DATA"
+    # Must be empty -- no fake finding, no INSUFFICIENT_DATA card
+    assert insights == []
+
+
+def test_no_insufficient_data_finding_in_output():
+    """INSUFFICIENT_DATA must never appear as an executive finding card."""
+    df = orders_df(20)
+    insights = generate_insights(_record(df))
+    for insight in insights:
+        assert insight.confidence_label != "INSUFFICIENT_DATA", \
+            f"Unexpected INSUFFICIENT_DATA finding: {insight.finding!r}"
 
 
 def test_every_insight_carries_evidence_and_calculation():

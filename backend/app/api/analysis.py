@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session as DBSession
 
+from app.analysis.dashboard_charts import discover_cross_dataset_charts, discover_dashboard_charts
 from app.analysis.engine import AnalysisError, compute_correlation, compute_distribution, run_analysis
 from app.analysis.insights import generate_insights
 from app.analysis.kpi_discovery import discover_kpis
@@ -11,7 +12,7 @@ from app.api.sessions import append_message, get_or_create_owned_session
 from app.auth.dependencies import get_current_user
 from app.db.models import User
 from app.db.session import get_db
-from app.semantic.models import AnalysisRequest, AnalysisResult, Insight, KPISuggestion
+from app.semantic.models import AnalysisRequest, AnalysisResult, ChartSpec, Insight, KPISuggestion
 
 router = APIRouter(prefix="/analysis", tags=["analysis"])
 
@@ -87,3 +88,71 @@ def distribution(dataset_id: str, column: str, store: ScopedDatasetStore = Depen
     if column not in record.dataframe.columns:
         raise HTTPException(status_code=400, detail=f"Column '{column}' not found.")
     return compute_distribution(record.dataframe, column)
+
+
+@router.get("/dashboard-charts/{dataset_id}", response_model=list[ChartSpec])
+def dashboard_charts(
+    dataset_id: str,
+    store: ScopedDatasetStore = Depends(get_scoped_dataset_store),
+) -> list[ChartSpec]:
+    """Return up to 3 default charts for the Management Dashboard.
+
+    Charts are selected deterministically from the dataset's actual columns --
+    never invented. Returns an empty list when the dataset lacks the required
+    structure (no numeric metrics, no categorical or date dimensions).
+    """
+    record = _get_record_or_404(store, dataset_id)
+    return discover_dashboard_charts(record)
+
+
+@router.get("/dashboard-charts-multi", response_model=list[ChartSpec])
+def dashboard_charts_multi(
+    dataset_ids: str,
+    store: ScopedDatasetStore = Depends(get_scoped_dataset_store),
+) -> list[ChartSpec]:
+    """Return up to 4 default charts from the best combination of datasets.
+
+    Accepts a comma-separated list of dataset IDs. Collects charts from each
+    dataset individually, PLUS -- when more than one dataset is selected --
+    from a safe, automatically-detected join across them (see
+    discover_cross_dataset_charts: e.g. a fact table with only a foreign key
+    gets a real "Sales by Region" chart once joined to its dimension table,
+    which neither table alone could produce). Deduplicates by chart
+    fingerprint and returns the strongest charts, trend/comparison preferred
+    over KPI scalar cards.
+    """
+    ids = [d.strip() for d in dataset_ids.split(",") if d.strip()]
+    trend_charts: list[ChartSpec] = []
+    comparison_charts: list[ChartSpec] = []
+    kpi_charts: list[ChartSpec] = []
+    seen_fps: set[str] = set()
+
+    def _bucket(charts: list[ChartSpec]) -> None:
+        for c in charts:
+            fp = f"{c.chart_type.value}:{c.x_column}:{c.y_column}"
+            if fp in seen_fps:
+                continue
+            seen_fps.add(fp)
+            if c.chart_type.value in ("line", "time_series"):
+                trend_charts.append(c)
+            elif c.chart_type.value in ("bar", "ranking", "grouped_bar", "stacked_bar", "donut", "pie"):
+                comparison_charts.append(c)
+            elif c.chart_type.value == "kpi_card":
+                kpi_charts.append(c)
+
+    records = [r for r in (store.get(dataset_id) for dataset_id in ids) if r is not None]
+    for record in records:
+        _bucket(discover_dashboard_charts(record))
+    if len(records) > 1:
+        _bucket(discover_cross_dataset_charts(records, store))
+
+    # Prefer meaningful visual charts over KPI cards; fill remaining slots
+    result: list[ChartSpec] = []
+    for pool in (trend_charts, comparison_charts):
+        for c in pool:
+            if len(result) >= 4:
+                break
+            result.append(c)
+    if len(result) < 2:
+        result.extend(kpi_charts[: 2 - len(result)])
+    return result[:4]

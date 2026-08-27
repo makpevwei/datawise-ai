@@ -135,6 +135,10 @@ def _data_quality_insights(record: DatasetRecord) -> list[Insight]:
 
 
 def _distribution_insight(record: DatasetRecord) -> list[Insight]:
+    """Distribution insight — only surfaced when the concentration itself is
+    materially significant (>50% in one value) AND there's no numeric metric
+    to rank by. A bare "X is the most common value" is not a management finding.
+    """
     profile, df = record.profile, record.dataframe
     metrics = rank_metric_candidates(profile)
     dimensions = rank_dimension_candidates(profile)
@@ -149,19 +153,25 @@ def _distribution_insight(record: DatasetRecord) -> list[Insight]:
     top_value, top_count = counts.index[0], int(counts.iloc[0])
     share = round(top_count / total * 100, 2)
 
+    # Only surface when concentration is materially high — otherwise
+    # "most common value" adds no management insight.
+    if share < 50.0:
+        return []
+
     return [
         Insight(
             id=_new_id(),
             dataset_id=profile.id,
-            category="distribution",
-            finding=f"'{top_value}' is the most common value in '{dimension}', "
-            f"appearing in {share}% of records.",
+            category="concentration_risk",
+            finding=f"{share}% of records share the same '{dimension}' value ('{top_value}'), "
+            f"indicating high concentration in this dataset.",
             evidence=Evidence(
-                description=f"Value counts for '{dimension}'.",
-                supporting_values={"top_count": top_count, "total": total},
+                description=f"Value counts for '{dimension}': '{top_value}' appears in {top_count} of {total} records.",
+                supporting_values={"top_count": top_count, "total": total, "share_pct": share},
             ),
             calculation=f"{top_count} / {total} * 100 = {share}%",
-            interpretation=f"'{dimension}' skews toward '{top_value}' in this dataset.",
+            interpretation=f"Over half of all records belong to a single '{dimension}' group. "
+            f"This level of concentration may warrant investigation.",
             confidence_label=SourceLabel.CALCULATED,
         )
     ]
@@ -258,31 +268,73 @@ def _anomaly_insight(record: DatasetRecord) -> list[Insight]:
         return []
 
     metric = metrics[0]
-    result = compute_iqr_anomalies(numeric_series(df[metric]))
+    series = numeric_series(df[metric])
+    result = compute_iqr_anomalies(series)
     if result is None:
         return []
+
+    outlier_pct = result["outlier_share_pct"]
+    outlier_count = result["outlier_count"]
+    total_considered = result["total_considered"]
+
+    # Only surface when outliers are materially significant — either by count
+    # percentage OR because their aggregate contribution could distort totals.
+    if outlier_pct < 1.0 and outlier_count < 10:
+        return []
+
+    # Calculate outlier contribution to the total
+    total_sum = float(series.dropna().sum())
+    outlier_sum = float(series.dropna()[(series.dropna() < result["lower_bound"]) | (series.dropna() > result["upper_bound"])].sum())
+    outlier_contribution_pct = round(abs(outlier_sum) / abs(total_sum) * 100, 1) if total_sum != 0 else None
+
+    # Describe direction
+    high_outliers = series.dropna()[series.dropna() > result["upper_bound"]]
+    low_outliers = series.dropna()[series.dropna() < result["lower_bound"]]
+    direction_note = ""
+    if len(high_outliers) > len(low_outliers):
+        direction_note = f" Most outliers are unusually high (above {result['upper_bound']:,.2f})."
+    elif len(low_outliers) > 0:
+        direction_note = f" Some outliers are unusually low (below {result['lower_bound']:,.2f})."
+
+    contribution_note = (
+        f" These records account for approximately {outlier_contribution_pct}% of total {metric}."
+        if outlier_contribution_pct is not None else ""
+    )
 
     return [
         Insight(
             id=_new_id(),
             dataset_id=profile.id,
             category="anomaly",
-            finding=f"{result['outlier_count']} value(s) in '{metric}' fall outside the expected range "
-            f"({result['outlier_share_pct']}% of non-missing values), based on the interquartile range.",
+            finding=(
+                f"{outlier_pct}% of '{metric}' records ({outlier_count:,} of {total_considered:,}) "
+                f"fall outside the expected range [{result['lower_bound']:,.2f} – {result['upper_bound']:,.2f}]."
+                f"{direction_note}"
+            ),
             evidence=Evidence(
-                description=f"Values below {result['lower_bound']} or above {result['upper_bound']} are "
-                "flagged as statistical outliers (1.5x IQR beyond Q1/Q3).",
+                description=(
+                    f"IQR analysis: Q1={result['q1']:,.2f}, Q3={result['q3']:,.2f}, IQR={result['iqr']:,.2f}. "
+                    f"Expected range: [{result['lower_bound']:,.2f}, {result['upper_bound']:,.2f}]."
+                    f"{contribution_note}"
+                ),
                 supporting_values={
                     "lower_bound": result["lower_bound"],
                     "upper_bound": result["upper_bound"],
-                    "outlier_count": result["outlier_count"],
-                    "total_considered": result["total_considered"],
+                    "outlier_count": outlier_count,
+                    "outlier_share_pct": outlier_pct,
+                    "outlier_contribution_pct": outlier_contribution_pct,
+                    "total_considered": total_considered,
                 },
             ),
-            calculation=f"IQR = Q3({result['q3']}) - Q1({result['q1']}) = {result['iqr']}; "
-            f"bounds = [Q1 - 1.5*IQR, Q3 + 1.5*IQR] = [{result['lower_bound']}, {result['upper_bound']}]",
-            interpretation=f"These '{metric}' values are statistically unusual and worth reviewing for "
-            "data-entry errors or genuinely exceptional transactions.",
+            calculation=(
+                f"IQR = Q3({result['q3']:,.2f}) - Q1({result['q1']:,.2f}) = {result['iqr']:,.2f}; "
+                f"bounds = [Q1 - 1.5×IQR, Q3 + 1.5×IQR]"
+            ),
+            interpretation=(
+                f"These '{metric}' values are statistically unusual and may represent legitimate "
+                f"bulk transactions, data entry errors, or exceptional business events. "
+                f"{'Review the high-value outliers to confirm they reflect real business activity.' if len(high_outliers) > 0 else 'Review these records before relying on aggregate figures.'}"
+            ),
             confidence_label=SourceLabel.CALCULATED,
         )
     ]
@@ -296,21 +348,11 @@ def generate_insights(record: DatasetRecord) -> list[Insight]:
     insights.extend(_data_quality_insights(record))
     insights.extend(_distribution_insight(record))
 
-    if not insights:
-        insights.append(
-            Insight(
-                id=_new_id(),
-                dataset_id=record.profile.id,
-                category="data_quality",
-                finding="Insufficient data to determine this.",
-                evidence=Evidence(
-                    description="No numeric metric or groupable category column was detected in this dataset.",
-                    supporting_values={},
-                ),
-                calculation="n/a",
-                interpretation="Upload a dataset with at least one numeric column and one categorical "
-                "or date column to generate business findings.",
-                confidence_label=SourceLabel.INSUFFICIENT_DATA,
-            )
-        )
+    # When no confirmed business insight can be calculated, return an empty
+    # list. The caller (dashboard / insights panel) handles the empty state
+    # with a dedicated "No confirmed findings yet" message.
+    #
+    # DO NOT create a fake "Insufficient data" finding card here -- that
+    # would appear as an executive finding, which it is not. Data-quality
+    # / coverage warnings are surfaced separately in the UI.
     return insights

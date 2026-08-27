@@ -17,11 +17,31 @@ def test_infers_identifier_type_for_unique_id_named_column():
     assert col_type == ColumnType.IDENTIFIER
 
 
-def test_low_uniqueness_id_named_column_stays_numeric():
-    # A foreign key repeats many times -- it must not be misclassified as an
-    # identifier just because of its name.
+def test_low_uniqueness_id_named_column_is_identifier():
+    # A foreign key like product_id repeats many times in a fact table,
+    # but it is still an identifier -- not a summable business measure.
+    # The strong _id suffix triggers IDENTIFIER classification regardless
+    # of uniqueness ratio (that's the whole point of the fix: SalesTerritoryKey,
+    # CustomerKey etc. should never become financial KPIs even when they repeat).
     col_type, _ = infer_column_type(pd.Series([1, 1, 1, 2, 2, 3] * 20), "product_id")
-    assert col_type == ColumnType.NUMERIC
+    assert col_type == ColumnType.IDENTIFIER
+
+
+def test_camelcase_key_columns_are_always_identifier():
+    """CamelCase *Key columns must be IDENTIFIER regardless of uniqueness."""
+    for col_name in ("CustomerKey", "SalesTerritoryKey", "ProductKey", "ResellerKey", "OrderDateKey"):
+        # Create a heavily repeated series (simulates a fact table foreign key)
+        series = pd.Series([1, 2, 3, 4, 5] * 1000)
+        col_type, _ = infer_column_type(series, col_name)
+        assert col_type == ColumnType.IDENTIFIER, f"{col_name} should be IDENTIFIER, got {col_type.value}"
+
+
+def test_business_measure_columns_remain_numeric():
+    """Columns that contain genuine business measures must not be misclassified."""
+    for col_name in ("Sales Amount", "Order Quantity", "Unit Price", "Extended Amount", "Gross Margin"):
+        series = pd.Series([100.0, 200.0, 150.0] * 1000)
+        col_type, _ = infer_column_type(series, col_name)
+        assert col_type == ColumnType.NUMERIC, f"{col_name} should be NUMERIC, got {col_type.value}"
 
 
 def test_infers_categorical_type():

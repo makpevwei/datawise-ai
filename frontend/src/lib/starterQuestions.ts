@@ -54,10 +54,12 @@ export const GENERIC_STARTER_QUESTIONS = [
   "What's a healthy inventory turnover ratio?",
 ];
 
-/** Case Study 4 demo accelerators. They deliberately name business concepts,
- * not schema columns: the existing semantic resolver maps each concept to
- * actual fields and will report unavailable evidence rather than fabricate it. */
-export const CASE_STUDY_STARTER_QUESTIONS = [
+/** Generic business-intelligence starter questions -- named for the
+ * domain (business analytics) not for any specific dataset or demo.
+ * They deliberately use business concepts, not schema columns: the
+ * semantic resolver maps each concept to actual fields and will report
+ * unavailable evidence rather than fabricate it. */
+export const BUSINESS_STARTER_QUESTIONS = [
   "Which products generate the most revenue and profit?",
   "Is revenue growth leading to stronger profitability?",
   "Which products have unusually high return rates?",

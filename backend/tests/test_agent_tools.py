@@ -262,15 +262,14 @@ def test_generate_chart_returns_chart_spec(ctx):
     assert result["chart"]["dataset_id"] == "orders"
 
 
-def test_generate_chart_defaults_to_cardinality_based_type_when_chart_type_omitted(ctx):
-    # orders.region has only 4 distinct values (North/South/East/West), so
-    # the cardinality-driven default recommends a donut -- this is the
-    # existing, unchanged behavior when the agent doesn't express an
-    # explicit chart_type preference.
+def test_generate_chart_defaults_to_bar_when_chart_type_omitted(ctx):
+    # orders.region has only 4 distinct values (North/South/East/West).
+    # The default for a category breakdown is now BAR, not DONUT --
+    # pie/donut are only appropriate when explicitly requested by the user.
     result = TOOLS["generate_chart"].handler(
         {"dataset_id": "orders", "metric_column": "amount", "aggregation": "sum", "dimension_column": "region"}, ctx
     )
-    assert result["chart"]["chart_type"] == "donut"
+    assert result["chart"]["chart_type"] == "bar"
 
 
 def test_generate_chart_honors_an_explicit_chart_type_override(ctx):

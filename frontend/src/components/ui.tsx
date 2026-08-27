@@ -145,6 +145,25 @@ export function Spinner() {
 // already matches one of the words below on its own.
 export const MONETARY_LABEL_HINTS = /price|cost|amount|revenue|sales|budget|income|expense|profit|margin/i;
 
+/** A column name ending in Key/Id/UUID/GUID (camelCase or snake_case) is an
+ * identifier, never a business measure -- mirrors the backend's own strong
+ * identifier-suffix rule (app/profiling/type_inference.py). Without this, a
+ * name like "SalesOrderLineKey" trips MONETARY_LABEL_HINTS on the "Sales"
+ * substring alone and gets rendered as currency, even though it's a raw key. */
+const IDENTIFIER_LABEL_HINTS = /(?:Key|Id|UUID|GUID|Pk|Fk|RowId|RowKey)$|(?:_(?:key|id|uuid|guid|pk|fk|rowid|rowkey))$/i;
+
+export function looksMonetary(column: string): boolean {
+  return MONETARY_LABEL_HINTS.test(column) && !IDENTIFIER_LABEL_HINTS.test(column);
+}
+
+/** True when the column name itself marks it as a key/id -- these are never
+ * business measures, so they should never receive ANY numeric formatting
+ * (not currency, and not even a thousands separator): a key is a label, not
+ * a quantity, and "43,659,001" reads as if it were counted or measured. */
+export function looksLikeIdentifier(column: string): boolean {
+  return IDENTIFIER_LABEL_HINTS.test(column);
+}
+
 export function Table({
   columns,
   rows,
@@ -192,7 +211,10 @@ export function Table({
 function formatCell(value: unknown, column: string, currency?: string, decimalPlaces?: number): string {
   if (value === null || value === undefined) return "—";
   if (typeof value === "number") {
-    if (currency && MONETARY_LABEL_HINTS.test(column)) {
+    // A key/id is a label, not a quantity -- show the raw source value
+    // exactly as uploaded, with no formatting of any kind applied to it.
+    if (looksLikeIdentifier(column)) return String(value);
+    if (currency && looksMonetary(column)) {
       return formatCurrency(value, currency, decimalPlaces ?? 2);
     }
     return decimalPlaces !== undefined

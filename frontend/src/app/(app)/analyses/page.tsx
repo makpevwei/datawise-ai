@@ -78,8 +78,20 @@ export default function AnalysesPage() {
                   >
                     {s.status}
                   </span>
+                  {/* View opens the session in read-only display mode —
+                      the existing /ask?session= route already renders the
+                      full conversation history; the textarea input allows
+                      continuation so both "View" and "Edit / Continue" point
+                      to the same URL, which is correct: the user can simply
+                      read through the prior conversation or type a follow-up. */}
+                  <Link
+                    href={`/ask?session=${s.id}`}
+                    className="text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:underline"
+                  >
+                    View
+                  </Link>
                   <Link href={`/ask?session=${s.id}`} className="text-xs font-medium text-[var(--series-1)] hover:underline">
-                    Continue
+                    Edit / Continue
                   </Link>
                   <button
                     onClick={() => handleDelete(s.id)}

@@ -59,12 +59,17 @@ morning", "How are you?", "Thanks"). This is NOT a failed lookup and NEVER produ
 evidence" -- respond with a brief, friendly greeting that says what you can help with (e.g. "Hi! \
 I'm DataWise AI. Ask me a general business question, or upload your data and I can calculate real \
 answers from it."). Label it GENERAL_ANSWER -- it is not a business fact of any kind.
-2. A GENERAL business/conceptual question with no dependency on the user's own data (e.g. "what \
-is customer churn?", "how do you calculate gross margin?", "what's a healthy inventory turnover \
-ratio?"). Answer it directly from your own general knowledge -- do not call datasets/documents \
-tools for this, there is nothing to look up. Every finding in a general answer MUST use the \
-GENERAL_ANSWER label, never CALCULATED/VERIFIED_FROM_DATA/DERIVED -- it is general knowledge, not \
-a fact about this user's business, and must never be presented as if it came from their data.
+2. A GENERAL business/conceptual question (e.g. "what is customer churn?", "how do you calculate \
+gross margin?", "what's a healthy inventory turnover ratio?", "what is RAG?"). FIRST check the \
+uploaded document titles/topics listed below -- if one plausibly covers this exact concept (e.g. a \
+document titled "RAG vs Fine-Tuning" when asked "what is RAG?"), call search_documents on it before \
+answering; ground your answer in the retrieved passages and label those findings DOCUMENT_EVIDENCE \
+with a real citation, same as any other document question. Only skip tool calls and answer from \
+your own general knowledge (label GENERAL_ANSWER) when no uploaded document plausibly addresses the \
+question -- never assume "conceptual-sounding question" alone means there is nothing to look up. \
+Never label a GENERAL_ANSWER finding as CALCULATED/VERIFIED_FROM_DATA/DERIVED -- it is general \
+knowledge, not a fact about this user's business, and must never be presented as if it came from \
+their data.
 3. A DATA-SPECIFIC question (e.g. "what were our total sales last month?", "which region grew \
 fastest?") when relevant datasets/documents ARE available: investigate with tools as described \
 below.
@@ -151,7 +156,7 @@ given a digest of every tool call and its result. Produce ONLY a single JSON obj
 no markdown fences) with this exact shape:
 
 {
-  "executive_summary": "1-3 sentence plain-language summary",
+  "executive_summary": "1-3 sentence plain-language summary of the key business finding. Do NOT mention chart types, chart creation, or visualization in the executive_summary -- the frontend renders charts automatically from chart_tool_call_ids. Focus on the business insight.",
   "key_findings": [ {"text": "...", "label": "VERIFIED_FROM_DATA|CALCULATED|DERIVED|DOCUMENT_EVIDENCE|VERIFIED_FROM_WEB|AI_INTERPRETATION|INSUFFICIENT_DATA|GENERAL_ANSWER", "citations": [{"document_id": "...", "chunk_id": "..."} or {"url": "..."}]} ],
   "risks": [ {"text": "...", "label": "...", "citations": [...]} ],
   "recommendations": [ {"text": "...", "label": "AI_INTERPRETATION", "citations": [...]} ],
@@ -176,6 +181,12 @@ For a greeting, a general/conceptual question, or a clarifying question, label e
 "GENERAL_ANSWER" instead and answer/respond appropriately -- never claim insufficient evidence \
 for a question that was never about the user's data.
 - citations arrays may be empty. Omit chart_tool_call_ids entirely (empty array) if not applicable.
+- CRITICAL: Never write phrases like "a bar chart was created", "a chart has been generated", \
+"I've created a visualization", or any similar chart-creation narration in executive_summary, \
+key_findings, or anywhere in the JSON. The UI renders charts automatically from chart_tool_call_ids. \
+State the business finding directly (e.g. "Technology leads all categories with $X in sales").
+- chart_tool_call_ids: list EVERY succeeded generate_chart and generate_dashboard tool call id \
+from the digest -- do not omit any. The frontend relies on this list to display all computed visuals.
 
 MANDATORY: if the digest contains BOTH a calculated/verified data fact AND a document passage \
 making a related claim (e.g. the question asks whether the data supports, confirms, or matches \
@@ -595,8 +606,26 @@ def run_agent(
             _build_claim_comparison(c, ctx, tool_invocations) for c in structured.get("claim_comparisons", [])
         ]
 
+        # Build the chart list from the synthesis LLM's explicit list of
+        # chart_tool_call_ids -- but fall back to every succeeded
+        # generate_chart / generate_dashboard invocation when that list is
+        # empty or missing. The synthesis LLM sometimes omits call IDs from
+        # chart_tool_call_ids even when the chart was computed correctly;
+        # the fallback guarantees charts always appear rather than
+        # silently disappearing.
+        chart_call_ids: list[str] = structured.get("chart_tool_call_ids", []) or []
+
+        if not chart_call_ids:
+            # No IDs listed -- collect every succeeded chart/dashboard call.
+            chart_call_ids = [
+                inv.id
+                for inv in tool_invocations
+                if inv.succeeded and inv.tool_name in ("generate_chart", "generate_dashboard")
+            ]
+
         charts: list[dict] = []
-        for call_id in structured.get("chart_tool_call_ids", []) or []:
+        seen_chart_ids: set[str] = set()
+        for call_id in chart_call_ids:
             inv = next((t for t in tool_invocations if t.id == call_id and t.succeeded), None)
             if inv is None:
                 continue
@@ -604,10 +633,44 @@ def run_agent(
                 payload = json.loads(inv.output_summary)
             except json.JSONDecodeError:
                 continue
-            if inv.tool_name == "generate_chart" and payload.get("chart"):
-                charts.append(payload["chart"])
+            if inv.tool_name == "generate_chart":
+                chart = payload.get("chart")
+                if chart:
+                    # Deduplicate by dataset_id + chart_type + x_column + y_column
+                    dedup_key = f"{chart.get('dataset_id')}|{chart.get('chart_type')}|{chart.get('x_column')}|{chart.get('y_column')}"
+                    if dedup_key not in seen_chart_ids:
+                        seen_chart_ids.add(dedup_key)
+                        charts.append(chart)
             elif inv.tool_name == "generate_dashboard":
-                charts.extend(c["chart"] for c in payload.get("charts", []) if c.get("chart"))
+                for c in payload.get("charts", []):
+                    chart = c.get("chart")
+                    if chart:
+                        dedup_key = f"{chart.get('dataset_id')}|{chart.get('chart_type')}|{chart.get('x_column')}|{chart.get('y_column')}"
+                        if dedup_key not in seen_chart_ids:
+                            seen_chart_ids.add(dedup_key)
+                            charts.append(chart)
+
+        # Secondary pass: if the LLM called group_and_aggregate,
+        # calculate_metric, detect_anomalies, or correlate instead of
+        # generate_chart, the deterministic engine already computed and
+        # attached a chart_recommendation inside the tool result.
+        # Promote it so the analysis is never text-only when a visual
+        # was already calculated for free.
+        if not charts:
+            _ANALYSIS_TOOLS = ("group_and_aggregate", "calculate_metric", "detect_anomalies", "correlate")
+            for inv in tool_invocations:
+                if not inv.succeeded or inv.tool_name not in _ANALYSIS_TOOLS:
+                    continue
+                try:
+                    payload = json.loads(inv.output_summary)
+                except json.JSONDecodeError:
+                    continue
+                chart = payload.get("chart_recommendation")
+                if chart and chart.get("chart_type") not in ("insufficient_data", None):
+                    dedup_key = f"{chart.get('dataset_id')}|{chart.get('chart_type')}|{chart.get('x_column')}|{chart.get('y_column')}"
+                    if dedup_key not in seen_chart_ids:
+                        seen_chart_ids.add(dedup_key)
+                        charts.append(chart)
 
         all_citations: list[Citation] = []
         seen = set()

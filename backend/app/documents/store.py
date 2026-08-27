@@ -6,9 +6,15 @@ this needs no API key and runs entirely on-CPU. If no embedder can be
 built (model unavailable, misconfigured, or a call fails at retrieval
 time), this falls back to the original TF-IDF cosine-similarity index,
 which is always built as a safety net. Persists like DatasetStore: JSON
-per document under the configured storage directory, reloaded on startup;
-computed chunk embeddings are cached in-memory per chunk id so an upload
-only re-embeds its own new chunks, never the whole corpus.
+per document under the configured storage directory, reloaded on startup.
+
+Computed chunk embeddings are ALSO cached to disk (embeddings_cache/cache.json),
+not just in-memory: the local HuggingFace model is slow per chunk on CPU, and
+without disk persistence every process restart would silently force the very
+next question to re-embed the entire corpus (every chunk of every document
+ever uploaded, by any user, since this store is process-global) before it
+could answer -- a multi-minute stall on what looks like a simple question,
+and exactly the moment a fresh deploy makes this most likely to happen.
 """
 
 import json
@@ -42,8 +48,25 @@ class DocumentStore:
         self._chunk_index: list[tuple[str, DocumentChunk]] = []
         self._chunk_embeddings: dict[str, list[float]] = {}
         self._embedding_matrix: np.ndarray | None = None
+        self._embeddings_cache_path = self._storage_dir / "embeddings_cache" / "cache.json"
         self._dirty = True
         self._load_from_disk()
+        self._load_embeddings_cache()
+
+    def _load_embeddings_cache(self) -> None:
+        if not self._embeddings_cache_path.exists():
+            return
+        try:
+            self._chunk_embeddings = json.loads(self._embeddings_cache_path.read_text())
+        except Exception:  # noqa: BLE001 -- a corrupt cache must not block startup, just re-embed
+            self._chunk_embeddings = {}
+
+    def _save_embeddings_cache(self) -> None:
+        try:
+            self._embeddings_cache_path.parent.mkdir(parents=True, exist_ok=True)
+            self._embeddings_cache_path.write_text(json.dumps(self._chunk_embeddings))
+        except Exception:  # noqa: BLE001 -- caching is an optimization, never fatal
+            pass
 
     def _load_from_disk(self) -> None:
         for meta_path in sorted(self._storage_dir.glob("*.json")):
@@ -126,6 +149,7 @@ class DocumentStore:
                 vectors = embedder.embed_documents([text for _, text in missing])
                 for (chunk_id, _), vector in zip(missing, vectors):
                     self._chunk_embeddings[chunk_id] = vector
+                self._save_embeddings_cache()
             self._embedding_matrix = np.array([self._chunk_embeddings[c.id] for _, c in flat])
         except Exception:  # noqa: BLE001 -- an embedding failure must degrade to TF-IDF, not crash retrieval
             self._embedding_matrix = None

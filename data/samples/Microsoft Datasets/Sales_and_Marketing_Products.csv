@@ -1,0 +1,26 @@
+ProductID,Product,Category,Segment,Manufacturer,Unit Cost,Unit Price
+101,Product A,Urban,Convenience,Abbas,143.46,440.82
+102,Product B,Rural,Extreme,VanArsdel,142.58,317.98
+103,Product C,Youth,Moderation,Natura,119.47,206.97
+104,Product D,Mix,Regular,Piraki,121.44,50.68
+105,Product E,Urban,All Season,Palma,152.43,271.81
+106,Product F,Rural,Convenience,Abbas,68.6,79.39
+107,Product G,Youth,Extreme,VanArsdel,83.5,382.12
+108,Product H,Mix,Moderation,Natura,176.89,348.53
+109,Product I,Urban,Regular,Piraki,75.6,228.81
+110,Product J,Rural,All Season,Palma,118.34,215.98
+111,Product K,Youth,Convenience,Abbas,146.48,407.91
+112,Product L,Mix,Extreme,VanArsdel,199.99,158.27
+113,Product M,Urban,Moderation,Natura,98.35,142.1
+114,Product N,Rural,Regular,Piraki,97.06,425.07
+115,Product O,Youth,All Season,Palma,171.67,371.79
+116,Product P,Mix,Convenience,Abbas,164.99,376.46
+117,Product Q,Urban,Extreme,VanArsdel,151.59,120.03
+118,Product R,Rural,Moderation,Natura,103.38,98.75
+119,Product S,Youth,Regular,Piraki,78.31,50.67
+120,Product T,Mix,All Season,Palma,129.57,137.19
+121,Product U,Urban,Convenience,Abbas,177.72,357.42
+122,Product V,Rural,Extreme,VanArsdel,179.08,138.42
+123,Product W,Youth,Moderation,Natura,39.53,338.93
+124,Product X,Mix,Regular,Piraki,97.1,143.28
+125,Product Y,Urban,All Season,Palma,103.65,202.07

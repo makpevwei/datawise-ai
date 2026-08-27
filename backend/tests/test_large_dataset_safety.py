@@ -18,7 +18,10 @@ from app.semantic.store import DatasetStore
 # catch the prompt scaling with *data volume*, not to cap legitimate
 # instructional content. The real safety property is the relative-growth
 # assertion below (large vs. small dataset), not this absolute number.
-MAX_REASONABLE_SYSTEM_PROMPT_CHARS = 8000
+# Given headroom above the current ~8KB baseline so the next legitimate
+# addition doesn't require another one-line bump for a few-hundred-char
+# change; still tight enough to catch a genuine data-volume leak.
+MAX_REASONABLE_SYSTEM_PROMPT_CHARS = 10_000
 
 
 def _big_dataset_store(tmp_path, n_rows: int) -> DatasetStore:

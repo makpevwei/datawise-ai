@@ -67,6 +67,9 @@ export default function MyDataPage() {
   const [documentVersions, setDocumentVersions] = useState<DocumentLibraryItem[]>([]);
   const [documentVersionsLoading, setDocumentVersionsLoading] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [selectedDatasetIds, setSelectedDatasetIds] = useState<Set<string>>(new Set());
+  const [selectedDocumentIds, setSelectedDocumentIds] = useState<Set<string>>(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   // `isCancelled` guards against React Strict Mode's dev-only double-effect
   // invocation: the first (aborted) instance's late-settling promise must
@@ -176,6 +179,68 @@ export default function MyDataPage() {
     }
   }
 
+  function toggleDatasetSelection(id: string) {
+    setSelectedDatasetIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleAllDatasets() {
+    setSelectedDatasetIds((prev) =>
+      prev.size === datasetLibrary.length ? new Set() : new Set(datasetLibrary.map((d) => d.id)),
+    );
+  }
+
+  async function handleBulkDeleteDatasets() {
+    const count = selectedDatasetIds.size;
+    if (count === 0) return;
+    if (!confirm(`Delete ${count} dataset${count === 1 ? "" : "s"}? This will remove ${count === 1 ? "it" : "them"} from your workspace. Saved historical analyses and reports will not automatically be deleted.`)) return;
+    setDeleteError(null);
+    setBulkDeleting(true);
+    try {
+      const results = await Promise.allSettled([...selectedDatasetIds].map((id) => deleteDataset(id)));
+      if (results.some((r) => r.status === "rejected")) setDeleteError(DELETE_FAILED_MESSAGE);
+      setSelectedDatasetIds(new Set());
+      refresh();
+    } finally {
+      setBulkDeleting(false);
+    }
+  }
+
+  function toggleDocumentSelection(id: string) {
+    setSelectedDocumentIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleAllDocuments() {
+    setSelectedDocumentIds((prev) =>
+      prev.size === documentLibrary.length ? new Set() : new Set(documentLibrary.map((d) => d.id)),
+    );
+  }
+
+  async function handleBulkDeleteDocuments() {
+    const count = selectedDocumentIds.size;
+    if (count === 0) return;
+    if (!confirm(`Delete ${count} document${count === 1 ? "" : "s"}? This will remove ${count === 1 ? "it" : "them"} from your workspace. Saved historical analyses and reports will not automatically be deleted.`)) return;
+    setDeleteError(null);
+    setBulkDeleting(true);
+    try {
+      const results = await Promise.allSettled([...selectedDocumentIds].map((id) => deleteDocument(id)));
+      if (results.some((r) => r.status === "rejected")) setDeleteError(DELETE_FAILED_MESSAGE);
+      setSelectedDocumentIds(new Set());
+      refresh();
+    } finally {
+      setBulkDeleting(false);
+    }
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <SectionHeading title="My Data" subtitle="Datasets and documents you've uploaded, and how they were processed." />
@@ -191,10 +256,41 @@ export default function MyDataPage() {
               action={<Button onClick={() => setSubTab("upload")}>Upload Dataset</Button>}
             />
           ) : (
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-wrap items-center gap-3">
+                <label className="flex items-center gap-1.5 text-xs text-[var(--text-secondary)]">
+                  <input
+                    type="checkbox"
+                    checked={datasetLibrary.length > 0 && selectedDatasetIds.size === datasetLibrary.length}
+                    ref={(el) => {
+                      if (el) el.indeterminate = selectedDatasetIds.size > 0 && selectedDatasetIds.size < datasetLibrary.length;
+                    }}
+                    onChange={toggleAllDatasets}
+                    className="h-4 w-4 rounded border-[var(--border)]"
+                  />
+                  Select all
+                </label>
+                {selectedDatasetIds.size > 0 && (
+                  <>
+                    <span className="text-xs text-[var(--text-secondary)]">{selectedDatasetIds.size} selected</span>
+                    <Button variant="ghost" onClick={() => setSelectedDatasetIds(new Set())} disabled={bulkDeleting}>
+                      Clear
+                    </Button>
+                    <button
+                      onClick={handleBulkDeleteDatasets}
+                      disabled={bulkDeleting}
+                      className="text-xs font-medium text-[var(--status-critical)] hover:underline disabled:opacity-40"
+                    >
+                      {bulkDeleting ? "Deleting…" : `Delete ${selectedDatasetIds.size} selected`}
+                    </button>
+                  </>
+                )}
+              </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead>
                   <tr className="border-b border-[var(--border)] text-[var(--text-secondary)]">
+                    <th className="py-2 pr-2 font-medium"></th>
                     <th className="py-2 pr-4 font-medium">Name</th>
                     <th className="py-2 pr-4 font-medium">Type</th>
                     <th className="py-2 pr-4 font-medium">Size</th>
@@ -208,6 +304,14 @@ export default function MyDataPage() {
                   {datasetLibrary.map((d) => (
                     <Fragment key={d.id}>
                       <tr className="border-b border-[var(--border)] last:border-0">
+                        <td className="py-2.5 pr-2">
+                          <input
+                            type="checkbox"
+                            checked={selectedDatasetIds.has(d.id)}
+                            onChange={() => toggleDatasetSelection(d.id)}
+                            className="h-4 w-4 rounded border-[var(--border)]"
+                          />
+                        </td>
                         <td className="py-2.5 pr-4 text-[var(--text-primary)]">
                           {d.display_name} <span className="text-xs text-[var(--text-muted)]">v{d.version}</span>
                         </td>
@@ -253,7 +357,7 @@ export default function MyDataPage() {
                       </tr>
                       {expandedDatasetId === d.id && (
                         <tr className="border-b border-[var(--border)] last:border-0">
-                          <td colSpan={7} className="bg-[var(--surface-2)] px-4 py-3">
+                          <td colSpan={8} className="bg-[var(--surface-2)] px-4 py-3">
                             {datasetVersionsLoading ? (
                               <p className="text-xs text-[var(--text-muted)]">Loading versions…</p>
                             ) : datasetVersions.length === 0 ? (
@@ -297,6 +401,7 @@ export default function MyDataPage() {
                 </tbody>
               </table>
             </div>
+            </div>
           )}
         </Card>
       )}
@@ -317,10 +422,41 @@ export default function MyDataPage() {
               action={<Button onClick={() => setSubTab("upload")}>Upload Document</Button>}
             />
           ) : (
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-wrap items-center gap-3">
+                <label className="flex items-center gap-1.5 text-xs text-[var(--text-secondary)]">
+                  <input
+                    type="checkbox"
+                    checked={documentLibrary.length > 0 && selectedDocumentIds.size === documentLibrary.length}
+                    ref={(el) => {
+                      if (el) el.indeterminate = selectedDocumentIds.size > 0 && selectedDocumentIds.size < documentLibrary.length;
+                    }}
+                    onChange={toggleAllDocuments}
+                    className="h-4 w-4 rounded border-[var(--border)]"
+                  />
+                  Select all
+                </label>
+                {selectedDocumentIds.size > 0 && (
+                  <>
+                    <span className="text-xs text-[var(--text-secondary)]">{selectedDocumentIds.size} selected</span>
+                    <Button variant="ghost" onClick={() => setSelectedDocumentIds(new Set())} disabled={bulkDeleting}>
+                      Clear
+                    </Button>
+                    <button
+                      onClick={handleBulkDeleteDocuments}
+                      disabled={bulkDeleting}
+                      className="text-xs font-medium text-[var(--status-critical)] hover:underline disabled:opacity-40"
+                    >
+                      {bulkDeleting ? "Deleting…" : `Delete ${selectedDocumentIds.size} selected`}
+                    </button>
+                  </>
+                )}
+              </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead>
                   <tr className="border-b border-[var(--border)] text-[var(--text-secondary)]">
+                    <th className="py-2 pr-2 font-medium"></th>
                     <th className="py-2 pr-4 font-medium">Name</th>
                     <th className="py-2 pr-4 font-medium">Type</th>
                     <th className="py-2 pr-4 font-medium">Size</th>
@@ -334,6 +470,14 @@ export default function MyDataPage() {
                   {documentLibrary.map((d) => (
                     <Fragment key={d.id}>
                       <tr className="border-b border-[var(--border)] last:border-0">
+                        <td className="py-2.5 pr-2">
+                          <input
+                            type="checkbox"
+                            checked={selectedDocumentIds.has(d.id)}
+                            onChange={() => toggleDocumentSelection(d.id)}
+                            className="h-4 w-4 rounded border-[var(--border)]"
+                          />
+                        </td>
                         <td className="py-2.5 pr-4 text-[var(--text-primary)]">
                           {d.filename} <span className="text-xs text-[var(--text-muted)]">v{d.version}</span>
                         </td>
@@ -365,7 +509,7 @@ export default function MyDataPage() {
                       </tr>
                       {expandedDocumentId === d.id && (
                         <tr className="border-b border-[var(--border)] last:border-0">
-                          <td colSpan={7} className="bg-[var(--surface-2)] px-4 py-3">
+                          <td colSpan={8} className="bg-[var(--surface-2)] px-4 py-3">
                             {documentVersionsLoading ? (
                               <p className="text-xs text-[var(--text-muted)]">Loading versions…</p>
                             ) : documentVersions.length === 0 ? (
@@ -407,6 +551,7 @@ export default function MyDataPage() {
                   ))}
                 </tbody>
               </table>
+            </div>
             </div>
           )}
         </Card>

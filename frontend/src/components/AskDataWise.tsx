@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { askAgent, createReport, exportAnalysisPdf, getAgentStatus, getKpiSuggestions, getReportPdf, getSession } from "@/lib/api";
 import type { AgentAnswer, AgentFinding, ClaimComparison, DatasetSummary, KPISuggestion, TraceStep } from "@/lib/types";
-import { buildStarterQuestions, CASE_STUDY_STARTER_QUESTIONS, GENERIC_STARTER_QUESTIONS } from "@/lib/starterQuestions";
+import { buildStarterQuestions, BUSINESS_STARTER_QUESTIONS, GENERIC_STARTER_QUESTIONS } from "@/lib/starterQuestions";
 import { useAuth } from "@/lib/auth-context";
 import { ChartFromSpec } from "./charts";
 import { DatasetPicker } from "./DatasetPicker";
@@ -23,11 +23,13 @@ const UNSET = Symbol("unset");
 
 const STAGE_LABELS: Record<TraceStep["stage"], string> = {
   understanding_question: "UNDERSTANDING QUESTION",
+  routing: "ROUTING",
   datasets: "DATASETS",
   documents: "DOCUMENTS",
   relationships: "RELATIONSHIPS",
   analysis: "ANALYSIS",
   document_research: "DOCUMENT RESEARCH",
+  web_research: "WEB RESEARCH",
   verification: "VERIFICATION",
   answer: "ANSWER",
 };
@@ -95,7 +97,7 @@ export function AskDataWise({
   }, [datasets]);
 
   const starterQuestions = datasets.length > 0
-    ? [...CASE_STUDY_STARTER_QUESTIONS, ...buildStarterQuestions(starterKpis)].slice(0, 12)
+    ? [...BUSINESS_STARTER_QUESTIONS, ...buildStarterQuestions(starterKpis)].slice(0, 12)
     : GENERIC_STARTER_QUESTIONS;
 
   useEffect(() => {
@@ -111,6 +113,12 @@ export function AskDataWise({
           .map((m) => m.metadata as unknown as AgentAnswer)
           .reverse();
         setExchanges(restored);
+        // Pre-fill the composer with the most recent user question so that
+        // "Edit / Continue" opens with the previous question ready to edit.
+        const lastUserMsg = session.messages.filter((m) => m.role === "user").at(-1);
+        if (lastUserMsg?.content) {
+          setQuestion(lastUserMsg.content);
+        }
       })
       .catch(() => setError("Could not restore this session."));
   }, [initialSessionId]);
@@ -307,6 +315,27 @@ function AnswerCard({
             </div>
           )}
 
+          {/* Charts appear immediately after the executive summary so
+              the visual is the first thing a judge/user sees, not buried
+              after a wall of findings text. */}
+          {answer.charts.length > 0 && (
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
+                Visual Analysis
+              </p>
+              <div className={`grid gap-4 ${answer.charts.length === 1 ? "grid-cols-1" : "sm:grid-cols-2"}`}>
+                {answer.charts.map((chart, i) => (
+                  <div key={i} className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-4">
+                    {chart.reason && (
+                      <p className="mb-2 text-xs font-medium text-[var(--text-secondary)]">{chart.reason}</p>
+                    )}
+                    <ChartFromSpec spec={chart} currency={currency} decimalPlaces={decimalPlaces} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div>
             <button
               onClick={() => setShowTrace((v) => !v)}
@@ -330,21 +359,6 @@ function AnswerCard({
               <div className="flex flex-col gap-2">
                 {answer.claim_comparisons.map((c, i) => (
                   <ClaimComparisonRow key={i} comparison={c} />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {answer.charts.length > 0 && (
-            <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
-                Charts
-              </p>
-              <div className="grid gap-4 sm:grid-cols-2">
-                {answer.charts.map((chart, i) => (
-                  <div key={i} className="rounded-lg border border-[var(--border)] p-3">
-                    <ChartFromSpec spec={chart} currency={currency} decimalPlaces={decimalPlaces} />
-                  </div>
                 ))}
               </div>
             </div>
