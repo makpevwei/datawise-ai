@@ -130,13 +130,14 @@ This is a deliberate design choice: DataWise is calibrated to reject questions i
 |---|---|
 | Backend | Python 3.12, FastAPI, SQLAlchemy 2.0 + Alembic |
 | Data processing | pandas, openpyxl, pypdf, python-docx |
-| Embeddings / RAG | sentence-transformers (local, free), TF-IDF fallback |
+| Embeddings / RAG | OpenAI embeddings (production), local sentence-transformers / TF-IDF fallback |
 | LLM | OpenAI / Anthropic / Gemini / Groq / OpenRouter (pluggable, auto-fallback) |
 | PDF reports | ReportLab |
 | Dependency management | [uv](https://docs.astral.sh/uv/) |
 | Frontend | Next.js 16 (App Router), TypeScript, Tailwind CSS |
 | Charts | Hand-built SVG components (no external charting library) |
 | Database | PostgreSQL (auth, ownership, versioning) |
+| Hosting | Google Cloud Run (backend), Vercel (frontend) |
 | File storage | Parquet + JSON on disk (dataset content and document chunks) |
 | Auth | JWT (PyJWT + bcrypt) |
 
@@ -297,13 +298,13 @@ Copy `.env.example` to `.env` and fill in real values.
 ### Frontend
 | Variable | Description |
 |---|---|
-| `NEXT_PUBLIC_API_BASE_URL` | Backend API URL (e.g. `https://your-backend.onrender.com/api/v1`) |
+| `NEXT_PUBLIC_API_BASE_URL` | Backend API URL (e.g. `https://your-backend.run.app/api/v1`) |
 
 ### Optional
 | Variable | Description |
 |---|---|
 | `SMTP_HOST` / `SMTP_PORT` / etc. | Email delivery for PDF reports |
-| `EMBEDDING_PROVIDER` | `huggingface` (default, free, local) or `openai` |
+| `EMBEDDING_PROVIDER` | `openai` (production default — no local model to load) or `huggingface` (free, local, heavier) |
 | `TAVILY_API_KEY` / `EXA_API_KEY` | Web research (optional, agent falls back gracefully) |
 
 ---
@@ -318,31 +319,36 @@ Copy `.env.example` to `.env` and fill in real values.
 └──────────────┬──────────────┘
                │ HTTPS
 ┌──────────────▼──────────────┐
-│  Render / Railway (Backend) │
-│  FastAPI + uvicorn          │
-│  Persistent disk: /data     │
-│  DATABASE_URL → Neon PG     │
+│  Google Cloud Run (Backend) │
+│  FastAPI + uvicorn (Docker) │
+│  1 CPU / 2GB RAM             │
+│  DATABASE_URL → Postgres    │
 └─────────────────────────────┘
 ```
 
 **Notes:**
-- The backend requires a **persistent disk** for uploaded files and document chunks. Render's free tier provides a persistent disk option.
-- Vercel's serverless functions cannot host FastAPI directly as a persistent server; backend must be deployed separately.
-- PostgreSQL: [Neon](https://neon.tech) free tier works well for the auth/ownership layer.
+- The backend is a Dockerized FastAPI app (`backend/Dockerfile`), deployed to Cloud Run rather than a buildpack-based host — the app's dependencies (pandas, torch) need more memory headroom than most free-tier PaaS instances give a Python web service by default.
+- Uploaded files and document chunks are **not on persistent storage** in the current deployment — Cloud Run instances are stateless/ephemeral by design. Fine for a live demo; a production rollout would move file storage to Cloud Storage (or re-attach a persistent volume on a host that supports one) before onboarding real customers.
+- Vercel's serverless functions cannot host FastAPI directly as a persistent server; the backend is deployed separately.
+- PostgreSQL runs on Render (used for the database only, not the web service) — any managed Postgres works equally well.
 
-### Render Backend Deployment
-1. Connect your GitHub repo to [Render](https://render.com)
-2. Create a **Web Service** with:
-   - **Runtime**: Python
-   - **Build command**: `cd backend && pip install uv && uv sync`
-   - **Start command**: `cd backend && uv run alembic upgrade head && uv run uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-   - **Add a Disk** (mount path `/data`, size ≥ 1GB)
-3. Set environment variables: `DATABASE_URL`, `JWT_SECRET_KEY`, `LLM_PROVIDER`, `LLM_API_KEY`, `UPLOAD_DIR=/data/uploads`, `DOCUMENT_DIR=/data/documents`, `REPORTS_DIR=/data/reports`, `CORS_ORIGINS=["https://your-vercel-app.vercel.app"]`
+### Cloud Run Backend Deployment
+```bash
+cd backend
+gcloud run deploy datawise-ai-backend \
+  --source . \
+  --region us-west1 \
+  --allow-unauthenticated \
+  --memory 2Gi \
+  --cpu 1 \
+  --set-env-vars DATABASE_URL=...,JWT_SECRET_KEY=...,LLM_PROVIDER=openai,LLM_API_KEY=...,EMBEDDING_PROVIDER=openai,CORS_ORIGINS='["https://your-vercel-app.vercel.app"]'
+```
+`gcloud run deploy --source .` builds `backend/Dockerfile` via Cloud Build and deploys it — no separate image-push step needed. For many secrets at once, `--env-vars-file path/to/env.yaml` (gitignored) is cleaner than a long `--set-env-vars` string.
 
 ### Vercel Frontend Deployment
 1. Connect your GitHub repo to [Vercel](https://vercel.com)
 2. Set **Root Directory**: `frontend`
-3. Add environment variable: `NEXT_PUBLIC_API_BASE_URL=https://your-render-backend.onrender.com/api/v1`
+3. Add environment variable: `NEXT_PUBLIC_API_BASE_URL=https://your-cloud-run-url.run.app/api/v1`
 4. Deploy
 
 ---
