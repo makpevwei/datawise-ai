@@ -2,11 +2,15 @@ services:
   - type: web
     name: datawise-ai-backend
     runtime: python
-    plan: free
+    plan: starter
     rootDir: backend
     buildCommand: pip install uv && uv sync --no-dev
     startCommand: uv run alembic upgrade head && uv run uvicorn app.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
+    disk:
+      name: datawise-data
+      mountPath: /data
+      sizeGB: 1
     envVars:
       - key: DATABASE_URL
         fromDatabase:
@@ -16,6 +20,12 @@ services:
         generateValue: true
       - key: ENVIRONMENT
         value: production
+      - key: UPLOAD_DIR
+        value: /data/uploads
+      - key: DOCUMENT_DIR
+        value: /data/documents
+      - key: REPORTS_DIR
+        value: /data/reports
       - key: LLM_PROVIDER
         sync: false
       - key: LLM_API_KEY
