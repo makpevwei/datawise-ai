@@ -4,9 +4,9 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getDashboardChartsMulti, getInsights, getKpiSuggestions } from "@/lib/api";
 import type { ChartSpec, DatasetSummary, Insight, KPISuggestion } from "@/lib/types";
-import { Card, EmptyState, ErrorBanner, SectionHeading, SourceLabelBadge, Spinner, looksMonetary } from "./ui";
+import { Card, EmptyState, ErrorBanner, SectionHeading, SourceLabelBadge, Spinner } from "./ui";
 import { DatasetPicker } from "./DatasetPicker";
-import { ChartFromSpec, scaleCurrency, scaleNumber } from "./charts";
+import { ChartFromSpec, StatCard } from "./charts";
 
 const MAX_KPIS = 6;
 const MAX_FINDINGS = 5;
@@ -71,30 +71,14 @@ function recommendationFor(insight: Insight): string {
 
 /** KPI card with scaled value, source lineage, and full value on hover. */
 function KpiCard({ kpi, currency, decimalPlaces }: { kpi: KPISuggestion; currency: string; decimalPlaces: number }) {
-  const v = kpi.preview_value ?? 0;
-  const monetary = looksMonetary(kpi.name);
-  const { display, full } = monetary
-    ? scaleCurrency(v, currency, decimalPlaces)
-    : scaleNumber(v);
-  const src = sourceLabel(kpi);
-
   return (
-    <Card className="p-4 flex flex-col gap-1 min-w-0">
-      <p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)] truncate" title={kpi.name}>
-        {kpi.name}
-      </p>
-      <p
-        className="mt-1 text-2xl font-semibold tracking-tight text-[var(--text-primary)] truncate"
-        title={full}
-      >
-        {display}
-      </p>
-      {src && (
-        <p className="text-[10px] text-[var(--text-muted)] truncate" title={src}>
-          {src}
-        </p>
-      )}
-    </Card>
+    <StatCard
+      label={kpi.name}
+      value={kpi.preview_value ?? 0}
+      description={sourceLabel(kpi) || undefined}
+      currency={currency}
+      decimalPlaces={decimalPlaces}
+    />
   );
 }
 
