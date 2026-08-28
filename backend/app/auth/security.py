@@ -7,6 +7,8 @@ client-side token discard, not a server-side revocation -- see the
 /auth/logout endpoint's docstring.
 """
 
+import hashlib
+import secrets
 from datetime import datetime, timedelta, timezone
 
 import bcrypt
@@ -17,6 +19,25 @@ from app.config import Settings
 
 class TokenError(Exception):
     """Raised for any invalid/expired/malformed token -- callers turn this into a 401."""
+
+
+# How long a forgot-password link stays valid before the user has to
+# request a new one.
+PASSWORD_RESET_TOKEN_TTL_MINUTES = 60
+
+
+def generate_password_reset_token() -> str:
+    """The raw token emailed to the user -- never stored anywhere as-is,
+    see hash_password_reset_token()."""
+    return secrets.token_urlsafe(32)
+
+
+def hash_password_reset_token(token: str) -> str:
+    """SHA-256, not bcrypt -- this hashes a high-entropy random token, not a
+    human-chosen password, so it doesn't need bcrypt's slow work factor;
+    it needs to be a fast, deterministic lookup key for the DB query in
+    reset_password() instead."""
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
 def hash_password(password: str) -> str:

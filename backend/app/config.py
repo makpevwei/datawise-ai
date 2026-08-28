@@ -28,6 +28,13 @@ class Settings(BaseSettings):
 
     cors_origins: list[str] = ["http://localhost:3000"]
 
+    # Used to build the link inside a password-reset email (e.g.
+    # "{frontend_base_url}/reset-password?token=..."). Falls back to the
+    # first CORS origin if unset, since that's almost always the deployed
+    # frontend anyway -- but an explicit value avoids that assumption
+    # breaking if CORS_ORIGINS ever lists something else first.
+    frontend_base_url: str | None = None
+
     upload_dir: str = "../data/uploads"
     max_upload_size_mb: int = 100
 

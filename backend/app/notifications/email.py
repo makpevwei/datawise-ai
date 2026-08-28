@@ -1,4 +1,5 @@
-"""Report email delivery -- Phase 4 continuation section 33.
+"""Email delivery: PDF reports (Phase 4 continuation section 33) and
+password-reset links, both over the same SMTP configuration.
 
 Uses Python's standard-library smtplib/email over an explicit SMTP host,
 not a third-party provider SDK: no email-sending capability existed in
@@ -56,6 +57,44 @@ def send_report_email(
     attachment = MIMEApplication(attachment_bytes, _subtype="pdf")
     attachment.add_header("Content-Disposition", "attachment", filename=attachment_filename)
     message.attach(attachment)
+
+    try:
+        with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=30) as server:
+            if settings.smtp_use_tls:
+                server.starttls()
+            server.login(settings.smtp_username, settings.smtp_password)
+            server.sendmail(settings.smtp_from_email, [to_email], message.as_string())
+    except smtplib.SMTPException as exc:
+        # Deliberately generic: an SMTP exception's str() can echo back
+        # server responses that sometimes include the attempted
+        # credentials -- never let that reach an API response.
+        raise EmailSendError("The email could not be sent. Check the SMTP configuration and try again.") from exc
+
+
+def send_password_reset_email(*, settings: Settings, to_email: str, reset_url: str) -> None:
+    """Reuses the same SMTP path as send_report_email() above (not Resend --
+    Resend's sandbox mode only delivers to the account owner's own inbox
+    until a domain is verified, which would silently lock out every real
+    user except the operator; a plain SMTP relay like Gmail has no such
+    per-recipient restriction)."""
+    if not is_email_configured(settings):
+        raise EmailNotConfiguredError(
+            "Password-reset email delivery is not configured. Set SMTP_HOST, SMTP_USERNAME, "
+            "SMTP_PASSWORD, and SMTP_FROM_EMAIL to enable it."
+        )
+
+    body_text = (
+        "We received a request to reset your DataWise AI password.\n\n"
+        f"Reset it here (this link expires in 1 hour): {reset_url}\n\n"
+        "If you didn't request this, you can safely ignore this email -- "
+        "your password won't change."
+    )
+
+    message = MIMEMultipart()
+    message["From"] = settings.smtp_from_email
+    message["To"] = to_email
+    message["Subject"] = "Reset your DataWise AI password"
+    message.attach(MIMEText(body_text, "plain"))
 
     try:
         with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=30) as server:

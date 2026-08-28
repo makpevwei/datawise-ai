@@ -264,6 +264,20 @@ export function logoutUser(): Promise<{ status: string }> {
   return request<{ status: string }>("/auth/logout", { method: "POST" });
 }
 
+export function forgotPassword(payload: { email: string }): Promise<{ status: string; detail: string }> {
+  return request<{ status: string; detail: string }>("/auth/forgot-password", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function resetPassword(payload: { token: string; new_password: string }): Promise<{ status: string; detail: string }> {
+  return request<{ status: string; detail: string }>("/auth/reset-password", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
 // ---- Dataset / document library (My Data) ----
 
 export interface DatasetLibraryItem {

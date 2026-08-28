@@ -37,6 +37,15 @@ class User(Base):
     # spec): never change what's calculated, only how numbers are displayed.
     currency: Mapped[str] = mapped_column(default="USD")
     decimal_places: Mapped[int] = mapped_column(default=2)
+    # Password reset: reset_token_hash stores a SHA-256 hash of the token
+    # emailed to the user, never the raw token -- mirrors why password_hash
+    # above is never the plain password. A hash (not bcrypt) is deliberate:
+    # this token is already high-entropy random bytes, not a human-chosen
+    # password, so it doesn't need bcrypt's slow work factor. Null except
+    # during the brief window between a forgot-password request and its use
+    # or expiry.
+    reset_token_hash: Mapped[str | None] = mapped_column(default=None)
+    reset_token_expires_at: Mapped[datetime | None] = mapped_column(default=None)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
 

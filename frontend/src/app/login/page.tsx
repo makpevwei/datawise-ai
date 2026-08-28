@@ -91,7 +91,9 @@ export default function LoginPage() {
               </div>
             </label>
             <p className="text-xs text-[var(--text-muted)]">
-              Forgot your password? Password reset isn&apos;t available yet — contact your workspace admin.
+              <Link href="/forgot-password" className="font-medium text-[var(--series-1)] hover:underline">
+                Forgot your password?
+              </Link>
             </p>
             <Button type="submit" disabled={loading}>
               {loading ? <Spinner /> : null} Sign In
