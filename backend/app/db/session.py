@@ -53,8 +53,14 @@ def get_engine() -> Engine:
             "DATABASE_URL is not set in .env -- DataWise's database features are unavailable."
         )
     url = normalize_database_url(settings.database_url)
-    # pool_pre_ping guards against Neon's autosuspend/idle-connection resets.
-    return create_engine(url, pool_pre_ping=True)
+    # pool_pre_ping guards against idle-connection resets (e.g. a managed
+    # Postgres provider's autosuspend). connect_timeout bounds how long a
+    # single connection attempt -- including the pre-ping's own probe -- can
+    # hang before failing loudly; without it, a stalled network path or a
+    # waking database has no ceiling and can leave a request hanging
+    # indefinitely with no response at all, which is far worse than a fast,
+    # clear error the client (and Render's proxy) can react to.
+    return create_engine(url, pool_pre_ping=True, connect_args={"connect_timeout": 10})
 
 
 @lru_cache
