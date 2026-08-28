@@ -14,8 +14,16 @@ import smtplib
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.utils import formataddr
 
 from app.config import Settings
+
+# Shows as "DataWise AI" in the recipient's inbox instead of the raw sending
+# address -- the address itself is still whatever SMTP_FROM_EMAIL is (a
+# personal Gmail address works fine functionally), but most mail clients
+# foreground the display name, so this alone reads meaningfully more
+# professional without needing a verified custom domain.
+_SENDER_DISPLAY_NAME = "DataWise AI"
 
 
 class EmailNotConfiguredError(Exception):
@@ -49,7 +57,7 @@ def send_report_email(
         )
 
     message = MIMEMultipart()
-    message["From"] = settings.smtp_from_email
+    message["From"] = formataddr((_SENDER_DISPLAY_NAME, settings.smtp_from_email))
     message["To"] = to_email
     message["Subject"] = subject
     message.attach(MIMEText(body_text, "plain"))
@@ -91,7 +99,7 @@ def send_password_reset_email(*, settings: Settings, to_email: str, reset_url: s
     )
 
     message = MIMEMultipart()
-    message["From"] = settings.smtp_from_email
+    message["From"] = formataddr((_SENDER_DISPLAY_NAME, settings.smtp_from_email))
     message["To"] = to_email
     message["Subject"] = "Reset your DataWise AI password"
     message.attach(MIMEText(body_text, "plain"))

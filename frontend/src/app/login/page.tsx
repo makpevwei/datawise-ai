@@ -112,7 +112,7 @@ export default function LoginPage() {
             </div>
             <div className="flex gap-2">
               <span className="w-16 shrink-0 text-[var(--text-muted)]">Password</span>
-              <span className="font-mono font-medium">password</span>
+              <span className="font-mono font-medium">datawise2026</span>
             </div>
           </div>
         </div>
