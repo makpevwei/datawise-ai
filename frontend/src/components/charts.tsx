@@ -55,6 +55,7 @@ export function StatCard({
   description,
   currency,
   decimalPlaces,
+  compact = false,
 }: {
   label: string;
   value: number | string;
@@ -64,6 +65,10 @@ export function StatCard({
    * number -- presentation only, per the user's Settings preference. */
   currency?: string;
   decimalPlaces?: number;
+  /** Smaller type/padding for dense grids (e.g. a 6-up KPI row) where the
+   * default size truncates a 3-letter currency code like "NGN" down to
+   * unreadable dots. Same tap-to-expand behavior either way. */
+  compact?: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
   const isMonetary = typeof value === "number" && !!currency && looksMonetary(label);
@@ -85,21 +90,21 @@ export function StatCard({
   }
 
   return (
-    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-6 min-w-0">
-      <p className="text-sm font-medium text-[var(--text-secondary)] truncate">{label}</p>
+    <div className={`rounded-xl border border-[var(--border)] bg-[var(--surface-1)] min-w-0 ${compact ? "p-4" : "p-6"}`}>
+      <p className={`font-medium text-[var(--text-secondary)] truncate ${compact ? "text-xs uppercase tracking-wide" : "text-sm"}`}>{label}</p>
       <button
         type="button"
         onClick={canExpand ? () => setExpanded((v) => !v) : undefined}
         title={full ?? undefined}
-        className={`mt-2 block w-full truncate text-left text-4xl font-semibold tabular-nums text-[var(--text-primary)] ${canExpand ? "cursor-pointer hover:text-[var(--series-1)]" : "cursor-default"}`}
+        className={`mt-2 block w-full truncate text-left font-semibold tabular-nums text-[var(--text-primary)] ${compact ? "text-xl" : "text-4xl"} ${canExpand ? "cursor-pointer hover:text-[var(--series-1)]" : "cursor-default"}`}
       >
         {display}
       </button>
       {canExpand && (
-        <p className="mt-1 text-xs text-[var(--text-muted)]">{expanded ? "Click to collapse" : "Click for exact value"}</p>
+        <p className="mt-1 text-xs text-[var(--text-muted)]">{expanded ? "Tap to collapse" : "Tap for exact value"}</p>
       )}
       {description && (
-        <p className="mt-2 text-xs text-[var(--text-muted)]">{description}</p>
+        <p className="mt-2 text-xs text-[var(--text-muted)] truncate" title={description}>{description}</p>
       )}
     </div>
   );

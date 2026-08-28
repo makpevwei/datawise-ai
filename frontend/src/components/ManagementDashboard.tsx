@@ -78,6 +78,7 @@ function KpiCard({ kpi, currency, decimalPlaces }: { kpi: KPISuggestion; currenc
       description={sourceLabel(kpi) || undefined}
       currency={currency}
       decimalPlaces={decimalPlaces}
+      compact
     />
   );
 }
