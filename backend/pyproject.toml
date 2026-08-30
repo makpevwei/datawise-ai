@@ -6,7 +6,7 @@ requires-python = ">=3.12,<3.13"
 dependencies = [
     "fastapi>=0.115.0",
     "uvicorn[standard]>=0.32.0",
-    "pandas>=2.2.0",
+    "pandas>=2.2.0,<3",
     "openpyxl>=3.1.5",
     "pydantic[email]>=2.9.0",
     "pydantic-settings>=2.6.0",
@@ -33,6 +33,7 @@ dependencies = [
     "beautifulsoup4>=4.15.0",
     "bcrypt>=4.0",
     "pyjwt>=2.9",
+    "slowapi>=0.1.9",
     "pymupdf>=1.28.2",
     "pytesseract>=0.3.13",
     "pdf2image>=1.17.0",
@@ -43,12 +44,47 @@ dependencies = [
 dev = [
     "pytest>=8.3.0",
     "httpx>=0.27.0",
+    "mypy>=1.13.0",
+    "ruff>=0.8.0",
 ]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = [
     "live: real network calls to a configured LLM provider (skipped automatically when its key is unset). Use `-m \"not live\"` for a network-free run.",
+]
+
+[tool.ruff]
+# 120, not ruff's default 88 -- this codebase's own convention is long,
+# explanatory prose comments/docstrings explaining *why*, consistently
+# throughout, not a style violation to "fix."
+line-length = 120
+
+[tool.ruff.lint]
+ignore = [
+    # FastAPI's own required dependency-injection idiom is `param: X =
+    # Depends(get_thing)` -- a function call as a default argument value,
+    # used correctly in essentially every endpoint in this codebase. B008
+    # exists to catch the *mutable-default-argument* footgun; it doesn't
+    # know FastAPI's Depends()/Query()/etc. are a deliberate exception to
+    # that. Not debt -- permanently excluded.
+    "B008",
+    # Pre-existing findings in files unrelated to this CI-setup phase
+    # (app/analysis/engine.py, app/analysis/kpi_discovery.py,
+    # app/agent/planner.py, app/agent/verification.py,
+    # app/ai/anthropic_provider.py, app/ai/openai_provider.py,
+    # app/documents/store.py, app/profiling/type_inference.py,
+    # app/semantic/store.py) -- deliberately left alone rather than
+    # editing unrelated code while adding the lint gate itself. Tracked
+    # in TODO.md for a real cleanup pass.
+    "F841",   # unused-variable
+    "B905",   # zip-without-explicit-strict
+    "S112",   # try-except-continue
+    "S110",   # try-except-pass
+    "ISC004", # implicit-string-concatenation-in-collection-literal
+    "C408",   # unnecessary-collection-call
+    "SIM102", # collapsible-if
+    "PLW0127", # self-assigning-variable
 ]
 
 [build-system]

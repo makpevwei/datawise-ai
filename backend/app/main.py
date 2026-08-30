@@ -1,5 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 
 from app.api.agent import router as agent_router
 from app.api.analysis import router as analysis_router
@@ -7,6 +10,7 @@ from app.api.auth import router as auth_router
 from app.api.datasets import router as datasets_router
 from app.api.documents import router as documents_router
 from app.api.health import router as health_router
+from app.api.rate_limit import limiter
 from app.api.relationships import router as relationships_router
 from app.api.reports import router as reports_router
 from app.api.sessions import router as sessions_router
@@ -15,6 +19,10 @@ from app.config import get_settings
 settings = get_settings()
 
 app = FastAPI(title=settings.app_name)
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_middleware(SlowAPIMiddleware)
 
 app.add_middleware(
     CORSMiddleware,

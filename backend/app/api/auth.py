@@ -8,12 +8,13 @@ a token's natural expiry; not built here per the "don't overengineer"
 scope of this phase.
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.api.rate_limit import email_from_body, limiter
 from app.auth.dependencies import get_current_user
 from app.auth.schemas import (
     SUPPORTED_CURRENCIES,
@@ -42,7 +43,8 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @router.post("/register", response_model=Token, status_code=status.HTTP_201_CREATED)
-def register(payload: UserCreate, db: Session = Depends(get_db)) -> Token:
+@limiter.limit("5/hour")
+def register(request: Request, payload: UserCreate, db: Session = Depends(get_db)) -> Token:
     existing = db.query(User).filter(User.email == payload.email.lower()).first()
     if existing is not None:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="An account with this email already exists.")
@@ -66,7 +68,8 @@ def register(payload: UserCreate, db: Session = Depends(get_db)) -> Token:
 
 
 @router.post("/login", response_model=Token)
-def login(payload: UserLogin, db: Session = Depends(get_db)) -> Token:
+@limiter.limit("10/minute")
+def login(request: Request, payload: UserLogin, db: Session = Depends(get_db)) -> Token:
     user = db.query(User).filter(User.email == payload.email.lower()).first()
     if user is None or not verify_password(payload.password, user.password_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect email or password.")
@@ -110,7 +113,9 @@ _GENERIC_FORGOT_PASSWORD_RESPONSE = {
 
 
 @router.post("/forgot-password")
-def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db)) -> dict:
+@limiter.limit("5/hour")
+@limiter.limit("3/hour", key_func=email_from_body)
+def forgot_password(request: Request, payload: ForgotPasswordRequest, db: Session = Depends(get_db)) -> dict:
     """Always returns the same generic response whether or not the email is
     registered, and whether or not sending the email actually succeeded --
     letting either leak through the response would tell a caller which
@@ -124,7 +129,7 @@ def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db
     settings = get_settings()
     raw_token = generate_password_reset_token()
     user.reset_token_hash = hash_password_reset_token(raw_token)
-    user.reset_token_expires_at = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(
+    user.reset_token_expires_at = datetime.now(UTC).replace(tzinfo=None) + timedelta(
         minutes=PASSWORD_RESET_TOKEN_TTL_MINUTES
     )
     db.commit()
@@ -135,17 +140,18 @@ def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db
     try:
         send_password_reset_email(settings=settings, to_email=user.email, reset_url=reset_url)
     except (EmailNotConfiguredError, EmailSendError) as exc:
-        print(f"[forgot-password] email send failed for user {user.id}: {exc}")  # noqa: T201 -- Cloud Run log, not a client-visible response
+        print(f"[forgot-password] email send failed for user {user.id}: {exc}")
 
     return _GENERIC_FORGOT_PASSWORD_RESPONSE
 
 
 @router.post("/reset-password")
-def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db)) -> dict:
+@limiter.limit("10/hour")
+def reset_password(request: Request, payload: ResetPasswordRequest, db: Session = Depends(get_db)) -> dict:
     token_hash = hash_password_reset_token(payload.token)
     user = db.query(User).filter(User.reset_token_hash == token_hash).first()
 
-    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    now = datetime.now(UTC).replace(tzinfo=None)
     if user is None or user.reset_token_expires_at is None or user.reset_token_expires_at < now:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import Response
 from sqlalchemy.orm import Session as DBSession
 
@@ -13,6 +13,7 @@ from app.api.deps import (
     get_scoped_dataset_store,
     get_scoped_document_store,
 )
+from app.api.rate_limit import limiter, user_id_or_ip
 from app.api.scoped_stores import ScopedDatasetStore, ScopedDocumentStore
 from app.api.sessions import append_message, get_or_create_owned_session
 from app.auth.dependencies import get_current_user
@@ -32,8 +33,11 @@ def agent_status(llm: LLMProvider | None = Depends(get_llm_provider)) -> dict:
 
 
 @router.post("/ask", response_model=AgentAnswer)
+@limiter.limit("20/minute", key_func=user_id_or_ip)
+@limiter.limit("100/hour", key_func=user_id_or_ip)
 def ask(
-    request: AskRequest,
+    request: Request,
+    payload: AskRequest,
     dataset_store: ScopedDatasetStore = Depends(get_scoped_dataset_store),
     document_store: ScopedDocumentStore = Depends(get_scoped_document_store),
     memory: ConversationMemory = Depends(get_conversation_memory),
@@ -47,19 +51,19 @@ def ask(
     # thread serves both conversational memory (in-process, ephemeral) and
     # history (Postgres, durable). A brand-new question with no session_id
     # gets a fresh session titled from the question itself.
-    session = get_or_create_owned_session(db, request.session_id, user, default_title=request.question)
+    session = get_or_create_owned_session(db, payload.session_id, user, default_title=payload.question)
 
     # dataset_ids/document_ids let the caller (e.g. Ask DataWise's dataset
     # picker) scope which of the user's own resources the agent even sees.
     # narrowed() only ever intersects with what this store is already
     # scoped to, so an id the user doesn't own can't leak in here.
-    if request.dataset_ids:
-        dataset_store = dataset_store.narrowed(set(request.dataset_ids))
-    if request.document_ids:
-        document_store = document_store.narrowed(set(request.document_ids))
+    if payload.dataset_ids:
+        dataset_store = dataset_store.narrowed(set(payload.dataset_ids))
+    if payload.document_ids:
+        document_store = document_store.narrowed(set(payload.document_ids))
 
     answer = run_agentic_graph(
-        question=request.question,
+        question=payload.question,
         session_id=session.id,
         llm=llm,
         dataset_store=dataset_store,
@@ -70,7 +74,7 @@ def ask(
         decimal_places=user.decimal_places,
     )
 
-    append_message(db, session, role="user", kind="agent_answer", content=request.question, metadata={})
+    append_message(db, session, role="user", kind="agent_answer", content=payload.question, metadata={})
     assistant_message = append_message(
         db, session, role="assistant", kind="agent_answer",
         content=answer.executive_summary or answer.error or "",

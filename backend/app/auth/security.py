@@ -9,7 +9,7 @@ client-side token discard, not a server-side revocation -- see the
 
 import hashlib
 import secrets
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import bcrypt
 import jwt
@@ -54,7 +54,7 @@ def verify_password(password: str, password_hash: str) -> bool:
 def create_access_token(user_id: str, settings: Settings) -> str:
     if not settings.jwt_secret_key:
         raise TokenError("JWT_SECRET_KEY is not configured.")
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     payload = {
         "sub": user_id,
         "iat": now,

@@ -2,11 +2,12 @@ import hashlib
 from datetime import datetime
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy.orm import Session as DBSession
 
 from app.api.deps import get_document_store, get_scoped_document_store
+from app.api.rate_limit import limiter, user_id_or_ip
 from app.api.scoped_stores import ScopedDocumentStore
 from app.auth.dependencies import get_current_user
 from app.config import get_settings
@@ -77,7 +78,9 @@ async def check_duplicate(
 
 
 @router.post("/upload", response_model=DocumentUploadResult)
+@limiter.limit("10/hour", key_func=user_id_or_ip)
 async def upload_documents(
+    request: Request,
     files: list[UploadFile] = File(...),
     force_new_version: bool = Form(False),
     store: DocumentStore = Depends(get_document_store),
