@@ -41,6 +41,10 @@ def root() -> dict[str, str]:
         "api": settings.api_v1_prefix,
         "health": f"{settings.api_v1_prefix}/health",
         "docs": "/docs",
+        # Trivial, deliberately visible marker for the CI-triggered-deploy
+        # end-to-end test (push to main -> CI -> automatic Cloud Run
+        # deploy, no manual gcloud command run by anyone).
+        "deploy_pipeline": "verified-2026-08-30",
     }
 
 

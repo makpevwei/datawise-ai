@@ -16,6 +16,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "DataWise AI",
   description: "AI-powered Business Intelligence and Data Analysis platform",
+  // Trivial, deliberately visible marker for the CI-triggered-deploy
+  // end-to-end test (push to main -> Vercel auto-deploys from its own
+  // GitHub integration, no manual command run by anyone).
+  other: { "x-deploy-pipeline": "verified-2026-08-30" },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
