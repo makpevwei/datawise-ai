@@ -52,6 +52,18 @@ outstanding gets lost between sessions.
 
 ## Medium priority — code health
 
+- **Pre-existing test-order flakiness.** Running the full suite locally
+  twice produced two different sets of failures both times (agent/session
+  tests one run, report/email tests the next), while every individually-
+  failing test passed cleanly in isolation. Root cause: many test files
+  share a module-level `TestClient(app)` and mutate `app.dependency_overrides`
+  directly rather than through an isolated per-test fixture, so one test's
+  leftover state can leak into another depending on execution order. CI
+  currently works around this with `pytest --reruns 1` (a stopgap, not a
+  fix) so a real, order-independent failure isn't masked by a flaky one.
+  The real fix is restructuring the shared test client into a proper
+  per-test fixture with guaranteed teardown.
+
 - **mypy: 51 findings, currently advisory-only** (doesn't block CI). ~39
   pre-existed the CI-gate phase; the rest came from this phase's own rate
   limiting code (mostly `Depends`-related type mismatches slowapi's
