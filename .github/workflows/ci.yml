@@ -163,13 +163,50 @@ jobs:
       - name: Set up gcloud
         uses: google-github-actions/setup-gcloud@v2
 
+      - name: Write env-vars file
+        # Never interpolate a secret directly into a quoted shell string in
+        # a `run:` script -- CORS_ORIGINS' value is a JSON array containing
+        # literal double quotes, which would prematurely close the
+        # surrounding "--update-env-vars=\"...\"" string and corrupt the
+        # value gcloud actually receives (this is exactly what happened on
+        # the first run of this workflow: cors_origins failed to parse as
+        # JSON on the backend, because it never arrived intact). Passing
+        # every secret through `env:` instead keeps it as a real,
+        # unmangled environment variable; this step writes them to a YAML
+        # file the same way env-vars-file already worked when run by hand.
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+          ENVIRONMENT: ${{ secrets.ENVIRONMENT }}
+          LLM_PROVIDER: ${{ secrets.LLM_PROVIDER }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          CORS_ORIGINS: ${{ secrets.CORS_ORIGINS }}
+          EMBEDDING_PROVIDER: ${{ secrets.EMBEDDING_PROVIDER }}
+          FRONTEND_BASE_URL: ${{ secrets.FRONTEND_BASE_URL }}
+          UPLOAD_DIR: ${{ secrets.UPLOAD_DIR }}
+          DOCUMENT_DIR: ${{ secrets.DOCUMENT_DIR }}
+          REPORTS_DIR: ${{ secrets.REPORTS_DIR }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          SMTP_FROM_EMAIL: ${{ secrets.SMTP_FROM_EMAIL }}
+        run: |
+          python3 -c "
+          import json, os
+          # JSON is valid YAML, so this needs only the stdlib -- no
+          # dependency on pyyaml being present on the runner.
+          names = ['DATABASE_URL','JWT_SECRET_KEY','ENVIRONMENT','LLM_PROVIDER','LLM_API_KEY','OPENAI_API_KEY','CORS_ORIGINS','EMBEDDING_PROVIDER','FRONTEND_BASE_URL','UPLOAD_DIR','DOCUMENT_DIR','REPORTS_DIR','SMTP_HOST','SMTP_PORT','SMTP_USERNAME','SMTP_PASSWORD','SMTP_FROM_EMAIL']
+          with open('/tmp/deploy-env.yaml', 'w') as f:
+              json.dump({n: os.environ[n] for n in names}, f)
+          "
+
       - name: Deploy to Cloud Run
         # Mirrors the manual `gcloud run deploy` command exactly (memory,
         # CPU, min-instances, execution environment, GCS volume mount for
         # persistent storage) -- see docs/deploy-pipeline.md for what each
-        # flag is for. ^;^ changes gcloud's env-var delimiter from comma to
-        # semicolon, since CORS_ORIGINS' own value is a JSON array
-        # containing commas.
+        # flag is for.
         run: |
           gcloud run deploy datawise-ai-backend \
             --project="${{ vars.GCP_PROJECT_ID }}" \
@@ -183,5 +220,5 @@ jobs:
             --execution-environment=gen2 \
             --add-volume=name=data,type=cloud-storage,bucket=datawise-ai-storage-agentic \
             --add-volume-mount=volume=data,mount-path=/data \
-            --update-env-vars="^;^DATABASE_URL=${{ secrets.DATABASE_URL }};JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }};ENVIRONMENT=${{ secrets.ENVIRONMENT }};LLM_PROVIDER=${{ secrets.LLM_PROVIDER }};LLM_API_KEY=${{ secrets.LLM_API_KEY }};OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }};CORS_ORIGINS=${{ secrets.CORS_ORIGINS }};EMBEDDING_PROVIDER=${{ secrets.EMBEDDING_PROVIDER }};FRONTEND_BASE_URL=${{ secrets.FRONTEND_BASE_URL }};UPLOAD_DIR=${{ secrets.UPLOAD_DIR }};DOCUMENT_DIR=${{ secrets.DOCUMENT_DIR }};REPORTS_DIR=${{ secrets.REPORTS_DIR }};SMTP_HOST=${{ secrets.SMTP_HOST }};SMTP_PORT=${{ secrets.SMTP_PORT }};SMTP_USERNAME=${{ secrets.SMTP_USERNAME }};SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }};SMTP_FROM_EMAIL=${{ secrets.SMTP_FROM_EMAIL }}" \
+            --env-vars-file=/tmp/deploy-env.yaml \
             --quiet
