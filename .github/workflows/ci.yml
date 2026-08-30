@@ -22,8 +22,35 @@ jobs:
     defaults:
       run:
         working-directory: backend
+    # The test suite exercises the real Postgres-backed models (auth,
+    # dataset/document ownership, sessions, reports, ...), not just the
+    # file-backed stores -- a real Postgres service container here, not a
+    # mock, mirrors what the deployed backend actually runs against.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: datawise
+          POSTGRES_PASSWORD: datawise
+          POSTGRES_DB: datawise_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://datawise:datawise@localhost:5432/datawise_test
+      JWT_SECRET_KEY: ci-test-secret-not-used-anywhere-real
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        # Mirrors backend/Dockerfile -- poppler-utils/tesseract-ocr back
+        # PDF OCR fallback and are asserted present by
+        # tests/test_document_extraction.py::test_ocr_available_in_current_environment.
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends poppler-utils tesseract-ocr
 
       - name: Install uv
         uses: astral-sh/setup-uv@v3
@@ -50,6 +77,9 @@ jobs:
         # dedicated cleanup pass first. See TODO.md.
         run: uv run mypy app/ --ignore-missing-imports
         continue-on-error: true
+
+      - name: Run database migrations
+        run: uv run alembic upgrade head
 
       - name: Test
         run: uv run pytest tests/ -q -m "not live"
