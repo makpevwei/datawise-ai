@@ -12,7 +12,7 @@ import json
 import re
 import time
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from app.agent.memory import ConversationMemory
 from app.agent.schemas import (
@@ -511,7 +511,7 @@ def run_agent(
     preference, passed through to synthesis so prose figures match what
     the UI renders instead of the model defaulting to "$"."""
     session_id = session_id or uuid.uuid4().hex
-    created_at = datetime.now(timezone.utc)
+    created_at = datetime.now(UTC)
     trace: list[TraceStep] = [
         TraceStep(stage="understanding_question", label="Understanding question", detail=question)
     ]

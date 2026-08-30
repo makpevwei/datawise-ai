@@ -11,9 +11,9 @@ import pandas as pd
 from app.geography.countries import looks_like_country_column, resolve_country
 from app.profiling.type_inference import CURRENCY_CHARS
 from app.semantic.models import (
+    Aggregation,
     AnalysisRequest,
     AnalysisResult,
-    Aggregation,
     ChartSpec,
     ChartType,
     FilterCondition,

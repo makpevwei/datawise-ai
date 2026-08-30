@@ -7,7 +7,7 @@ matches the Phase 3 scope of "current analysis session" context only
 
 import threading
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 MAX_TURNS_REMEMBERED = 6
 
@@ -31,7 +31,7 @@ class ConversationMemory:
         with self._lock:
             turns = self._sessions.setdefault(session_id, [])
             turns.append(
-                MemoryTurn(question=question, answer_summary=answer_summary, timestamp=datetime.now(timezone.utc))
+                MemoryTurn(question=question, answer_summary=answer_summary, timestamp=datetime.now(UTC))
             )
             if len(turns) > MAX_TURNS_REMEMBERED:
                 del turns[: len(turns) - MAX_TURNS_REMEMBERED]

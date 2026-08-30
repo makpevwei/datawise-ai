@@ -4,7 +4,7 @@ Mirrors app/upload/service.py's shape: one bad file never blocks the rest
 of a multi-file upload; every failure becomes a DocumentUploadError.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from app.documents.chunking import chunk_segments
 from app.documents.extraction import (
@@ -62,7 +62,7 @@ def ingest_documents(
             document_type=validated.document_type,
             chunk_count=len(chunks),
             char_count=char_count,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
             extraction_warnings=warnings,
         )
         store.put(summary, chunks)

@@ -5,11 +5,11 @@ app/api/analysis.py to append messages -- not a second chatbot, just the
 durability layer under the existing agent/analysis engines.
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import ConfigDict, BaseModel
+from pydantic import BaseModel, ConfigDict
 from sqlalchemy import desc
 from sqlalchemy.orm import Session as DBSession
 
@@ -82,11 +82,11 @@ def get_or_create_owned_session(
 def append_message(
     db: DBSession, session: AnalysisSession, *, role: str, kind: str, content: str, metadata: dict
 ) -> Message:
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     message = Message(session_id=session.id, role=role, kind=kind, content=content, message_metadata=metadata)
     db.add(message)
-    session.last_activity_at = datetime.now(timezone.utc)
+    session.last_activity_at = datetime.now(UTC)
     db.commit()
     db.refresh(message)
     return message

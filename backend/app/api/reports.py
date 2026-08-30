@@ -5,12 +5,12 @@ unchanged -- this endpoint only adds "save it and remember it belongs to
 this user," not a second export pipeline.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import Response
-from pydantic import ConfigDict, BaseModel, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr
 from sqlalchemy import desc
 from sqlalchemy.orm import Session as DBSession
 
@@ -73,7 +73,7 @@ def create_report(
 
     try:
         answer = AgentAnswer.model_validate(message.message_metadata)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="This message has no exportable answer.") from exc
 
     pdf_bytes = render_answer_pdf(answer)
@@ -148,7 +148,7 @@ def email_report(
 
     report.email_status = "sent"
     report.email_recipient = payload.recipient
-    report.email_sent_at = datetime.now(timezone.utc)
+    report.email_sent_at = datetime.now(UTC)
     db.commit()
     db.refresh(report)
     return ReportOut.model_validate(report)

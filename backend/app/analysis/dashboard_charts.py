@@ -29,7 +29,15 @@ from app.analysis.engine import AnalysisError, run_analysis
 from app.analysis.kpi_discovery import rank_dimension_candidates, rank_metric_candidates
 from app.relationships.joins import JoinError, perform_join
 from app.relationships.service import detect_relationships
-from app.semantic.models import AnalysisRequest, Aggregation, ChartSpec, ChartType, ConfidenceLevel, JoinRequest, JoinType
+from app.semantic.models import (
+    Aggregation,
+    AnalysisRequest,
+    ChartSpec,
+    ChartType,
+    ConfidenceLevel,
+    JoinRequest,
+    JoinType,
+)
 from app.semantic.store import DatasetRecord, DatasetStore
 
 # Maximum categories for a readable comparison/composition chart

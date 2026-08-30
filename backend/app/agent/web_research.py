@@ -125,7 +125,7 @@ def search_web(query: str, settings: Settings, max_results: int | None = None) -
     max_results = max_results or settings.max_research_sources
     timeout = settings.search_timeout
 
-    attempts: list[tuple[str, "callable"]] = []
+    attempts: list[tuple[str, callable]] = []
     if settings.tavily_api_key:
         attempts.append(("tavily", lambda: _search_tavily(query, settings.tavily_api_key, max_results, timeout)))
     if settings.exa_api_key:

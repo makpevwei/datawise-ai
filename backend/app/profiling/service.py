@@ -4,7 +4,7 @@ Every statistic here is computed directly from the DataFrame; nothing is
 inferred or guessed beyond the documented type-inference heuristics.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pandas as pd
 
@@ -173,5 +173,5 @@ def profile_dataframe(
         identifier_columns=possible_id_columns,
         text_columns=[c.name for c in columns if c.inferred_type == ColumnType.TEXT],
         quality=quality,
-        created_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
     )

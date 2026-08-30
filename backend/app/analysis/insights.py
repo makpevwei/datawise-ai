@@ -254,8 +254,8 @@ def compute_iqr_anomalies(values: pd.Series) -> dict | None:
         "iqr": round(float(iqr), 2),
         "lower_bound": round(float(lower), 2),
         "upper_bound": round(float(upper), 2),
-        "outlier_count": int(len(outliers)),
-        "total_considered": int(len(values)),
+        "outlier_count": len(outliers),
+        "total_considered": len(values),
         "outlier_share_pct": round(len(outliers) / len(values) * 100, 2),
         "outlier_values": [round(float(v), 2) for v in outliers.head(20)],
     }

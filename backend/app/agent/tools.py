@@ -8,8 +8,9 @@ filesystem or dataframe access.
 """
 
 import dataclasses
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any
 
 from app.agent.web_research import WebResearchError, WebResearchNotConfiguredError, search_web
 from app.ai.types import ToolSchema
@@ -21,7 +22,15 @@ from app.documents.store import DocumentStore
 from app.geography.countries import looks_like_country_column
 from app.relationships.joins import JoinError, perform_join
 from app.relationships.service import detect_relationships
-from app.semantic.models import Aggregation, AnalysisRequest, ChartType, DatasetProfile, FilterCondition, JoinRequest, JoinType
+from app.semantic.models import (
+    Aggregation,
+    AnalysisRequest,
+    ChartType,
+    DatasetProfile,
+    FilterCondition,
+    JoinRequest,
+    JoinType,
+)
 from app.semantic.resolver import Role, resolve_column
 from app.semantic.store import DatasetRecord, DatasetStore
 
@@ -256,7 +265,7 @@ def _compare_periods(args: dict, ctx: ToolContext) -> dict:
     value_a, value_b = by_period.get(period_a), by_period.get(period_b)
     if value_a is None or value_b is None:
         return {
-            "error": f"One or both periods not found in the data (format YYYY-MM).",
+            "error": "One or both periods not found in the data (format YYYY-MM).",
             "available_periods": sorted(by_period.keys()),
         }
 
@@ -436,8 +445,8 @@ def verify_claim_tool(args: dict, ctx: ToolContext, tool_invocations: list) -> d
     generic Tool.handler(args, ctx) signature doesn't carry. Dispatched
     explicitly by the planner instead of going through TOOLS[name].handler.
     """
-    from app.agent.verification import verify_finding_label
     from app.agent.schemas import EvidenceLabel
+    from app.agent.verification import verify_finding_label
 
     claimed_label = EvidenceLabel(args.get("claimed_label", "AI_INTERPRETATION"))
     relevant = tool_invocations

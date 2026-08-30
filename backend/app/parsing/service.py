@@ -124,7 +124,7 @@ def parse_xlsx_bytes(content: bytes, filename: str) -> tuple[list[ParsedTable], 
             engine="openpyxl",
             engine_kwargs={"read_only": True},
         )
-    except Exception as exc:  # noqa: BLE001 -- any openpyxl/pandas failure becomes a ParsingError
+    except Exception as exc:
         raise ParsingError(f"{filename}: could not read workbook -- {exc}") from exc
 
     tables: list[ParsedTable] = []

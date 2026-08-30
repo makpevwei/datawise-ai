@@ -21,7 +21,7 @@ import pandas as pd
 
 from app.profiling.type_inference import ID_TOKENS, looks_like_identifier_name, tokenize_column_name
 from app.relationships.joins import classify_cardinality
-from app.semantic.models import ColumnProfile, ConfidenceLevel, ColumnType, JoinCardinality, RelationshipSuggestion
+from app.semantic.models import ColumnProfile, ColumnType, ConfidenceLevel, JoinCardinality, RelationshipSuggestion
 from app.semantic.store import DatasetRecord
 
 _NON_ALNUM = re.compile(r"[^a-z0-9]+")

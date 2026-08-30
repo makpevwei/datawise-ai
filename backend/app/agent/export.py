@@ -11,7 +11,7 @@ traces to the same deterministic tool results the UI shows.
 """
 
 import io
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import LETTER
@@ -68,7 +68,7 @@ def render_answer_pdf(answer: AgentAnswer, *, dataset_name: str | None = None, d
     heading_style = ParagraphStyle("DWHeading", parent=styles["Heading2"], spaceBefore=14)
     small_style = ParagraphStyle("DWSmall", parent=styles["Normal"], fontSize=9, textColor=colors.HexColor("#6b6a63"))
 
-    generated_at = datetime.now(timezone.utc).strftime("%B %d, %Y at %H:%M UTC")
+    generated_at = datetime.now(UTC).strftime("%B %d, %Y at %H:%M UTC")
 
     # -- Cover page --
     story: list = [
