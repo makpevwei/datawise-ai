@@ -2,20 +2,23 @@ name: CI
 
 # Runs on every push and PR touching main. Vercel is not told about this
 # workflow directly -- there's no native "wait for a GitHub Action" hook on
-# Vercel's side. What actually keeps a broken build off Vercel's production
-# deploy is GitHub branch protection on main (Require status checks to
-# pass -> the "backend" and "frontend" jobs below), enforced for everyone
-# including admins, combined with main only accepting merges via PR. Since
-# Vercel's production deploy triggers on a push to main, and nothing broken
-# can reach main once that's true, "Vercel doesn't deploy a broken build"
-# holds by construction.
+# Vercel's side. The intended guarantee is that GitHub branch protection on
+# main (Require status checks to pass -> the "backend" and "frontend" jobs
+# below, enforced for everyone including admins, combined with main only
+# accepting merges via PR) is what actually keeps a broken build off
+# Vercel's production deploy. NOT CURRENTLY ENABLED: GitHub blocks branch
+# protection on a private repo below the Pro plan, and the deliberate
+# choice (see TODO.md) was to stay private and free rather than pay or go
+# public. Until that's revisited, a direct push to main -- red CI or not
+# -- still reaches Vercel same as before this phase.
 #
 # The backend has no such external auto-deploy -- the `deploy` job below
-# *is* its deploy mechanism, gated the same way: it only runs after
-# `backend` and `frontend` both succeed, and only on an actual push to
-# main (never on a PR, so a PR from a fork can't deploy anything).
-# Authenticates to GCP via Workload Identity Federation (no long-lived
-# service-account key stored in GitHub) -- see docs/deploy-pipeline.md.
+# *is* its deploy mechanism, gated the same way regardless of branch
+# protection: it only runs after `backend` and `frontend` both succeed on
+# main itself, and only on an actual push to main (never on a PR, so a PR
+# from a fork can't deploy anything). Authenticates to GCP via Workload
+# Identity Federation (no long-lived service-account key stored in
+# GitHub) -- see docs/deploy-pipeline.md.
 
 on:
   push:

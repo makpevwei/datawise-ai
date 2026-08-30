@@ -4,17 +4,27 @@ Plain-English record of what's shipped, newest first. No version numbers yet
 (pre-1.0, deploys are continuous rather than tagged releases) — entries are
 grouped by date instead.
 
-## 2026-08-30 — Rate limiting, CI gate
+## 2026-08-30 — Rate limiting, CI gate, CI-triggered deploy
 
 - **Rate limiting** on every auth endpoint (register, login, forgot-password,
   reset-password) and every endpoint that calls an LLM provider (`/agent/ask`,
   `/documents/upload`) — closes a real, live cost/abuse exposure (open
   sign-up sitting in front of a metered OpenAI key, brute-force exposure on
   login). See the phase summary for exact limits and reasoning.
-- **CI pipeline** (GitHub Actions): lint (ruff) + tests, blocking; type-check
-  (mypy) advisory-only for now, since the codebase has no prior
-  type-checking history. Not yet wired to actually gate deploys — see
-  TODO.md.
+- **CI pipeline** (GitHub Actions): lint (ruff), a real `next build`, and
+  the test suites, all blocking, running against a real ephemeral
+  Postgres service container for the backend; type-check (mypy)
+  advisory-only for now, since the codebase has no prior type-checking
+  history.
+- **CI-triggered Cloud Run deploy**, replacing manual `gcloud run deploy`
+  entirely: push to `main` → CI passes → automatic deploy, authenticated
+  via Workload Identity Federation (no long-lived GCP service-account key
+  stored anywhere). Full pipeline documented in `docs/deploy-pipeline.md`.
+- **Branch protection on `main` evaluated, not enabled** — GitHub Free
+  doesn't support it on a private repo at all (Pro-plan feature there).
+  Deliberately staying private + free for now rather than pay or go
+  public; a direct push to `main` can still reach Vercel unopposed until
+  this is revisited. Tracked in TODO.md.
 
 ## 2026-08-28 — Password reset, dashboard fixes, Cloud Run migration
 

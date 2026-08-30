@@ -17,22 +17,21 @@ outstanding gets lost between sessions.
   (configured limit × instance count), not a hard violation, but a real
   gap. Needs a shared backend (Redis, e.g. Upstash's free tier) before
   real scale.
-- **Wire CI into an actual deploy gate.** The CI pipeline (lint + tests,
-  advisory type-check) runs on every push/PR right now, but nothing
-  currently *blocks* on it — there's no branch protection on `main` and
-  the team has been pushing directly to `main` all along. Two decisions
-  needed:
-  1. Turn on GitHub branch protection for `main` (require the CI check to
-     pass) and switch to a PR-based workflow instead of direct pushes —
-     this is what makes "Vercel doesn't deploy a broken build" true, since
-     Vercel's production deploy triggers on a push to `main`.
-  2. Backend deploy mechanism — recommended: move from manual
-     `gcloud run deploy` to CI-triggered deploy via Workload Identity
-     Federation (no long-lived GCP key sitting in GitHub Secrets). This
-     would also sidestep the local-machine gcloud CLI flakiness that ate
-     significant time this session (a stale metadata-detection cache file
-     causing multi-minute hangs) — a clean GitHub Actions runner doesn't
-     have that local state. Real setup work (~30-60 min), not done yet.
+- **Branch protection on `main` is blocked, not just undone.** GitHub
+  Free doesn't support branch protection on a private repo at all — it's
+  a paid-plan (Pro, ~$4/month) feature there, or free if the repo is
+  public. Deliberately staying private + free for now (see the "Domain
+  ownership" decision made earlier). Until this is revisited, a direct
+  push straight to `main` — CI red or not — still reaches Vercel's
+  production deploy unopposed. (The Cloud Run side is *not* exposed to
+  this specific gap: its own CI-triggered deploy job only runs after
+  `backend`+`frontend` CI pass on `main`, independent of branch
+  protection — see below.) Revisit by either paying for Pro or accepting
+  the tradeoff of a public repo.
+  - DONE (2026-08-30): CI-triggered Cloud Run deploy via Workload Identity
+    Federation, replacing manual `gcloud run deploy` entirely — push to
+    `main` → CI passes → automatic deploy, no long-lived GCP key stored
+    anywhere. Full writeup in `docs/deploy-pipeline.md`.
 - **Password reset emails send from a personal Gmail address.** Display
   name now reads "DataWise AI," but the underlying address is still
   personal. Real fix: verify a custom domain (with Resend, or Gmail
