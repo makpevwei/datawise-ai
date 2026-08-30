@@ -49,8 +49,10 @@ describe("LoginPage", () => {
     expect(await screen.findByText(/incorrect email or password/i)).toBeInTheDocument();
   });
 
-  it("shows a clear message that password reset is not available, rather than a fake link", () => {
+  it("links to the real self-service password reset flow", () => {
     render(<LoginPage />);
-    expect(screen.getByText(/password reset isn.t available yet/i)).toBeInTheDocument();
+    const link = screen.getByRole("link", { name: /forgot your password/i });
+    expect(link).toBeInTheDocument();
+    expect(link).toHaveAttribute("href", "/forgot-password");
   });
 });
