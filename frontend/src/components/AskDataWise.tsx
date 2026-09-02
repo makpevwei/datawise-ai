@@ -96,8 +96,10 @@ export function AskDataWise({
     };
   }, [datasets]);
 
+  // Grounded/curated questions first, generic filler last -- see
+  // InsightsPanel.tsx's identical fix for why.
   const starterQuestions = datasets.length > 0
-    ? [...BUSINESS_STARTER_QUESTIONS, ...buildStarterQuestions(starterKpis)].slice(0, 12)
+    ? [...buildStarterQuestions(starterKpis), ...BUSINESS_STARTER_QUESTIONS].slice(0, 12)
     : GENERIC_STARTER_QUESTIONS;
 
   useEffect(() => {

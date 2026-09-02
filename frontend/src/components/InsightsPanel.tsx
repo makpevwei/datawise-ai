@@ -355,7 +355,11 @@ function AiDataAnalyst({
   currency: string;
   decimalPlaces: number;
 }) {
-  const starterQuestions = [...BUSINESS_STARTER_QUESTIONS, ...buildStarterQuestions(kpis)].slice(0, 12);
+  // Grounded/curated questions first, generic filler last -- otherwise
+  // generic filler fills every visible slot before a dataset-specific
+  // question (KPI-derived, or the NexaSphere case study's own curated
+  // set) ever gets a chance to show.
+  const starterQuestions = [...buildStarterQuestions(kpis), ...BUSINESS_STARTER_QUESTIONS].slice(0, 12);
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

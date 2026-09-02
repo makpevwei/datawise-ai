@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { buildStarterQuestions, GENERIC_STARTER_QUESTIONS, questionFromKpi } from "../starterQuestions";
+import {
+  buildStarterQuestions,
+  GENERIC_STARTER_QUESTIONS,
+  NEXASPHERE_CASE_STUDY_QUESTIONS,
+  questionFromKpi,
+} from "../starterQuestions";
 import type { KPISuggestion } from "../types";
 
 function kpi(overrides: Partial<KPISuggestion>): KPISuggestion {
@@ -81,5 +86,23 @@ describe("buildStarterQuestions", () => {
     const questions = buildStarterQuestions([kpi({ aggregation: "sum", metric_column: "price" })]);
     expect(questions.length).toBeGreaterThanOrEqual(10);
     expect(questions.some((q) => GENERIC_STARTER_QUESTIONS.includes(q))).toBe(true);
+  });
+
+  it("shows the case study's curated questions only when the loaded data is actually the NexaSphere workbook", () => {
+    const nexasphereKpis = [
+      kpi({ metric_column: "Gross_Sales_NGN", dataset_name: "NexaSphere_BI_Case_Study_Dataset.xlsx — Fact_Sales" }),
+    ];
+    const questions = buildStarterQuestions(nexasphereKpis);
+    for (const q of NEXASPHERE_CASE_STUDY_QUESTIONS) {
+      expect(questions).toContain(q);
+    }
+  });
+
+  it("never shows the NexaSphere-specific questions for an unrelated dataset", () => {
+    const otherKpis = [kpi({ metric_column: "price", dataset_name: "some_other_shop.csv" })];
+    const questions = buildStarterQuestions(otherKpis);
+    for (const q of NEXASPHERE_CASE_STUDY_QUESTIONS) {
+      expect(questions).not.toContain(q);
+    }
   });
 });
