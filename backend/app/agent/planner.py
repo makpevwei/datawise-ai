@@ -138,7 +138,9 @@ verbatim). Never substitute a different analysis just because no tool computes a
 NEVER guess a flag column's real values ("Yes"/"No" vs 1/0 vs True/False vs a custom word all vary by \
 dataset) -- call inspect_dataset first and use its real values in the filter. If a filtered count comes \
 back 0 while the unfiltered total is not, that means the filter value was wrong, not that no matching \
-rows exist -- re-check inspect_dataset's real values before ever concluding "no such records."
+rows exist -- re-check inspect_dataset's real values before ever concluding "no such records." \
+Self-check: does your last call's filter match the condition asked about (e.g. Return_Flag=="Yes" for \
+"return rate")? A call with NO filter never answers a rate question, however confident it sounds.
 
 "How many total X are there" / "how many X" asks for DISTINCT X entities (aggregation=nunique), not \
 row count (aggregation=count) -- a fact table is very often one row per LINE ITEM, not one row per X \
