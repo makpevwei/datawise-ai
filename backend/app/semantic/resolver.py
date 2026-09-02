@@ -104,20 +104,31 @@ def _normalize_tokens(text: str) -> list[str]:
 
 
 def _token_score(concept_tokens: list[str], column_tokens: list[str]) -> float:
+    """Weighted, not a flat match count -- a literal/direct token match is
+    worth more than a synonym-bridged one, which is worth more than a
+    fuzzy one. Found live: "revenue" sits in a synonym group with "sales"
+    (so "revenue" can resolve to Sales_Amount-style columns when that's
+    genuinely all a dataset has), but on a dataset that has an actual
+    Realized_Revenue_NGN column, that flat-count scoring made it a dead
+    tie against Gross_Sales_NGN/Net_Sales_NGN (all three "matched" the one
+    concept token) -- the tie then broke on column order, not precision,
+    silently picking Gross_Sales_NGN every time regardless of which
+    column the question actually named most precisely.
+    """
     if not concept_tokens or not column_tokens:
         return 0.0
     column_set = set(column_tokens)
-    matched = 0
+    weight_sum = 0.0
     for token in set(concept_tokens):
         if token in column_set:
-            matched += 1
+            weight_sum += 1.0
             continue
         if token in _SYNONYM_OF and _SYNONYM_OF[token] & column_set:
-            matched += 1
+            weight_sum += 0.85
             continue
         if difflib.get_close_matches(token, column_set, n=1, cutoff=_FUZZY_MATCH_FLOOR):
-            matched += 1
-    return matched / len(set(concept_tokens))
+            weight_sum += 0.7
+    return weight_sum / len(set(concept_tokens))
 
 
 def _role_bonus(column: ColumnProfile, role: Role, wants_identifier: bool) -> float:
@@ -129,7 +140,20 @@ def _role_bonus(column: ColumnProfile, role: Role, wants_identifier: bool) -> fl
         return -60.0  # categorical/text/date/etc. are never measures either
     if role == "dimension":
         if column.inferred_type == ColumnType.IDENTIFIER:
-            return 15.0 if wants_identifier else -25.0
+            # -25 (not -10) used to let an unrelated, only-half-matching
+            # categorical column outscore an identifier that's the FULL,
+            # correct token match -- found live: "sales agent" (a real,
+            # perfect match for Sales_Agent_ID) lost to Sales_Channel (only
+            # "sales" matches) because 0.5*70+15=50 beat 1.0*70-25=45. A
+            # fact table very often has no human-readable name for an
+            # entity (agent, employee, customer) at all -- only its ID --
+            # so requiring the user to say "agent id" instead of just
+            # "agent" before trusting the identifier is unrealistic. -10
+            # still loses to a categorical column on an EQUAL full match
+            # (70+15=85 beats 70-10=60), which is the case this penalty
+            # actually needs to guard against; it no longer loses to a
+            # worse PARTIAL match against an unrelated column.
+            return 15.0 if wants_identifier else -10.0
         if column.inferred_type in (ColumnType.CATEGORICAL, ColumnType.TEXT, ColumnType.BOOLEAN):
             return 15.0
         if column.inferred_type == ColumnType.DATE:

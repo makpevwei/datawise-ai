@@ -92,6 +92,25 @@ def test_revenue_synonym_resolves_to_sales_amount_measure():
     assert result.column == "sales_amount"
 
 
+def test_revenue_prefers_a_literal_revenue_column_over_a_sales_synonym_match():
+    # Found live: a dataset with BOTH a "sales"-named column and an actual
+    # "revenue"-named column used to score them identically for the
+    # concept "revenue" (both counted as one "matched" token, whether by
+    # literal match or by the sales<->revenue synonym bridge) -- the tie
+    # then silently broke on column order, picking gross_sales_ngn every
+    # time regardless of realized_revenue_ngn being the more precise,
+    # literal match for what was actually asked.
+    df = pd.DataFrame(
+        {
+            "gross_sales_ngn": [100.0 + i for i in range(1, N + 1)],
+            "realized_revenue_ngn": [90.0 + i for i in range(1, N + 1)],
+        }
+    )
+    profile = profile_dataframe(df, "d", "d", "d.csv", None, DatasetKind.UPLOADED)
+    result = resolve_column("revenue", profile, role="measure")
+    assert result.column == "realized_revenue_ngn"
+
+
 def test_return_rate_does_not_resolve_to_an_unrelated_numeric_field():
     df = pd.DataFrame({"late_delivery_risk": [0, 1] * 10, "price": [10.0] * 20})
     profile = profile_dataframe(df, "orders", "orders", "orders.csv", None, DatasetKind.UPLOADED)
@@ -141,6 +160,35 @@ def test_explicit_id_wording_resolves_to_the_identifier_column():
 def test_falls_back_to_identifier_when_no_descriptive_column_exists():
     result = resolve_column("product", _id_only_profile(), role="dimension")
     assert result.column == "product_id"
+
+
+def _agent_and_channel_profile() -> DatasetProfile:
+    # Reproduces a real bug found live: a fact table with an identifier
+    # column that's the ONLY representation of an entity (no human-readable
+    # name column for it, e.g. "sales agent" is only ever an ID in this
+    # table) alongside an unrelated categorical column that partially
+    # shares a token with the concept.
+    df = pd.DataFrame(
+        {
+            "sales_agent_id": [f"E{i:03d}" for i in range(1, N + 1)],
+            "sales_channel": [["Retail Store", "Mobile App", "WhatsApp"][i % 3] for i in range(1, N + 1)],
+            "revenue": [100.0 + i * 3.5 for i in range(1, N + 1)],
+        }
+    )
+    return profile_dataframe(df, "agents", "agents", "agents.csv", None, DatasetKind.UPLOADED)
+
+
+def test_identifier_with_a_full_token_match_beats_an_unrelated_partial_match():
+    # "sales agent" fully matches sales_agent_id's tokens (sales + agent);
+    # sales_channel only matches "sales". The identifier must win even
+    # though it's an identifier and the concept never said "id" -- the
+    # bug this guards against: a *worse*, unrelated match winning purely
+    # because it isn't an identifier (found live: this resolved to
+    # sales_channel, producing "the sales channel that generated the most
+    # revenue" as the answer to "which sales agent generated the most
+    # revenue").
+    result = resolve_column("sales agent", _agent_and_channel_profile(), role="dimension")
+    assert result.column == "sales_agent_id"
 
 
 def test_measure_role_never_resolves_to_an_identifier_column():
