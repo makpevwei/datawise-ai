@@ -68,6 +68,20 @@ def test_inspect_schema_is_lighter_than_inspect_dataset(ctx):
     assert schema["columns"][0].keys() == {"name", "type", "missing_percentage"}
 
 
+def test_calculate_metric_count_resolves_a_case_mismatched_identifier_column(ctx):
+    # Found live: "how many total orders" asked calculate_metric for
+    # metric_column="order_id" (customers_df's real column is lowercase
+    # "customer_id" here, exercised the same way) with aggregation="count"
+    # -- the exact-match short-circuit is case-sensitive, and role=
+    # "measure" then hard-rejects the identifier column even once
+    # case-insensitive resolution finds it, silently substituting a wrong
+    # numeric column instead. count (like nunique) must resolve role="any".
+    result = TOOLS["calculate_metric"].handler(
+        {"dataset_id": "customers", "metric_column": "Customer_ID", "aggregation": "count"}, ctx
+    )
+    assert result["scalar_value"] == 8
+
+
 UUID_ID = "a5d40658900440f1b76f4d55c2748267"
 
 

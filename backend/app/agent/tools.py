@@ -196,19 +196,22 @@ def _join_datasets(args: dict, ctx: ToolContext) -> dict:
 
 
 def _metric_role(aggregation: str | None) -> Role:
-    """"nunique" is the standard, correct way to count distinct entities --
-    counting distinct values of an *identifier* column (Customer_ID,
-    Order_ID, ...) is the single most common use of it, so role="measure"
-    (which hard-excludes anything not ColumnType.NUMERIC, see
-    app/semantic/resolver.py's _role_incompatible) would wrongly reject the
-    exact column a "how many distinct X" question needs, falling back to
-    fuzzy scoring and silently substituting a real but wrong numeric
-    column instead. Found live: "how many distinct customers" resolved to
-    Customer_Order_Number (nunique of that returns each customer's own max
-    order count, e.g. 14) instead of Customer_ID (the real answer, in the
-    thousands) -- role="any" for nunique lets the resolver's own type
-    checks (still real, just not this hard gate) do the rest."""
-    return "any" if aggregation == "nunique" else "measure"
+    """"nunique" and "count" are both standard, correct operations on an
+    *identifier* column (Customer_ID, Order_ID, ...) -- counting distinct
+    or non-null values of an id is one of the single most common uses of
+    either, so role="measure" (which hard-excludes anything not
+    ColumnType.NUMERIC, see app/semantic/resolver.py's
+    _role_incompatible) would wrongly reject the exact column a "how many
+    X" question needs, falling back to fuzzy scoring and silently
+    substituting a real but wrong numeric column instead. Found live twice:
+    "how many distinct customers" resolved to Customer_Order_Number
+    (nunique of that returns each customer's own max order count, e.g. 14)
+    instead of Customer_ID (the real answer, in the thousands); "how many
+    total orders" resolved Order_ID the same way for a plain count. role=
+    "any" lets the resolver's own type checks (still real, just not this
+    hard gate) do the rest -- count/nunique don't inherently require
+    numeric-ness at all, unlike sum/mean/median."""
+    return "any" if aggregation in ("nunique", "count") else "measure"
 
 
 def _calculate_metric(args: dict, ctx: ToolContext) -> dict:

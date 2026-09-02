@@ -209,9 +209,13 @@ export function ManagementDashboard({ datasets, currency, decimalPlaces }: {
               <div className={`grid gap-6 ${charts.length === 1 ? "grid-cols-1" : "md:grid-cols-2"}`}>
                 {charts.map((chart, i) => (
                   <Card key={i} className="p-4">
-                    {/* Chart title */}
+                    {/* Chart title -- line-clamp-2, not truncate: a long
+                        title/source dataset name (e.g.
+                        "NexaSphere_BI_Case_Study_Dataset.xlsx") was
+                        getting cut off illegibly, worst on narrow
+                        (mobile) cards. */}
                     {(chart.title || chart.reason) && (
-                      <p className="mb-1 text-sm font-semibold text-[var(--text-primary)] truncate" title={chart.title || chart.reason}>
+                      <p className="mb-1 line-clamp-2 text-sm font-semibold text-[var(--text-primary)]" title={chart.title || chart.reason}>
                         {chart.title || chart.reason}
                       </p>
                     )}
