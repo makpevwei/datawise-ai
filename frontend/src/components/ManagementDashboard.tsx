@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getDashboardChartsMulti, getInsights, getKpiSuggestions } from "@/lib/api";
 import type { ChartSpec, DatasetSummary, Insight, KPISuggestion } from "@/lib/types";
-import { Card, EmptyState, ErrorBanner, SectionHeading, SourceLabelBadge, Spinner } from "./ui";
+import { Card, EmptyState, ErrorBanner, formatSourceLabel, SectionHeading, SourceLabelBadge, Spinner } from "./ui";
 import { DatasetPicker } from "./DatasetPicker";
 import { ChartFromSpec, StatCard } from "./charts";
 
@@ -35,21 +35,11 @@ export function rankFindings(insights: Insight[]): Insight[] {
 
 /** Return a clean source label: prefer sheet name, fall back to dataset name. */
 function sourceLabel(kpi: KPISuggestion): string {
-  const sheet = kpi.dataset_sheet;
-  const name = kpi.dataset_name;
-  if (!name) return "";
-  // For multi-sheet workbooks show "WorkbookName — SheetName"
-  if (sheet && name.includes(sheet)) return name; // already "WorkbookName — Sheet"
-  if (sheet) return `${name} — ${sheet}`;
-  return name;
+  return formatSourceLabel(kpi.dataset_name, kpi.dataset_sheet);
 }
 
 function chartSourceLabel(chart: ChartSpec): string {
-  if (!chart.dataset_name) return "";
-  if (chart.dataset_sheet && !chart.dataset_name.includes(chart.dataset_sheet)) {
-    return `${chart.dataset_name} — ${chart.dataset_sheet}`;
-  }
-  return chart.dataset_name;
+  return formatSourceLabel(chart.dataset_name, chart.dataset_sheet);
 }
 
 function recommendationFor(insight: Insight): string {

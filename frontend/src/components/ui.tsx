@@ -184,6 +184,31 @@ export function looksLikeDatePart(column: string): boolean {
   return DATE_PART_LABEL_HINTS.test(column);
 }
 
+/** Formats a dataset's own `name` (+ optional `sheet_name`) into a
+ * user-facing "where did this come from" label -- e.g.
+ * "Workbook.xlsx — Fact_Sales". For an auto- or manually-joined dataset
+ * (app/relationships/joins.py's perform_join names it
+ * "{left.profile.name} ⋈ {right.profile.name}"), renders a clean
+ * "Fact_Sales + Dim_Products (joined)" instead of the raw, doubly-
+ * prefixed join string (both sides can share the same long workbook
+ * filename, which read literally is hard to parse at a glance). Shared
+ * by every card/chart/insight that shows source lineage (Dashboard,
+ * Insights) so a joined chart's card always names the real tables
+ * behind it, not just an opaque derived-dataset id. */
+export function formatSourceLabel(name: string | null | undefined, sheet?: string | null): string {
+  if (!name) return "";
+  if (name.includes(" ⋈ ")) {
+    const parts = name.split(" ⋈ ").map((part) => {
+      const idx = part.lastIndexOf(" — ");
+      return idx === -1 ? part : part.slice(idx + 3);
+    });
+    return `${parts.join(" + ")} (joined)`;
+  }
+  if (sheet && name.includes(sheet)) return name;
+  if (sheet) return `${name} — ${sheet}`;
+  return name;
+}
+
 export function Table({
   columns,
   rows,

@@ -7,7 +7,7 @@ import type { AgentAnswer, AgentFinding, AnalysisResult, DatasetSummary, Insight
 import { useEffect, useState } from "react";
 import { ChartFromSpec } from "./charts";
 import { DatasetPicker } from "./DatasetPicker";
-import { Button, Card, EmptyState, ErrorBanner, SectionHeading, SourceLabelBadge, Spinner, Table } from "./ui";
+import { Button, Card, EmptyState, ErrorBanner, formatSourceLabel, SectionHeading, SourceLabelBadge, Spinner, Table } from "./ui";
 
 const CATEGORY_LABELS: Record<Insight["category"], string> = {
   top_performer: "Top Performer",
@@ -74,6 +74,16 @@ function InsightsWorkspace({ datasets, primaryDataset }: { datasets: DatasetSumm
   const [insightsError, setInsightsError] = useState<string | null>(null);
   const [kpis, setKpis] = useState<KPISuggestion[] | null>(null);
   const [answer, setAnswer] = useState<AgentAnswer | null>(null);
+
+  // Insight only carries dataset_id, not a display name -- look it up from
+  // the datasets already in scope so every finding can show "where did
+  // this come from" (several tables can be selected at once here). No
+  // backend change needed: DatasetSummary.name already carries the full
+  // "Workbook.xlsx — Sheet" (or, for a joined dataset, the "A ⋈ B") label
+  // formatSourceLabel knows how to render cleanly.
+  const datasetLabelById = Object.fromEntries(
+    datasets.map((d) => [d.id, formatSourceLabel(d.name, d.sheet_name)]),
+  );
 
   // Data Explorer preview is independently single-select — switching the
   // preview dataset does NOT change which datasets are used for analysis,
@@ -173,6 +183,11 @@ function InsightsWorkspace({ datasets, primaryDataset }: { datasets: DatasetSumm
                       <dd>{insight.interpretation}</dd>
                     </div>
                   </dl>
+                  {datasetLabelById[insight.dataset_id] && (
+                    <p className="mt-3 border-t border-[var(--border)] pt-2 text-[10px] text-[var(--text-muted)]">
+                      Source: {datasetLabelById[insight.dataset_id]}
+                    </p>
+                  )}
                 </Card>
               ))}
           </div>
@@ -303,10 +318,13 @@ function ChartSuggestionCard({
     }
   }
 
+  const source = formatSourceLabel(kpi.dataset_name, kpi.dataset_sheet);
+
   return (
     <Card>
       <p className="text-sm font-medium text-[var(--text-primary)]">{kpi.name}</p>
       <p className="mt-1 text-xs text-[var(--text-secondary)]">{kpi.rationale}</p>
+      {source && <p className="mt-1 text-[10px] text-[var(--text-muted)]">Source: {source}</p>}
       <dl className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[var(--text-muted)]">
         <div>
           <dt className="inline font-semibold">Metric:</dt> <dd className="inline">{kpi.metric_column ?? "count"}</dd>
@@ -443,9 +461,20 @@ function AiDataAnalyst({
           )}
           {lastAnswer.charts.length > 0 && (
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              {lastAnswer.charts.slice(0, 2).map((c, i) => (
-                <ChartFromSpec key={i} spec={c} currency={currency} decimalPlaces={decimalPlaces} />
-              ))}
+              {lastAnswer.charts.slice(0, 2).map((c, i) => {
+                const source = formatSourceLabel(c.dataset_name, c.dataset_sheet);
+                return (
+                  <Card key={i}>
+                    {(c.title || c.reason) && (
+                      <p className="mb-1 line-clamp-2 text-sm font-semibold text-[var(--text-primary)]" title={c.title || c.reason}>
+                        {c.title || c.reason}
+                      </p>
+                    )}
+                    {source && <p className="mb-3 text-[10px] text-[var(--text-muted)]">Source: {source}</p>}
+                    <ChartFromSpec spec={c} currency={currency} decimalPlaces={decimalPlaces} />
+                  </Card>
+                );
+              })}
             </div>
           )}
         </div>
