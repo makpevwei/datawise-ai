@@ -44,8 +44,14 @@ export function IntegrationsPanel({ banner }: { banner?: { kind: "success" | "er
   const [error, setError] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(false);
 
+  // No synchronous setLoading(true) here -- `loading` already starts true
+  // (see useState(true) above), covering the initial mount fetch below.
+  // Later calls (after sync/select/disconnect, via onChanged) intentionally
+  // don't re-flash the loading state over an already-rendered list; only
+  // this call's own eventual setIntegrations/setLoading(false) run, and
+  // only after the async gap, which is what react-hooks/set-state-in-effect
+  // requires of anything invoked directly from a useEffect body.
   const refresh = useCallback(() => {
-    setLoading(true);
     listIntegrations()
       .then(setIntegrations)
       .catch(() => setError("Couldn't load your connected sources. Please try again."))
@@ -138,8 +144,10 @@ function IntegrationCard({ integration, onChanged }: { integration: IntegrationS
   const [disconnecting, setDisconnecting] = useState(false);
   const [confirmDisconnect, setConfirmDisconnect] = useState(false);
 
+  // Same reasoning as IntegrationsPanel's own refresh() above: itemsLoading
+  // already starts true, so no synchronous setState is needed here for the
+  // mount-effect call below to satisfy react-hooks/set-state-in-effect.
   const refreshItems = useCallback(() => {
-    setItemsLoading(true);
     listIntegrationItems(integration.id)
       .then(setItems)
       .catch(() => {})

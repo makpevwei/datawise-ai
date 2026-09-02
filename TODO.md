@@ -49,6 +49,50 @@ outstanding gets lost between sessions.
   not built yet (noted as future work when the auth endpoints were first
   written).
 
+## Connected sources (Google Drive/Sheets)
+
+- **RAG quality-bar test not run yet.** The connector itself (OAuth,
+  sync, per-tenant isolation, dual-layer read-only enforcement) is built,
+  tested, and deployed, but the ~12-15 question accuracy test against a
+  real connected Sheet/Drive doc (target ≥90%, reported honestly either
+  way) needs a live connected Google account to run against — blocked on
+  someone actually connecting one in the deployed app. Do this before
+  calling the connector done, not just shipped.
+- **OAuth consent screen is in Testing, not Published.** Fine for the
+  founder's own account (added as a test user) against both local and
+  the deployed URL. Before any real company that isn't on the test-user
+  list (max 100) can connect, this needs Google's verification process
+  for the two sensitive scopes (`drive.readonly`, `spreadsheets.readonly`)
+  — a privacy policy URL and days of review lead time. Plan for this
+  before onboarding company #1.
+- **Dataset/Document versioning logic is duplicated, not shared.** The
+  `Dataset` model's own docstring (`app/db/models.py`) points at
+  `app/domains/versioning.py` for the version-chaining logic — that
+  module doesn't exist. The real logic lives privately inside
+  `app/api/datasets.py`/`documents.py`'s route handlers, and
+  `app/integrations/service.py` now duplicates the same pattern a third
+  time rather than importing a shared implementation (judged lower-risk
+  than refactoring a tested, production upload path under this phase's
+  time constraints). Real fix: extract into an actual
+  `app/upload/versioning.py`, fix the stale docstring, and have all three
+  call sites use it.
+- **On-demand sync only — no scheduled/background auto-sync.** A
+  connected Sheet only re-pulls when the user clicks "Sync Now." Fine for
+  proving the pattern; a real product needs this to happen automatically
+  (cron/worker process, a genuine new infra addition — new failure mode,
+  not just new code).
+- **No Google Picker widget.** The file/sheet selector is a plain
+  backend-driven checkbox list (`GET /integrations/{id}/browse`), not
+  Google's own Picker JS component. Functionally complete, but Picker
+  would be the nicer, more familiar UX — purely visual upgrade, not
+  blocking.
+- **ERPNext connector remains fully deferred, by design** — no
+  ERPNext-specific code exists anywhere in this codebase. The
+  `Integration`/`ConnectedItem` data model is already generic (`provider`
+  is a plain string, not an enum) specifically so ERPNext can reuse it
+  later without a migration, once the Drive/Sheets pattern has proven
+  itself with a real connected account.
+
 ## Medium priority — code health
 
 - **Pre-existing test-order flakiness** (separate from the item below).
