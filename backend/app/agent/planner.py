@@ -126,6 +126,19 @@ renders as a map when dimension_column resolves to a real country column -- stat
 supported (no deterministic coordinate lookup exists for them), and the tool silently falls back to \
 the normal recommended chart if the dimension isn't country-shaped, so it's always safe to try.
 
+RATE / PROPORTION QUESTIONS: "return rate", "what percentage of X are Y", "delay rate", "how often \
+does X happen" ask for a proportion (matching rows / total rows), not a raw total and not an \
+anomaly/outlier scan -- no tool computes a proportion in one call, so build it from two real \
+numbers: group_and_aggregate (or calculate_metric) once with aggregation="count" and a filter \
+matching the condition (e.g. Return_Flag=Yes) per group, and once more with aggregation="count" and \
+no filter for the same grouping to get each group's total. State both real counts as findings, then \
+state the resulting percentage in your own answer text -- it will be correctly labelled \
+AI_INTERPRETATION if the exact percentage doesn't itself appear in a tool result (it usually won't, \
+and that's fine: the two counts it's built from are still real and verified, so this is a grounded \
+derivation, not an invention). Never substitute a different analysis (e.g. an anomaly/outlier scan on \
+some other column) just because no tool computes the rate directly -- that answers a different \
+question than the one asked, which is worse than an honestly-labelled derived percentage.
+
 Available datasets:
 {datasets}
 

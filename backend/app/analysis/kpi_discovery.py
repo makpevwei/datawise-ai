@@ -189,6 +189,17 @@ _MEAN_PREFERRED_HINTS = (
     "price", "rate", "margin", "pct", "percent", "%",
     "age", "tenure", "years",
     "score", "rating", "index", "ratio", "satisfaction",
+    # "Closing_Inventory_Value", "Opening_Stock_Units", account "Balance" --
+    # a point-in-time snapshot/stock level, never a flow. Found live: a
+    # store's "excess inventory" KPI summed 24 monthly snapshots into a
+    # nonsense ₦29.8B figure. MEAN is the safer default even though it's
+    # not perfect either (summing *across stores within one month* would
+    # be a legitimate "company-wide inventory right now" question) -- the
+    # observed failure mode (summing across time) is far more damaging
+    # than the imperfection, and this is exactly the kind of dimension-
+    # dependent nuance the LLM path (app/analysis/kpi_semantics.py) is
+    # meant to resolve when it's available.
+    "closing", "opening", "balance",
 )
 
 

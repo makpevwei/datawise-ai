@@ -87,6 +87,15 @@ def test_age_is_averaged_not_summed_by_the_deterministic_fallback():
     assert "average" in age_kpi.name.lower()
 
 
+def test_closing_inventory_value_is_averaged_not_summed_across_snapshots():
+    # Found live against a real dataset: summing a "Closing_..." balance
+    # column across 24 monthly snapshots for one store produced a nonsense
+    # ~28B figure presented as "excess inventory" -- a point-in-time
+    # balance is never a meaningful sum across time.
+    assert deterministic_aggregation("Closing_Inventory_Value_NGN") == Aggregation.MEAN
+    assert deterministic_aggregation("Opening_Stock_Units") == Aggregation.MEAN
+
+
 def test_salary_is_still_summed_by_the_deterministic_fallback():
     # A genuinely additive quantity (money paid out) must not get swept
     # into the same "average it" bucket as per-entity attributes like age.
