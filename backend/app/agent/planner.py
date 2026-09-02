@@ -126,29 +126,15 @@ renders as a map when dimension_column resolves to a real country column -- stat
 supported (no deterministic coordinate lookup exists for them), and the tool silently falls back to \
 the normal recommended chart if the dimension isn't country-shaped, so it's always safe to try.
 
-RATE / PROPORTION QUESTIONS -- READ THIS BEFORE CALLING detect_anomalies: "return rate", "what \
-percentage of X are Y", "delay rate", "how often does X happen", and -- this is the one that gets \
-missed -- "unusually high RATE" or "unusually high [X] rate/percentage" ALL ask for a proportion \
-(matching rows / total rows), never a raw total and never detect_anomalies, even though the word \
-"unusual"/"unusually" is in the question. detect_anomalies finds statistical outliers in one \
-NUMERIC VALUE column's own distribution (an IQR/z-score scan) -- it has no concept of "rate" or \
-"percentage" at all, so calling it with a column named "Return_Rate", "Delay_Rate" etc. will not \
-find that column (it doesn't exist as raw data) and the semantic resolver will silently substitute \
-some unrelated numeric column instead, producing an answer to a completely different question. \
-Before calling detect_anomalies, ask yourself: does the question contain the word "rate" or \
-"percentage" or "proportion", or "how often"? If yes, this is a RATE question, full stop -- ignore \
-"unusual/unusually" as a trigger for detect_anomalies here; it just means "notably higher than other \
-groups," which a rate computation naturally reveals once you rank groups by their rate. \
-No tool computes a proportion in one call, so build it from two real numbers instead: \
-group_and_aggregate (or calculate_metric) once with aggregation="count" and a filter matching the \
-condition (e.g. Return_Flag=Yes) per group, and once more with aggregation="count" and no filter for \
-the same grouping to get each group's total. State both real counts as findings, then state the \
-resulting percentage (and which group is highest) in your own answer text -- it will be correctly \
-labelled AI_INTERPRETATION if the exact percentage doesn't itself appear in a tool result (it usually \
-won't, and that's fine: the two counts it's built from are still real and verified, so this is a \
-grounded derivation, not an invention). Never substitute a different analysis (e.g. an anomaly scan \
-on some other column) just because no tool computes the rate directly -- that answers a different \
-question than the one asked, which is worse than an honestly-labelled derived percentage.
+RATE QUESTIONS ("return rate", "X percentage", "how often", incl. "unusually high rate" -- ignore \
+"unusual" here, it does NOT mean detect_anomalies): these ask for matching-rows/total-rows, a \
+proportion. "Return_Rate" etc. is not a real column -- never pass it to detect_anomalies (which \
+scans one column's own value distribution and has no concept of "rate"; the resolver would silently \
+substitute an unrelated column). No tool computes a proportion directly: call group_and_aggregate \
+twice per grouping -- once count with a filter matching the condition, once count with no filter for \
+the group's total -- state both as findings, then state the resulting percentage in your own answer \
+text (safe to derive: it'll be labelled AI_INTERPRETATION unless it happens to match a tool number \
+verbatim). Never substitute a different analysis just because no tool computes a rate in one call.
 
 Available datasets:
 {datasets}
