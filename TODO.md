@@ -95,6 +95,20 @@ outstanding gets lost between sessions.
 
 ## Medium priority — code health
 
+- **LLM-driven KPI column classification (sum/mean/exclude) only covers
+  the single-dataset KPI cards** (`app/analysis/kpi_discovery.py`'s
+  `discover_kpis`), not the Management Dashboard's chart selection
+  (`app/analysis/dashboard_charts.py`'s `discover_dashboard_charts`/
+  `discover_cross_dataset_charts`) — that path only has the deterministic
+  keyword heuristic to work with, since threading an LLM provider through
+  its whole call chain (used from multiple API endpoints, some
+  unauthenticated-adjacent) is a bigger change than fit in the phase that
+  found this gap. Concretely: a per-entity score/rating column with a
+  name the deterministic hint list hasn't been extended for yet (unlike
+  "age"/"score"/"rating", already covered) can still show up summed on a
+  dashboard chart even though the same column would correctly get MEAN on
+  a KPI card. Real fix: extend chart discovery to accept an optional LLM
+  provider the same way `discover_kpis` already does.
 - **Pre-existing test-order flakiness** (separate from the item below).
   Running the full suite locally twice produced two different sets of
   failures both times (report/email tests one run, nothing the next),

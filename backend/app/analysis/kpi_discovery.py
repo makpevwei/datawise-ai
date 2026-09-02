@@ -175,14 +175,21 @@ def _kpi_display_name(aggregation: str, column: str) -> str:
 
 
 # Deterministic fallback for the SUM-vs-MEAN choice when no LLM is
-# configured or classify_aggregations() didn't return an answer for this
-# column (see app/analysis/kpi_semantics.py for the LLM-driven path this
-# backs up). "age"/"tenure"/"years" cover the clearest, unambiguous cases
-# a keyword list alone can still get right (a workforce's total age is
-# never a meaningful number); genuinely ambiguous columns (e.g. "training
-# hours" -- could sensibly be a company-wide total or a per-employee
-# average) are exactly what the LLM path is for.
-_MEAN_PREFERRED_HINTS = ("price", "rate", "margin", "pct", "percent", "%", "age", "tenure", "years")
+# configured or classify_columns() didn't return an answer for this column
+# (see app/analysis/kpi_semantics.py for the LLM-driven path this backs
+# up -- the only path dashboard_charts.py's chart selection has access to
+# at all, since threading an LLM provider through that whole call chain is
+# a larger change than this phase's scope; tracked in TODO.md). These
+# cover the clearest, unambiguous cases a keyword list alone can still get
+# right (a workforce's total age, or total customer rating, is never a
+# meaningful number); genuinely ambiguous columns (e.g. "training hours"
+# -- could sensibly be a company-wide total or a per-employee average) are
+# exactly what the LLM path is for.
+_MEAN_PREFERRED_HINTS = (
+    "price", "rate", "margin", "pct", "percent", "%",
+    "age", "tenure", "years",
+    "score", "rating", "index", "ratio", "satisfaction",
+)
 
 
 def deterministic_aggregation(metric: str) -> Aggregation:
