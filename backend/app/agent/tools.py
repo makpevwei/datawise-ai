@@ -195,10 +195,26 @@ def _join_datasets(args: dict, ctx: ToolContext) -> dict:
 # -- Analysis -------------------------------------------------------------
 
 
+def _metric_role(aggregation: str | None) -> Role:
+    """"nunique" is the standard, correct way to count distinct entities --
+    counting distinct values of an *identifier* column (Customer_ID,
+    Order_ID, ...) is the single most common use of it, so role="measure"
+    (which hard-excludes anything not ColumnType.NUMERIC, see
+    app/semantic/resolver.py's _role_incompatible) would wrongly reject the
+    exact column a "how many distinct X" question needs, falling back to
+    fuzzy scoring and silently substituting a real but wrong numeric
+    column instead. Found live: "how many distinct customers" resolved to
+    Customer_Order_Number (nunique of that returns each customer's own max
+    order count, e.g. 14) instead of Customer_ID (the real answer, in the
+    thousands) -- role="any" for nunique lets the resolver's own type
+    checks (still real, just not this hard gate) do the rest."""
+    return "any" if aggregation == "nunique" else "measure"
+
+
 def _calculate_metric(args: dict, ctx: ToolContext) -> dict:
     record = _get_record_or_raise(ctx, args["dataset_id"])
     notes: list[str] = []
-    metric_column = _resolve_column_arg(args.get("metric_column"), "measure", record.profile, notes)
+    metric_column = _resolve_column_arg(args.get("metric_column"), _metric_role(args.get("aggregation")), record.profile, notes)
     request = AnalysisRequest(
         dataset_id=record.profile.id,
         metric_column=metric_column,
@@ -218,7 +234,7 @@ def _calculate_metric(args: dict, ctx: ToolContext) -> dict:
 def _group_and_aggregate(args: dict, ctx: ToolContext) -> dict:
     record = _get_record_or_raise(ctx, args["dataset_id"])
     notes: list[str] = []
-    metric_column = _resolve_column_arg(args.get("metric_column"), "measure", record.profile, notes)
+    metric_column = _resolve_column_arg(args.get("metric_column"), _metric_role(args.get("aggregation")), record.profile, notes)
     dimension_column = _resolve_column_arg(args["dimension_column"], "dimension", record.profile, notes)
     second_dimension_column = _resolve_column_arg(args.get("second_dimension_column"), "dimension", record.profile, notes)
     request = AnalysisRequest(
