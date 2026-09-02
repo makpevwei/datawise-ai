@@ -6,6 +6,7 @@ before/after, unmatched counts on both sides, and whether duplicate keys
 put the join at risk of row multiplication (many-to-many).
 """
 
+import hashlib
 import re
 
 import pandas as pd
@@ -48,8 +49,35 @@ def classify_cardinality(left_col: pd.Series, right_col: pd.Series) -> JoinCardi
 
 
 def _column_suffix(dataset_name: str) -> str:
-    token = _SUFFIX_UNSAFE.sub("_", dataset_name).strip("_").lower()
-    return f"_{token[:30]}" if token else "_src"
+    """Turn a dataset name into a short, safe pandas merge() suffix.
+
+    Two sheets from the same workbook share the long "{filename} — "
+    prefix (e.g. "NexaSphere_Q4_Report.xlsx — Fact_Sales" and
+    "NexaSphere_Q4_Report.xlsx — Dim_Products") -- truncating from the
+    *start* alone can chop both names down to the exact same 30
+    characters before ever reaching the part that actually differs. pandas
+    doesn't error on that; it silently produces two columns with the
+    identical suffixed name, which then blows up downstream (any column
+    that overlaps between the two joined tables becomes ambiguous the
+    moment code does df[col] expecting a single Series). A short hash of
+    the *full* name appended after the truncated readable part guarantees
+    two different dataset names always get different suffixes, regardless
+    of how much of their start (or any other substring) they share --
+    that guarantee doesn't depend on the naming convention below at all.
+
+    Readability, separately: multi-sheet uploads name a dataset
+    "{filename} — {sheet_name}" (see app/upload/service.py), so the part
+    after " — " is normally the actually-distinguishing one -- preferred
+    here for the truncated readable part so two sheets of the same
+    workbook still get recognizably different suffixes at a glance, not
+    just different hashes.
+    """
+    readable_source = dataset_name.rsplit(" — ", 1)[-1] if " — " in dataset_name else dataset_name
+    token = _SUFFIX_UNSAFE.sub("_", readable_source).strip("_").lower()
+    if not token:
+        return "_src"
+    digest = hashlib.sha256(dataset_name.encode("utf-8")).hexdigest()[:6]
+    return f"_{token[:20]}_{digest}"
 
 
 def _resolve_records(store: DatasetStore, request: JoinRequest) -> tuple[DatasetRecord, DatasetRecord]:

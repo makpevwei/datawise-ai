@@ -2,11 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session as DBSession
 
+from app.ai.base import LLMProvider
 from app.analysis.dashboard_charts import discover_cross_dataset_charts, discover_dashboard_charts
 from app.analysis.engine import AnalysisError, compute_correlation, compute_distribution, run_analysis
 from app.analysis.insights import generate_insights
 from app.analysis.kpi_discovery import discover_kpis
-from app.api.deps import get_scoped_dataset_store
+from app.api.deps import get_llm_provider, get_scoped_dataset_store
 from app.api.scoped_stores import ScopedDatasetStore
 from app.api.sessions import append_message, get_or_create_owned_session
 from app.auth.dependencies import get_current_user
@@ -62,9 +63,13 @@ def run(
 
 
 @router.get("/kpis/{dataset_id}", response_model=list[KPISuggestion])
-def kpis(dataset_id: str, store: ScopedDatasetStore = Depends(get_scoped_dataset_store)) -> list[KPISuggestion]:
+def kpis(
+    dataset_id: str,
+    store: ScopedDatasetStore = Depends(get_scoped_dataset_store),
+    llm_provider: LLMProvider | None = Depends(get_llm_provider),
+) -> list[KPISuggestion]:
     record = _get_record_or_404(store, dataset_id)
-    return discover_kpis(record)
+    return discover_kpis(record, llm_provider=llm_provider)
 
 
 @router.get("/insights/{dataset_id}", response_model=list[Insight])

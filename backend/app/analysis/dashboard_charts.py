@@ -26,7 +26,12 @@ own.
 """
 
 from app.analysis.engine import AnalysisError, run_analysis
-from app.analysis.kpi_discovery import rank_dimension_candidates, rank_metric_candidates
+from app.analysis.kpi_discovery import (
+    deterministic_aggregation,
+    rank_dimension_candidates,
+    rank_metric_candidates,
+    strip_currency_code_suffix,
+)
 from app.relationships.joins import JoinError, perform_join
 from app.relationships.service import detect_relationships
 from app.semantic.models import (
@@ -46,14 +51,12 @@ MAX_COMPOSITION_SLICES = 7
 
 
 def _eligible_agg(metric_col: str) -> Aggregation:
-    """Return the correct aggregation for a metric column.
-
-    Percentage/rate/margin fields use MEAN. Everything else uses SUM.
-    """
-    lower = metric_col.lower()
-    if any(h in lower for h in ("pct", "percent", "rate", "margin", "ratio", "discount", "%")):
-        return Aggregation.MEAN
-    return Aggregation.SUM
+    """Return the correct aggregation for a metric column -- delegates to
+    kpi_discovery's shared deterministic heuristic (percentage/rate/margin/
+    age/tenure/years fields use MEAN, everything else uses SUM) so a
+    column's aggregation choice is consistent between a KPI card and a
+    chart, not two independently-drifting keyword lists."""
+    return deterministic_aggregation(metric_col)
 
 
 def _chart_title(aggregation: str | None, metric: str | None, dimension: str | None, chart_type: str) -> str:
@@ -65,8 +68,9 @@ def _chart_title(aggregation: str | None, metric: str | None, dimension: str | N
     }
     agg_label = agg_map.get(aggregation or "", "")
 
-    # Clean the metric name — strip the aggregation prefix if kpi_discovery already added it
-    raw_metric = (metric or "").replace("_", " ")
+    # Clean the metric name — strip a currency-code suffix (e.g. "..._NGN")
+    # before the aggregation prefix kpi_discovery already added
+    raw_metric = strip_currency_code_suffix(metric or "").replace("_", " ")
     # Remove leading "sum_" / "mean_" prefix that the analysis engine injects into y_column
     raw_metric = raw_metric.replace("sum_", "").replace("mean_", "").replace("nunique_", "").strip()
     metric_label = raw_metric.title()

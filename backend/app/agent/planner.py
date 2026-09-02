@@ -534,6 +534,7 @@ def run_agent(
         dataset_store=dataset_store,
         document_store=document_store,
         settings=settings,
+        llm_provider=llm,
         research_budget=ResearchBudget(
             max_queries=settings.max_research_queries, max_tool_calls=settings.max_research_tool_calls
         ),

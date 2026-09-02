@@ -143,7 +143,13 @@ export function Spinner() {
 // "Total Records" are common non-monetary KPI labels, and every genuinely
 // monetary "Total ..." label (Total Revenue, Total Sales, Total Cost, ...)
 // already matches one of the words below on its own.
-export const MONETARY_LABEL_HINTS = /price|cost|amount|revenue|sales|budget|income|expense|profit|margin/i;
+// Kept in sync with the backend's own monetary-metric vocabulary
+// (app/analysis/kpi_discovery.py's METRIC_NAME_HINTS) -- salary/bonus/
+// fare/spend/earning/fee/wage/pay are real money too, just not the
+// price/cost/revenue words this list originally covered. Missing one here
+// doesn't break the KPI itself (the number is still right), only its
+// currency-symbol display -- but that's still a real, user-visible bug.
+export const MONETARY_LABEL_HINTS = /price|cost|amount|revenue|sales|budget|income|expense|profit|margin|salary|bonus|fare|spend|earning|fee|wage|\bpay\b/i;
 
 /** A column name ending in Key/Id/UUID/GUID (camelCase or snake_case) is an
  * identifier, never a business measure -- mirrors the backend's own strong

@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from app.agent.web_research import WebResearchError, WebResearchNotConfiguredError, search_web
+from app.ai.base import LLMProvider
 from app.ai.types import ToolSchema
 from app.analysis.engine import AnalysisError, compute_correlation, run_analysis
 from app.analysis.insights import compute_iqr_anomalies, generate_insights, numeric_series
@@ -60,6 +61,12 @@ class ToolContext:
     document_store: DocumentStore
     settings: Settings | None = None
     research_budget: ResearchBudget | None = None
+    # Only used to let generate_dashboard's KPI discovery ask the LLM to
+    # classify a column's aggregation semantics (sum vs mean) -- see
+    # app/analysis/kpi_semantics.py. None is a completely valid value (KPI
+    # discovery has a deterministic fallback); this is never used to
+    # generate or alter an actual numeric result.
+    llm_provider: LLMProvider | None = None
 
 
 @dataclass
@@ -366,7 +373,7 @@ def _generate_chart(args: dict, ctx: ToolContext) -> dict:
 def _generate_dashboard(args: dict, ctx: ToolContext) -> dict:
     record = _get_record_or_raise(ctx, args["dataset_id"])
 
-    kpis = discover_kpis(record)[:MAX_GENERATE_DASHBOARD_ITEMS]
+    kpis = discover_kpis(record, llm_provider=ctx.llm_provider)[:MAX_GENERATE_DASHBOARD_ITEMS]
     charts: list[dict] = []
     for kpi in kpis:
         request = AnalysisRequest(

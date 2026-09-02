@@ -58,7 +58,14 @@ export const GENERIC_STARTER_QUESTIONS = [
  * domain (business analytics) not for any specific dataset or demo.
  * They deliberately use business concepts, not schema columns: the
  * semantic resolver maps each concept to actual fields and will report
- * unavailable evidence rather than fabricate it. */
+ * unavailable evidence rather than fabricate it. This list must stay
+ * dataset-agnostic -- buildStarterQuestions() below already produces
+ * genuinely dataset-specific questions (grounded in whatever KPIs the
+ * backend actually discovers for whatever CSV/Excel a user uploads, this
+ * case study's NexaSphere workbook included) from real schema, not from
+ * hardcoded text; this array is only the generic filler/fallback used to
+ * top that list up to the minimum, so it must stay sensible for any
+ * dataset, not just one. */
 export const BUSINESS_STARTER_QUESTIONS = [
   "Which products generate the most revenue and profit?",
   "Is revenue growth leading to stronger profitability?",
