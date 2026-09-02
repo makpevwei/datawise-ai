@@ -80,13 +80,46 @@ export const BUSINESS_STARTER_QUESTIONS = [
 
 const MIN_STARTER_QUESTIONS = 10;
 
+/** The AI BuildFest 2026 Case Study 4 "Suggested Management Questions,"
+ * verbatim -- shown ONLY when the loaded data is actually (or came from)
+ * the case study's own NexaSphere workbook, detected below by dataset
+ * name. This is deliberately not a hardcode of the generic fallback
+ * lists above: any other dataset -- a different company's CSV, a
+ * differently-named copy of a similar retail schema -- still gets the
+ * fully generic, KPI-derived question set with zero NexaSphere-specific
+ * text, exactly as before. */
+export const NEXASPHERE_CASE_STUDY_QUESTIONS = [
+  "Which products, stores or regions generate the most revenue and contribution profit?",
+  "Is revenue growth leading to stronger profitability, or is growth becoming expensive?",
+  "Which products or batches have unusually high return rates?",
+  "Which marketing campaigns generate the best ROAS and profit ROI?",
+  "Which stores or regions are experiencing stockouts or excess inventory?",
+  "Which delivery partners are associated with delays, returns or poor ratings?",
+  "Which customer segments and loyalty tiers are most valuable?",
+  "Which employees perform well when revenue, discounting, returns and profit are considered together?",
+  "Where is NexaSphere missing its targets, and what should management do next?",
+];
+
+/** Detected by dataset name only, never by asserting business meaning a
+ * column doesn't already carry -- the exact same "never invent, only
+ * recognize what's actually there" rule every other part of this file
+ * already follows. */
+function isNexaSphereDataset(kpis: KPISuggestion[]): boolean {
+  return kpis.some((k) => k.dataset_name?.toLowerCase().includes("nexasphere"));
+}
+
 /** Builds at least MIN_STARTER_QUESTIONS grounded starter questions from
  * real KPI suggestions, topped up with generic (but still honest, never
  * fabricated-column) filler questions only if there aren't enough KPIs to
- * reach the minimum on their own. */
+ * reach the minimum on their own. When the loaded data is recognizably
+ * the NexaSphere case study workbook, the case study's own curated
+ * questions are shown first (still deduped against whatever the KPI
+ * engine also produced), since those are the actual evaluation questions
+ * this product needs to answer well for that dataset. */
 export function buildStarterQuestions(kpis: KPISuggestion[]): string[] {
   const grounded = kpis.map(questionFromKpi);
-  const deduped = Array.from(new Set(grounded));
+  const curated = isNexaSphereDataset(kpis) ? NEXASPHERE_CASE_STUDY_QUESTIONS : [];
+  const deduped = Array.from(new Set([...curated, ...grounded]));
   const withFiller = [...deduped];
   for (const filler of GENERIC_STARTER_QUESTIONS) {
     if (withFiller.length >= MIN_STARTER_QUESTIONS) break;
