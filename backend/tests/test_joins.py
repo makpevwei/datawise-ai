@@ -188,7 +188,51 @@ def test_join_uses_dataset_name_suffixes_for_colliding_columns(store):
     record = store.get(result.new_dataset_id)
     columns = list(record.dataframe.columns)
     # No column should have been silently dropped/overwritten, and pandas'
-    # generic _x/_y suffixes should have been replaced with dataset-name-based ones.
-    assert "notes_orders" in columns
-    assert "notes_customers" in columns
+    # generic _x/_y suffixes should have been replaced with dataset-name-based
+    # ones (a trailing short hash guards against two dataset names that
+    # share a long common prefix truncating down to the same suffix --
+    # see _column_suffix's own docstring -- so this checks a prefix match,
+    # not an exact name).
+    assert any(c.startswith("notes_orders_") for c in columns)
+    assert any(c.startswith("notes_customers_") for c in columns)
     assert "notes_x" not in columns and "notes_y" not in columns
+
+
+def test_join_disambiguates_colliding_columns_even_with_a_long_shared_name_prefix(store):
+    # Reproduces a real bug found against a multi-sheet workbook upload:
+    # two sheets from the same file share the long "{filename} — " prefix
+    # in their dataset name (e.g. "NexaSphere_BI_Case_Study_Dataset.xlsx —
+    # Fact_Sales" / "... — Dim_Products"), which used to get truncated down
+    # to the *same* 30-character suffix -- pandas doesn't error on that, it
+    # silently produces a dataframe with a genuinely duplicate column name,
+    # which then blew up downstream the moment anything did df[col]
+    # expecting a single Series (profile_dataframe's non_null_count, e.g.).
+    long_shared_prefix = "A_Very_Long_Workbook_Filename_That_Exceeds_Thirty_Characters.xlsx"
+    left_name = f"{long_shared_prefix} — Fact_Sales"
+    right_name = f"{long_shared_prefix} — Dim_Products"
+
+    left_df = orders_df(10)
+    left_df["shared_metric"] = list(range(10))  # collides with the right side
+    right_df = customers_df()
+    right_df["shared_metric"] = list(range(len(right_df)))
+
+    store.put("left", left_df, profile_dataframe(left_df, "left", "Fact_Sales", "wb.xlsx", "Fact_Sales", DatasetKind.UPLOADED))
+    store.put("right", right_df, profile_dataframe(right_df, "right", "Dim_Products", "wb.xlsx", "Dim_Products", DatasetKind.UPLOADED))
+    # profile_dataframe's `name` argument is what _column_suffix actually
+    # keys off -- overwrite it directly to reproduce the exact long,
+    # shared-prefix names a real multi-sheet upload produces.
+    store.get("left").profile.name = left_name
+    store.get("right").profile.name = right_name
+
+    request = JoinRequest(
+        left_dataset_id="left", left_column="customer_id",
+        right_dataset_id="right", right_column="customer_id",
+    )
+    result = perform_join(store, request, created_by_user_id="test-user")
+    record = store.get(result.new_dataset_id)
+    columns = list(record.dataframe.columns)
+    # The real assertion: no duplicate column names at all -- this is what
+    # previously crashed profile_dataframe downstream.
+    assert len(columns) == len(set(columns))
+    assert any("shared_metric" in c and "fact_sales" in c for c in columns)
+    assert any("shared_metric" in c and "dim_products" in c for c in columns)

@@ -35,7 +35,13 @@ class User(Base):
     is_active: Mapped[bool] = mapped_column(default=True)
     # Presentation-only preferences (section 5-7 of the Phase 4 continuation
     # spec): never change what's calculated, only how numbers are displayed.
-    currency: Mapped[str] = mapped_column(default="USD")
+    # NGN, not USD -- DataWise AI's primary market and the AI BuildFest
+    # case-study dataset are both Nigeria-based; a new signup can still
+    # change this in Settings at any time. Column-level default only
+    # applies to rows created from here on -- an already-registered
+    # account's own row (e.g. the demo account) needs its own explicit
+    # update, not a migration, since this isn't a schema change.
+    currency: Mapped[str] = mapped_column(default="NGN")
     decimal_places: Mapped[int] = mapped_column(default=2)
     # Password reset: reset_token_hash stores a SHA-256 hash of the token
     # emailed to the user, never the raw token -- mirrors why password_hash

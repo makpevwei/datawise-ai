@@ -91,7 +91,17 @@ export function StatCard({
 
   return (
     <div className={`rounded-xl border border-[var(--border)] bg-[var(--surface-1)] min-w-0 ${compact ? "p-4" : "p-6"}`}>
-      <p className={`font-medium text-[var(--text-secondary)] truncate ${compact ? "text-xs uppercase tracking-wide" : "text-sm"}`}>{label}</p>
+      {/* line-clamp-2, not truncate -- a single-line ellipsis was cutting
+          "Total Years at Company" down to "TOTAL YEARS AT CO...", hiding
+          the metric's real identity. Two lines fits every label seen in
+          practice; title=label is still there as a fallback for the rare
+          one that doesn't. */}
+      <p
+        title={label}
+        className={`font-medium text-[var(--text-secondary)] line-clamp-2 ${compact ? "min-h-8 text-xs uppercase tracking-wide" : "min-h-10 text-sm"}`}
+      >
+        {label}
+      </p>
       <button
         type="button"
         onClick={canExpand ? () => setExpanded((v) => !v) : undefined}

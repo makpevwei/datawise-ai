@@ -13,7 +13,9 @@ counting is genuinely meaningful for the dataset context.
 
 import re
 
+from app.ai.base import LLMProvider
 from app.analysis.engine import aggregate_scalar
+from app.analysis.kpi_semantics import classify_aggregations
 from app.semantic.models import Aggregation, DatasetProfile, KPISuggestion
 from app.semantic.store import DatasetRecord
 
@@ -118,8 +120,25 @@ def _name_matches_metric_hint(column: str) -> bool:
     return any(hint in lowered for hint in METRIC_NAME_HINTS)
 
 
+# Matches the currencies Settings actually offers (frontend CURRENCY_OPTIONS)
+# -- deliberately a fixed allowlist, not "any trailing 3 uppercase letters",
+# so a real abbreviation suffix (e.g. "_QTY", "_AVG") is never mistaken for
+# a currency code and silently dropped from the label.
+_CURRENCY_CODE_SUFFIX_RE = re.compile(r"_(NGN|USD|EUR|GBP|JPY|INR|CAD|AUD)$", re.IGNORECASE)
+
+
+def strip_currency_code_suffix(column: str) -> str:
+    """Strip a trailing currency-code suffix (e.g. the "_NGN" in
+    "Realized_Revenue_NGN") before it becomes a display label -- otherwise
+    a KPI/chart title reads as "Total Realized Revenue Ngn", repeating
+    what the currency symbol already shows once the user's Settings
+    currency preference is applied to the value itself."""
+    return _CURRENCY_CODE_SUFFIX_RE.sub("", column)
+
+
 def _kpi_display_name(aggregation: str, column: str) -> str:
     """Return a clean, business-readable KPI label for the given column."""
+    column = strip_currency_code_suffix(column)
     key = column.lower().replace("_", " ").strip()
     if key in _DISPLAY_OVERRIDES and aggregation == "sum":
         return _DISPLAY_OVERRIDES[key]
@@ -132,6 +151,35 @@ def _kpi_display_name(aggregation: str, column: str) -> str:
     # Title-case the column name for display
     display_col = column.replace("_", " ").replace("-", " ").title()
     return f"{prefix} {display_col}"
+
+
+# Deterministic fallback for the SUM-vs-MEAN choice when no LLM is
+# configured or classify_aggregations() didn't return an answer for this
+# column (see app/analysis/kpi_semantics.py for the LLM-driven path this
+# backs up). "age"/"tenure"/"years" cover the clearest, unambiguous cases
+# a keyword list alone can still get right (a workforce's total age is
+# never a meaningful number); genuinely ambiguous columns (e.g. "training
+# hours" -- could sensibly be a company-wide total or a per-employee
+# average) are exactly what the LLM path is for.
+_MEAN_PREFERRED_HINTS = ("price", "rate", "margin", "pct", "percent", "%", "age", "tenure", "years")
+
+
+def deterministic_aggregation(metric: str) -> Aggregation:
+    """The zero-latency, always-available fallback -- also used directly
+    by app.analysis.dashboard_charts, which needs an aggregation choice on
+    every dashboard page load and doesn't carry an LLM provider through
+    its call chain. Was previously duplicated there as its own narrower
+    keyword list (dashboard_charts._eligible_agg); unified here so a
+    column like "Age" gets the same correct answer whether it lands on a
+    KPI card or a chart."""
+    is_unit_metric = any(h in metric.lower() for h in _MEAN_PREFERRED_HINTS)
+    return Aggregation.MEAN if is_unit_metric else Aggregation.SUM
+
+
+def _choose_aggregation(metric: str, llm_aggregations: dict[str, Aggregation]) -> Aggregation:
+    if metric in llm_aggregations:
+        return llm_aggregations[metric]
+    return deterministic_aggregation(metric)
 
 
 def rank_metric_candidates(profile: DatasetProfile) -> list[str]:
@@ -164,7 +212,7 @@ def rank_dimension_candidates(profile: DatasetProfile) -> list[str]:
     return result[:2]
 
 
-def discover_kpis(record: DatasetRecord) -> list[KPISuggestion]:
+def discover_kpis(record: DatasetRecord, llm_provider: LLMProvider | None = None) -> list[KPISuggestion]:
     profile = record.profile
     df = record.dataframe
     suggestions: list[KPISuggestion] = []
@@ -176,6 +224,12 @@ def discover_kpis(record: DatasetRecord) -> list[KPISuggestion]:
     metric_candidates = rank_metric_candidates(profile)
     dimension_candidates = rank_dimension_candidates(profile)
     date_candidates = profile.date_columns[:1]
+
+    # One classification call for every candidate at once (not per-KPI) --
+    # see app/analysis/kpi_semantics.py. {} whenever no LLM is configured
+    # or the call fails; _choose_aggregation() below falls back to the
+    # deterministic heuristic for anything missing from this dict.
+    llm_aggregations = classify_aggregations(metric_candidates, llm_provider)
 
     # Collect the priority-0/1/2 (revenue/profit/cost) metric names so we
     # can suppress near-redundant metrics that would be confusing alongside them.
@@ -205,8 +259,7 @@ def discover_kpis(record: DatasetRecord) -> list[KPISuggestion]:
         if is_redundant:
             continue
 
-        is_unit_metric = any(h in metric.lower() for h in ("price", "rate", "margin", "pct", "percent", "%"))
-        agg = Aggregation.MEAN if is_unit_metric else Aggregation.SUM
+        agg = _choose_aggregation(metric, llm_aggregations)
         rationale = (
             f"'{metric}' is a numeric business quantity suitable for {agg.value} aggregation."
             if _name_matches_metric_hint(metric)
@@ -264,7 +317,7 @@ def discover_kpis(record: DatasetRecord) -> list[KPISuggestion]:
 
     if metric_candidates and dimension_candidates:
         metric, dimension = metric_candidates[0], dimension_candidates[0]
-        agg = Aggregation.MEAN if any(h in metric.lower() for h in ("price", "rate", "margin")) else Aggregation.SUM
+        agg = _choose_aggregation(metric, llm_aggregations)
         suggestions.append(
             KPISuggestion(
                 name=f"{_kpi_display_name(agg.value, metric)} by {dimension.replace('_',' ').title()}",
@@ -281,10 +334,10 @@ def discover_kpis(record: DatasetRecord) -> list[KPISuggestion]:
 
     if metric_candidates and date_candidates:
         metric, date_col = metric_candidates[0], date_candidates[0]
-        agg = Aggregation.MEAN if any(h in metric.lower() for h in ("price", "rate", "margin")) else Aggregation.SUM
+        agg = _choose_aggregation(metric, llm_aggregations)
         suggestions.append(
             KPISuggestion(
-                name=f"{metric.replace('_',' ').title()} Trend",
+                name=f"{strip_currency_code_suffix(metric).replace('_',' ').title()} Trend",
                 dataset_id=profile.id,
                 dataset_name=source_name,
                 dataset_sheet=source_sheet,

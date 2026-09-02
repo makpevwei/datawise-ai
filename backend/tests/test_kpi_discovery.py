@@ -1,6 +1,10 @@
-from app.analysis.kpi_discovery import discover_kpis, _is_identifier_column
+import pandas as pd
+
+from app.ai.base import LLMProvider
+from app.ai.types import ConversationTurn, LLMTurn, ToolSchema
+from app.analysis.kpi_discovery import _is_identifier_column, deterministic_aggregation, discover_kpis
 from app.profiling.service import profile_dataframe
-from app.semantic.models import DatasetKind
+from app.semantic.models import Aggregation, DatasetKind
 from app.semantic.store import DatasetRecord
 from tests.factories import orders_df
 
@@ -60,6 +64,86 @@ def test_does_not_relabel_column_business_meaning():
     assert not any("revenue" in s.name.lower() for s in suggestions)
 
 
+def _hr_record():
+    df = pd.DataFrame(
+        {
+            "employee_id": [f"E{i}" for i in range(20)],
+            "age": [25 + (i % 30) for i in range(20)],
+            "salary": [50000.0 + i * 1000 for i in range(20)],
+            "department": [("Engineering", "Sales", "HR", "Finance")[i % 4] for i in range(20)],
+        }
+    )
+    profile = profile_dataframe(df, "hr", "hr", "hr.csv", None, DatasetKind.UPLOADED)
+    return DatasetRecord(dataframe=df, profile=profile)
+
+
+def test_age_is_averaged_not_summed_by_the_deterministic_fallback():
+    # A workforce's *total* age is a meaningless number -- averaging it is
+    # the only reading that means anything on an executive dashboard.
+    assert deterministic_aggregation("age") == Aggregation.MEAN
+    suggestions = discover_kpis(_hr_record())
+    age_kpi = next(s for s in suggestions if s.metric_column == "age")
+    assert age_kpi.aggregation == "mean"
+    assert "average" in age_kpi.name.lower()
+
+
+def test_salary_is_still_summed_by_the_deterministic_fallback():
+    # A genuinely additive quantity (money paid out) must not get swept
+    # into the same "average it" bucket as per-entity attributes like age.
+    assert deterministic_aggregation("salary") == Aggregation.SUM
+    suggestions = discover_kpis(_hr_record())
+    salary_kpi = next(s for s in suggestions if s.metric_column == "salary" and s.aggregation == "sum")
+    assert "total" in salary_kpi.name.lower()
+
+
+class _StubLLMProvider(LLMProvider):
+    """Returns a fixed classification, never a real value -- proves the
+    LLM path only ever *chooses an aggregation*, never touches the actual
+    computed number (which still comes from the real dataframe)."""
+
+    provider_name = "stub"
+    model = "stub-model"
+
+    def __init__(self, response_text: str):
+        self._response_text = response_text
+
+    def send(self, system: str, history: list[ConversationTurn], tools: list[ToolSchema]) -> LLMTurn:
+        return LLMTurn(text=self._response_text, tool_calls=[], stop_reason="end_turn")
+
+
+def test_llm_classification_overrides_the_deterministic_default():
+    # The stub claims "salary" should be averaged, not summed -- an
+    # obviously wrong answer a human would reject, chosen deliberately so
+    # the test proves the LLM's choice is actually honored, not just
+    # coincidentally matching the heuristic it would override.
+    provider = _StubLLMProvider('{"salary": "mean", "age": "mean"}')
+    suggestions = discover_kpis(_hr_record(), llm_provider=provider)
+    salary_kpi = next(s for s in suggestions if s.metric_column == "salary")
+    assert salary_kpi.aggregation == "mean"
+    # The number itself is still the real, unmodified dataframe mean --
+    # the LLM never supplies or touches the value.
+    assert salary_kpi.preview_value == _hr_record().dataframe["salary"].mean()
+
+
+def test_llm_failure_falls_back_to_the_deterministic_heuristic():
+    class _BrokenProvider(_StubLLMProvider):
+        def send(self, system, history, tools):
+            raise RuntimeError("simulated provider outage")
+
+    suggestions = discover_kpis(_hr_record(), llm_provider=_BrokenProvider(""))
+    age_kpi = next(s for s in suggestions if s.metric_column == "age")
+    # Still correct via the deterministic fallback -- a broken LLM call
+    # must never block KPI discovery or produce a wrong/missing KPI.
+    assert age_kpi.aggregation == "mean"
+
+
+def test_llm_malformed_response_falls_back_to_the_deterministic_heuristic():
+    provider = _StubLLMProvider("not valid json at all")
+    suggestions = discover_kpis(_hr_record(), llm_provider=provider)
+    salary_kpi = next(s for s in suggestions if s.metric_column == "salary" and s.aggregation == "sum")
+    assert salary_kpi is not None
+
+
 def test_falls_back_to_record_count_when_no_usable_columns():
     import pandas as pd
 
@@ -75,6 +159,7 @@ def test_falls_back_to_record_count_when_no_usable_columns():
 def test_identifier_columns_not_summed_as_financial_kpis():
     """CustomerKey, SalesTerritoryKey etc. must never appear as SUM KPIs."""
     import pandas as pd
+
     from app.profiling.service import profile_dataframe
 
     df = pd.DataFrame({
