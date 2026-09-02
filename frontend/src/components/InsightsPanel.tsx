@@ -4,6 +4,7 @@ import { askAgent, getDatasetSample, getInsights, getKpiSuggestions, runAnalysis
 import { useAuth } from "@/lib/auth-context";
 import { buildStarterQuestions, BUSINESS_STARTER_QUESTIONS } from "@/lib/starterQuestions";
 import type { AgentAnswer, AgentFinding, AnalysisResult, DatasetSummary, Insight, KPISuggestion } from "@/lib/types";
+import { useSelectedDatasets } from "@/lib/useSelectedDatasets";
 import { useEffect, useState } from "react";
 import { ChartFromSpec } from "./charts";
 import { DatasetPicker } from "./DatasetPicker";
@@ -32,7 +33,7 @@ const MAX_CHARTS = 5;
 const MAX_RECOMMENDATIONS = 5;
 
 export function InsightsPanel({ datasets }: { datasets: DatasetSummary[] }) {
-  const [selectedDatasetIds, setSelectedDatasetIds] = useState<string[] | null>(null);
+  const [selectedDatasetIds, setSelectedDatasetIds] = useSelectedDatasets();
   const effectiveIds = selectedDatasetIds ?? datasets.map((d) => d.id);
   const effectiveDatasets = datasets.filter((d) => effectiveIds.includes(d.id));
   const primaryDataset = effectiveDatasets[0] ?? null;

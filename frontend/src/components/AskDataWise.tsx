@@ -7,6 +7,7 @@ import { askAgent, createReport, exportAnalysisPdf, getAgentStatus, getKpiSugges
 import type { AgentAnswer, AgentFinding, ClaimComparison, DatasetSummary, KPISuggestion, TraceStep } from "@/lib/types";
 import { buildStarterQuestions, BUSINESS_STARTER_QUESTIONS, GENERIC_STARTER_QUESTIONS } from "@/lib/starterQuestions";
 import { useAuth } from "@/lib/auth-context";
+import { useSelectedDatasets } from "@/lib/useSelectedDatasets";
 import { ChartFromSpec } from "./charts";
 import { DatasetPicker } from "./DatasetPicker";
 import {
@@ -65,7 +66,10 @@ export function AskDataWise({
   // null = all of the user's datasets (unscoped, the default) -- matches
   // AskRequest.dataset_ids' own "omit for everything" semantics, so this
   // picker only changes behavior once the user actually narrows it.
-  const [selectedDatasetIds, setSelectedDatasetIds] = useState<string[] | null>(null);
+  // Shared/persisted (not a plain useState) so the selection survives
+  // navigating to Dashboard/Insights and back, instead of resetting to
+  // "all selected" on every remount.
+  const [selectedDatasetIds, setSelectedDatasetIds] = useSelectedDatasets();
 
   useEffect(() => {
     getAgentStatus()

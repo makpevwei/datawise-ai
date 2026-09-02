@@ -76,6 +76,15 @@ def _chart_title(aggregation: str | None, metric: str | None, dimension: str | N
     metric_label = raw_metric.title()
     dim_label = (dimension or "").replace("_", " ").title() if dimension else ""
 
+    # A column whose own raw name already starts with the aggregation word
+    # (e.g. a real "Average_Unit_Cost_NGN" column) would otherwise double
+    # up into "Average Average Unit Cost by Category" -- found live, the
+    # same bug as kpi_discovery._kpi_display_name, independently here
+    # since chart titles are built separately. Drop the prefix when the
+    # metric name already carries it.
+    if agg_label and metric_label.lower().startswith(agg_label.lower()):
+        agg_label = ""
+
     if chart_type in ("line", "time_series"):
         return f"Monthly {metric_label} Trend" if metric_label else "Trend Over Time"
     if dim_label:

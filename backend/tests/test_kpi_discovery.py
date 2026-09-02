@@ -2,7 +2,12 @@ import pandas as pd
 
 from app.ai.base import LLMProvider
 from app.ai.types import ConversationTurn, LLMTurn, ToolSchema
-from app.analysis.kpi_discovery import _is_identifier_column, deterministic_aggregation, discover_kpis
+from app.analysis.kpi_discovery import (
+    _is_identifier_column,
+    _kpi_display_name,
+    deterministic_aggregation,
+    discover_kpis,
+)
 from app.profiling.service import profile_dataframe
 from app.semantic.models import Aggregation, DatasetKind
 from app.semantic.store import DatasetRecord
@@ -85,6 +90,17 @@ def test_age_is_averaged_not_summed_by_the_deterministic_fallback():
     age_kpi = next(s for s in suggestions if s.metric_column == "age")
     assert age_kpi.aggregation == "mean"
     assert "average" in age_kpi.name.lower()
+
+
+def test_kpi_display_name_never_doubles_up_a_prefix_the_column_already_has():
+    # Found live: Fact_Inventory_Monthly has a real column literally named
+    # "Average_Unit_Cost_NGN" -- prepending "Average" for a mean
+    # aggregation produced "Average Average Unit Cost", a visible,
+    # user-reported bug.
+    assert _kpi_display_name("mean", "Average_Unit_Cost_NGN") == "Average Unit Cost"
+    assert _kpi_display_name("sum", "Total_Sales_NGN") == "Total Sales"
+    # A column that does NOT already carry the prefix must still get it.
+    assert _kpi_display_name("mean", "Unit_Cost_NGN") == "Average Unit Cost"
 
 
 def test_closing_inventory_value_is_averaged_not_summed_across_snapshots():
