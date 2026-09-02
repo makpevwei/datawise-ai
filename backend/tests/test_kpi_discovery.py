@@ -144,6 +144,65 @@ def test_llm_malformed_response_falls_back_to_the_deterministic_heuristic():
     assert salary_kpi is not None
 
 
+def _date_dim_record():
+    # Reproduces the real bug found against a live date-dimension table:
+    # Year/Month_Number/Week_Number/Day are numeric but neither summing
+    # nor averaging any of them is a meaningful headline KPI.
+    df = pd.DataFrame(
+        {
+            "date": pd.date_range("2024-01-01", periods=40, freq="D"),
+            "year": [2024] * 40,
+            "month_number": [1] * 31 + [2] * 9,
+            "week_number": [(i // 7) + 1 for i in range(40)],
+            "day": list(range(1, 32)) + list(range(1, 10)),
+            "revenue": [1000.0 + i * 10 for i in range(40)],
+        }
+    )
+    profile = profile_dataframe(df, "dates", "dates", "dates.csv", None, DatasetKind.UPLOADED)
+    return DatasetRecord(dataframe=df, profile=profile)
+
+
+def test_calendar_date_part_columns_are_excluded_by_the_deterministic_fallback():
+    from app.analysis.kpi_discovery import _is_date_part_column
+
+    assert _is_date_part_column("year")
+    assert _is_date_part_column("Month_Number")
+    assert _is_date_part_column("Week_Number")
+    assert _is_date_part_column("Day")
+    # Plurals are real duration metrics, not calendar date-parts -- must
+    # NOT be excluded.
+    assert not _is_date_part_column("Delivery_Days")
+    assert not _is_date_part_column("Years_At_Company")
+
+    suggestions = discover_kpis(_date_dim_record())
+    metric_columns = {s.metric_column for s in suggestions}
+    assert "year" not in metric_columns
+    assert "month_number" not in metric_columns
+    assert "week_number" not in metric_columns
+    assert "day" not in metric_columns
+    assert "revenue" in metric_columns
+
+
+def test_llm_can_exclude_a_column_the_deterministic_heuristic_would_have_kept():
+    # A column name the fixed word list has never heard of (a stand-in for
+    # any real dataset's own naming quirk) -- proves exclusion is a genuine
+    # LLM judgment call, not just a hardcoded pattern re-implemented here.
+    df = pd.DataFrame(
+        {
+            "fiscal_period_code": [1, 2, 3, 4] * 10,
+            "revenue": [1000.0 + i for i in range(40)],
+        }
+    )
+    profile = profile_dataframe(df, "d", "d", "d.csv", None, DatasetKind.UPLOADED)
+    record = DatasetRecord(dataframe=df, profile=profile)
+
+    provider = _StubLLMProvider('{"fiscal_period_code": "exclude", "revenue": "sum"}')
+    suggestions = discover_kpis(record, llm_provider=provider)
+    metric_columns = {s.metric_column for s in suggestions}
+    assert "fiscal_period_code" not in metric_columns
+    assert "revenue" in metric_columns
+
+
 def test_falls_back_to_record_count_when_no_usable_columns():
     import pandas as pd
 

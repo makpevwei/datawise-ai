@@ -170,6 +170,20 @@ export function looksLikeIdentifier(column: string): boolean {
   return IDENTIFIER_LABEL_HINTS.test(column);
 }
 
+/** A calendar/date-part number (Year, Month_Number, Week_Number, Day) --
+ * mirrors the backend's own date-part exclusion
+ * (app/analysis/kpi_discovery.py's _DATE_PART_PATTERNS). "2024" read as a
+ * quantity is "2,024", which is exactly as wrong as putting a thousands
+ * separator in a phone number; these get the same plain, unformatted
+ * treatment as an identifier for the same reason -- they're a label for
+ * *when*, not a count of *how much*. Whole-word/singular only: a plural
+ * ("Delivery_Days") is a real duration measure, not a calendar date-part. */
+const DATE_PART_LABEL_HINTS = /(?:^|_)(?:year|quarter|month|week|day)(?:_|$)/i;
+
+export function looksLikeDatePart(column: string): boolean {
+  return DATE_PART_LABEL_HINTS.test(column);
+}
+
 export function Table({
   columns,
   rows,
@@ -217,9 +231,10 @@ export function Table({
 function formatCell(value: unknown, column: string, currency?: string, decimalPlaces?: number): string {
   if (value === null || value === undefined) return "—";
   if (typeof value === "number") {
-    // A key/id is a label, not a quantity -- show the raw source value
-    // exactly as uploaded, with no formatting of any kind applied to it.
-    if (looksLikeIdentifier(column)) return String(value);
+    // A key/id (or a calendar date-part like Year/Month_Number) is a
+    // label, not a quantity -- show the raw source value exactly as
+    // uploaded, with no formatting of any kind applied to it.
+    if (looksLikeIdentifier(column) || looksLikeDatePart(column)) return String(value);
     if (currency && looksMonetary(column)) {
       return formatCurrency(value, currency, decimalPlaces ?? 2);
     }

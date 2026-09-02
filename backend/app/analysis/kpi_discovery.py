@@ -15,7 +15,7 @@ import re
 
 from app.ai.base import LLMProvider
 from app.analysis.engine import aggregate_scalar
-from app.analysis.kpi_semantics import classify_aggregations
+from app.analysis.kpi_semantics import classify_columns
 from app.semantic.models import Aggregation, DatasetProfile, KPISuggestion
 from app.semantic.store import DatasetRecord
 
@@ -80,6 +80,27 @@ _IDENTIFIER_PATTERNS = re.compile(
     r"(?:^(?:key|id|code|num|no)_)"
     r")"
 )
+
+# Calendar/date-part numbers -- a "Year", "Month_Number", "Week_Number" or
+# "Day" column from a date dimension table. Whole-word/singular only: a
+# plural ("Years_At_Company", "Delivery_Days", "Promised_Days") is a real
+# per-entity duration metric, not a calendar date-part, and must not match
+# here (it's handled instead by _MEAN_PREFERRED_HINTS below).
+_DATE_PART_PATTERNS = re.compile(r"(?i)(?:^|_)(?:year|quarter|month|week|day)(?:_|$)")
+
+
+def _is_date_part_column(column: str) -> bool:
+    """True for a numeric calendar/date-part column (Year, Month_Number,
+    Week_Number, Day, ...). Neither SUM nor MEAN of these is a meaningful
+    headline KPI -- "Total Year: 1.5M" and "Average Year: 2024.5" are
+    equally nonsensical, since these describe *when* a record happened,
+    not *how much* of something there was. Excluded from KPI/insight
+    candidacy entirely, the same way an identifier column already is --
+    these are dimension-like fields you group revenue by (see
+    rank_dimension_candidates's own handling of the *categorical* date
+    columns from the same table, e.g. Quarter/Month_Name), never a fact to
+    aggregate on their own."""
+    return bool(_DATE_PART_PATTERNS.search(column))
 
 # Human-friendly label overrides for common business column names.
 _DISPLAY_OVERRIDES: dict[str, str] = {
@@ -182,23 +203,34 @@ def _choose_aggregation(metric: str, llm_aggregations: dict[str, Aggregation]) -
     return deterministic_aggregation(metric)
 
 
-def rank_metric_candidates(profile: DatasetProfile) -> list[str]:
+def rank_metric_candidates(profile: DatasetProfile, limit: int = 5) -> list[str]:
     """Return numeric columns ranked by business-metric likelihood.
 
     Identifier columns are excluded entirely from the metric candidate list
     to prevent KPIs like "Total CustomerKey" or "Total SalesTerritoryKey"
-    from appearing on the executive dashboard.
+    from appearing on the executive dashboard. Calendar/date-part columns
+    (Year, Month_Number, Week_Number, Day) are excluded the same way --
+    see _is_date_part_column. This is only the deterministic first pass;
+    discover_kpis() below additionally consults the LLM (when available)
+    to catch a dataset's own equivalent of these patterns that no fixed
+    word list could anticipate -- see app/analysis/kpi_semantics.py.
 
     Candidates are sorted by semantic priority:
     Revenue/Sales > Profit/Margin > Cost > Amount > Quantity > Price > ...
+
+    `limit` defaults to 5 (what a KPI row/chart selection actually uses)
+    but discover_kpis() requests a wider pool before consulting the LLM,
+    so an LLM-excluded candidate doesn't just shrink the final list --
+    something else ranked 6th can still take its place.
     """
-    candidates = [c for c in profile.numeric_columns if not _is_identifier_column(c)]
+    candidates = [
+        c for c in profile.numeric_columns if not _is_identifier_column(c) and not _is_date_part_column(c)
+    ]
     candidates.sort(key=lambda c: (
         0 if _name_matches_metric_hint(c) else 1,
         _metric_priority(c),
     ))
-    # Return top 5 to give KPI discovery enough variety for rich datasets
-    return candidates[:5]
+    return candidates[:limit]
 
 
 def rank_dimension_candidates(profile: DatasetProfile) -> list[str]:
@@ -221,15 +253,20 @@ def discover_kpis(record: DatasetRecord, llm_provider: LLMProvider | None = None
     source_name = profile.name
     source_sheet = profile.sheet_name
 
-    metric_candidates = rank_metric_candidates(profile)
     dimension_candidates = rank_dimension_candidates(profile)
     date_candidates = profile.date_columns[:1]
 
-    # One classification call for every candidate at once (not per-KPI) --
-    # see app/analysis/kpi_semantics.py. {} whenever no LLM is configured
-    # or the call fails; _choose_aggregation() below falls back to the
-    # deterministic heuristic for anything missing from this dict.
-    llm_aggregations = classify_aggregations(metric_candidates, llm_provider)
+    # A wider pool than the final top-5, so an LLM-excluded candidate
+    # doesn't just shrink the list -- see rank_metric_candidates's own
+    # docstring. One classification call for the whole pool at once (not
+    # per-KPI) -- see app/analysis/kpi_semantics.py. Empty whenever no LLM
+    # is configured or the call fails; _choose_aggregation() below falls
+    # back to the deterministic heuristic for anything the LLM didn't
+    # return an aggregation for.
+    candidate_pool = rank_metric_candidates(profile, limit=10)
+    classification = classify_columns(candidate_pool, llm_provider)
+    llm_aggregations = classification.aggregations
+    metric_candidates = [c for c in candidate_pool if c not in classification.excluded][:5]
 
     # Collect the priority-0/1/2 (revenue/profit/cost) metric names so we
     # can suppress near-redundant metrics that would be confusing alongside them.
