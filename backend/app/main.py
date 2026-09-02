@@ -10,6 +10,7 @@ from app.api.auth import router as auth_router
 from app.api.datasets import router as datasets_router
 from app.api.documents import router as documents_router
 from app.api.health import router as health_router
+from app.api.integrations import router as integrations_router
 from app.api.rate_limit import limiter
 from app.api.relationships import router as relationships_router
 from app.api.reports import router as reports_router
@@ -58,3 +59,4 @@ app.include_router(documents_router, prefix=settings.api_v1_prefix)
 app.include_router(agent_router, prefix=settings.api_v1_prefix)
 app.include_router(sessions_router, prefix=settings.api_v1_prefix)
 app.include_router(reports_router, prefix=settings.api_v1_prefix)
+app.include_router(integrations_router, prefix=settings.api_v1_prefix)

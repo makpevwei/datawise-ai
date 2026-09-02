@@ -135,7 +135,7 @@ describe("UploadPanel", () => {
       existing: {
         id: "d1", original_filename: "customers.csv", display_name: "customers.csv", file_type: "csv",
         file_size: 100, row_count: 8, column_count: 3, processing_status: "ready", processing_error: null,
-        version: 1, is_active: true, created_at: new Date().toISOString(),
+        version: 1, is_active: true, created_at: new Date().toISOString(), source: "upload",
       },
       next_version: null,
     });
@@ -159,7 +159,7 @@ describe("UploadPanel", () => {
       existing: {
         id: "d1", original_filename: "customers.csv", display_name: "customers.csv", file_type: "csv",
         file_size: 100, row_count: 8, column_count: 3, processing_status: "ready", processing_error: null,
-        version: 1, is_active: true, created_at: new Date().toISOString(),
+        version: 1, is_active: true, created_at: new Date().toISOString(), source: "upload",
       },
       next_version: null,
     });
@@ -182,7 +182,7 @@ describe("UploadPanel", () => {
       existing: {
         id: "d1", original_filename: "customers.csv", display_name: "customers.csv", file_type: "csv",
         file_size: 100, row_count: 8, column_count: 3, processing_status: "ready", processing_error: null,
-        version: 1, is_active: true, created_at: new Date().toISOString(),
+        version: 1, is_active: true, created_at: new Date().toISOString(), source: "upload",
       },
       next_version: null,
     });
@@ -209,7 +209,7 @@ describe("UploadPanel", () => {
       existing: {
         id: "d1", original_filename: "sales.csv", display_name: "sales.csv", file_type: "csv",
         file_size: 100, row_count: 8, column_count: 3, processing_status: "ready", processing_error: null,
-        version: 1, is_active: true, created_at: new Date().toISOString(),
+        version: 1, is_active: true, created_at: new Date().toISOString(), source: "upload",
       },
       next_version: 2,
     });

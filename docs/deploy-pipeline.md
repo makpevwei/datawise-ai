@@ -24,8 +24,11 @@ How a code change actually reaches production, end to end.
    - **GitHub Actions' `deploy` job** runs, but only after `backend` and
      `frontend` succeed again on `main` itself (`needs: [backend,
      frontend]`) and only on an actual push to `main` — not on PRs, so a
-     PR from a fork can never trigger a deploy. It authenticates to
-     Google Cloud via Workload Identity Federation and runs `gcloud run
+     PR from a fork can never trigger a deploy. It first runs `alembic
+     upgrade head` against the real production database (Render Postgres
+     — see below) using the same `DATABASE_URL` secret, so schema exists
+     before any new code can serve traffic against it, then authenticates
+     to Google Cloud via Workload Identity Federation and runs `gcloud run
      deploy` against Cloud Run.
 
 **Why branch protection isn't on yet:** GitHub blocks branch protection on

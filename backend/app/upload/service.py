@@ -17,6 +17,7 @@ def ingest_files(
     files: list[tuple[str, bytes]],
     store: DatasetStore,
     max_size_mb: int,
+    kind: DatasetKind = DatasetKind.UPLOADED,
 ) -> UploadResult:
     summaries: list[DatasetSummary] = []
     warnings: list[UploadWarning] = []
@@ -55,7 +56,7 @@ def ingest_files(
                 name=display_name,
                 source_file=filename,
                 sheet_name=table.sheet_name,
-                kind=DatasetKind.UPLOADED,
+                kind=kind,
                 duplicate_column_names=table.duplicate_columns,
             )
             store.put(dataset_id, table.dataframe, profile)

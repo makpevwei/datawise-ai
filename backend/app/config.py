@@ -126,6 +126,22 @@ class Settings(BaseSettings):
     smtp_from_email: str | None = None
     smtp_use_tls: bool = True
 
+    # Google Drive/Sheets connector (read-only). All optional -- every other
+    # feature works with none of these set; the /integrations/google/*
+    # routes report "not configured" honestly rather than pretending to
+    # work. google_oauth_redirect_uri must exactly match an Authorized
+    # redirect URI configured on the Google Cloud OAuth client, including
+    # scheme/host/path -- Google rejects any mismatch outright.
+    google_oauth_client_id: str | None = None
+    google_oauth_client_secret: str | None = None
+    google_oauth_redirect_uri: str | None = None
+    # Fernet key (base64, via cryptography.fernet.Fernet.generate_key())
+    # encrypting Integration.encrypted_refresh_token at rest -- see
+    # app/integrations/crypto.py. Unlike the settings above, this one is
+    # required the moment google_oauth_client_id is set: a connected
+    # integration's refresh token has nowhere safe to live without it.
+    token_encryption_key: str | None = None
+
 
 @lru_cache
 def get_settings() -> Settings:

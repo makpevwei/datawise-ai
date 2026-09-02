@@ -96,6 +96,7 @@ class DatasetQualitySummary(BaseModel):
 class DatasetKind(StrEnum):
     UPLOADED = "uploaded"
     JOINED = "joined"
+    CONNECTED = "connected"
 
 
 class DatasetSummary(BaseModel):

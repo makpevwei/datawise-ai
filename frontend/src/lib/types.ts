@@ -14,7 +14,7 @@ export type SourceLabel =
   | "AI_INTERPRETATION"
   | "INSUFFICIENT_DATA";
 
-export type DatasetKind = "uploaded" | "joined";
+export type DatasetKind = "uploaded" | "joined" | "connected";
 
 export interface TopValue {
   value: string;

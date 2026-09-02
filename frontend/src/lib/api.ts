@@ -280,6 +280,12 @@ export function resetPassword(payload: { token: string; new_password: string }):
 
 // ---- Dataset / document library (My Data) ----
 
+// "upload" is the only source before the Google Drive/Sheets connector;
+// "google_sheets" (datasets) / "google_drive" (documents) mark rows synced
+// via /integrations -- see app/api/datasets.py's/documents.py's `source`
+// field on the backend.
+export type DataSource = "upload" | "google_drive" | "google_sheets";
+
 export interface DatasetLibraryItem {
   id: string;
   original_filename: string;
@@ -293,6 +299,7 @@ export interface DatasetLibraryItem {
   version: number;
   is_active: boolean;
   created_at: string;
+  source: DataSource;
 }
 
 export interface DocumentLibraryItem {
@@ -307,6 +314,7 @@ export interface DocumentLibraryItem {
   version: number;
   is_active: boolean;
   created_at: string;
+  source: DataSource;
 }
 
 export function listDatasetLibrary(includeInactive = false): Promise<DatasetLibraryItem[]> {
@@ -323,6 +331,75 @@ export function deleteDataset(id: string): Promise<void> {
 
 export function deleteDocument(id: string): Promise<void> {
   return request<void>(`/documents/${id}`, { method: "DELETE" });
+}
+
+// ---- Connected sources (Google Drive / Sheets) ----
+
+export interface IntegrationSummary {
+  id: string;
+  provider: string;
+  status: string;
+  scopes_granted: string;
+  connected_at: string;
+  last_synced_at: string | null;
+  item_count: number;
+}
+
+export interface ConnectedItemSummary {
+  id: string;
+  external_id: string;
+  external_kind: string; // "sheet" | "drive_file"
+  display_name: string;
+  sync_status: string; // "pending" | "syncing" | "synced" | "error"
+  last_synced_at: string | null;
+  last_error: string | null;
+  dataset_id: string | null;
+  document_id: string | null;
+}
+
+export interface BrowseFile {
+  id: string;
+  name: string;
+  mime_type: string;
+  modified_time: string;
+  external_kind: string;
+}
+
+export interface BrowseResponse {
+  files: BrowseFile[];
+  next_page_token: string | null;
+}
+
+export function listIntegrations(): Promise<IntegrationSummary[]> {
+  return request<IntegrationSummary[]>("/integrations");
+}
+
+export function startGoogleConnect(): Promise<{ authorization_url: string }> {
+  return request<{ authorization_url: string }>("/integrations/google/connect", { method: "POST" });
+}
+
+export function listIntegrationItems(integrationId: string): Promise<ConnectedItemSummary[]> {
+  return request<ConnectedItemSummary[]>(`/integrations/${integrationId}/items`);
+}
+
+export function browseIntegration(integrationId: string, pageToken?: string): Promise<BrowseResponse> {
+  const query = pageToken ? `?page_token=${encodeURIComponent(pageToken)}` : "";
+  return request<BrowseResponse>(`/integrations/${integrationId}/browse${query}`);
+}
+
+export function selectIntegrationItems(integrationId: string, items: BrowseFile[]): Promise<ConnectedItemSummary[]> {
+  return request<ConnectedItemSummary[]>(`/integrations/${integrationId}/items`, {
+    method: "POST",
+    body: JSON.stringify({ items }),
+  });
+}
+
+export function syncIntegration(integrationId: string): Promise<ConnectedItemSummary[]> {
+  return request<ConnectedItemSummary[]>(`/integrations/${integrationId}/sync`, { method: "POST" });
+}
+
+export function disconnectIntegration(integrationId: string): Promise<{ status: string }> {
+  return request<{ status: string }>(`/integrations/${integrationId}`, { method: "DELETE" });
 }
 
 // ---- Analysis sessions (Ask DataWise / Analysis Workspace history) ----

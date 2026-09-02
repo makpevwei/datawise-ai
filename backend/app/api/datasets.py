@@ -12,7 +12,7 @@ from app.api.deps import get_dataset_store, get_scoped_dataset_store
 from app.api.scoped_stores import ScopedDatasetStore
 from app.auth.dependencies import get_current_user
 from app.config import get_settings
-from app.db.models import Dataset, User
+from app.db.models import ConnectedItem, Dataset, User
 from app.db.session import get_db
 from app.semantic.models import DatasetProfile, DatasetSummary, UploadError, UploadResult, UploadWarning
 from app.semantic.store import DatasetStore
@@ -44,6 +44,12 @@ class DatasetLibraryItem(BaseModel):
     version: int
     is_active: bool
     created_at: datetime
+    # "upload" | "google_drive" | "google_sheets" -- defaults to "upload" so
+    # model_validate(row) works unchanged for every plain ORM row; the two
+    # library endpoints below overwrite it for rows backed by a
+    # ConnectedItem. See app/integrations/service.py for how a connected
+    # Sheet becomes a Dataset row in the first place.
+    source: str = "upload"
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -65,6 +71,26 @@ def _active_dataset(db: DBSession, user_id: str, filename: str) -> Dataset | Non
 def _max_version(db: DBSession, user_id: str, filename: str) -> int:
     rows = db.query(Dataset.version).filter(Dataset.user_id == user_id, Dataset.original_filename == filename).all()
     return max((r[0] for r in rows), default=0)
+
+
+def _connected_sources_for_datasets(db: DBSession, dataset_ids: list[str]) -> dict[str, str]:
+    """dataset_id -> "google_sheets" for every id that's actually the sync
+    target of a ConnectedItem -- everything else stays the DatasetLibraryItem
+    default of "upload". A dataset can only ever be synced from a Sheet (not
+    a plain Drive file -- see app/integrations/service.py), so this is
+    unconditionally "google_sheets", not a lookup on external_kind."""
+    if not dataset_ids:
+        return {}
+    rows = db.query(ConnectedItem.dataset_id).filter(ConnectedItem.dataset_id.in_(dataset_ids)).all()
+    return {dataset_id: "google_sheets" for (dataset_id,) in rows}
+
+
+def _with_sources(db: DBSession, rows: list[Dataset]) -> list[DatasetLibraryItem]:
+    sources = _connected_sources_for_datasets(db, [r.id for r in rows])
+    items = [DatasetLibraryItem.model_validate(r) for r in rows]
+    for item in items:
+        item.source = sources.get(item.id, "upload")
+    return items
 
 
 @router.post("/check-duplicate", response_model=DuplicateCheckResult)
@@ -189,7 +215,7 @@ def list_dataset_library(
     if not include_inactive:
         query = query.filter(Dataset.is_active.is_(True))
     rows = query.order_by(Dataset.original_filename, Dataset.version.desc()).all()
-    return [DatasetLibraryItem.model_validate(r) for r in rows]
+    return _with_sources(db, rows)
 
 
 @router.get("/{dataset_id}/versions", response_model=list[DatasetLibraryItem])
@@ -203,7 +229,7 @@ def list_dataset_versions(dataset_id: str, db: DBSession = Depends(get_db), user
         .order_by(Dataset.version.desc())
         .all()
     )
-    return [DatasetLibraryItem.model_validate(v) for v in versions]
+    return _with_sources(db, versions)
 
 
 @router.post("/{dataset_id}/activate", response_model=DatasetLibraryItem)

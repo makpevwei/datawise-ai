@@ -49,6 +49,25 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
+const SOURCE_LABELS: Record<string, string> = {
+  google_drive: "Google Drive",
+  google_sheets: "Google Sheets",
+};
+
+/** Marks a row synced from a connected source (Settings > Integrations)
+ * apart from a manual upload -- omitted entirely for plain uploads, the
+ * overwhelmingly common case, so this stays additive rather than adding
+ * visual noise to every row. */
+function SourceBadge({ source }: { source: string }) {
+  const label = SOURCE_LABELS[source];
+  if (!label) return null;
+  return (
+    <span className="ml-2 inline-flex items-center rounded-full border border-[var(--border)] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-[var(--text-secondary)]">
+      {label}
+    </span>
+  );
+}
+
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
@@ -314,6 +333,7 @@ export default function MyDataPage() {
                         </td>
                         <td className="py-2.5 pr-4 text-[var(--text-primary)]">
                           {d.display_name} <span className="text-xs text-[var(--text-muted)]">v{d.version}</span>
+                          <SourceBadge source={d.source} />
                         </td>
                         <td className="py-2.5 pr-4 uppercase text-[var(--text-secondary)]">{d.file_type}</td>
                         <td className="py-2.5 pr-4 text-[var(--text-secondary)]">{formatBytes(d.file_size)}</td>
@@ -480,6 +500,7 @@ export default function MyDataPage() {
                         </td>
                         <td className="py-2.5 pr-4 text-[var(--text-primary)]">
                           {d.filename} <span className="text-xs text-[var(--text-muted)]">v{d.version}</span>
+                          <SourceBadge source={d.source} />
                         </td>
                         <td className="py-2.5 pr-4 uppercase text-[var(--text-secondary)]">{d.file_type}</td>
                         <td className="py-2.5 pr-4 text-[var(--text-secondary)]">{formatBytes(d.file_size)}</td>

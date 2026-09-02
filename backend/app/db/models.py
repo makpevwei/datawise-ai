@@ -155,6 +155,66 @@ class Message(Base):
     session: Mapped["AnalysisSession"] = relationship(back_populates="messages")
 
 
+class Integration(Base):
+    """One connected third-party account per row. `provider` is a plain
+    string ("google" today) rather than an enum column, deliberately --
+    a future connector (ERPNext, etc.) needs a new value, not a migration.
+
+    encrypted_refresh_token is Fernet-encrypted at rest (app/integrations/
+    crypto.py) -- unlike User.reset_token_hash's one-way SHA-256, this value
+    must be *recovered*, not just compared, so a one-way hash cannot be used
+    here. The corresponding access token is never persisted at all: it's
+    short-lived and cheap to re-mint from the refresh token right before
+    each use, so there's no reason for it to sit encrypted in the DB too.
+    """
+
+    __tablename__ = "integrations"
+
+    id: Mapped[str] = mapped_column(primary_key=True, default=_uuid)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    provider: Mapped[str]
+    status: Mapped[str] = mapped_column(default="connected")  # connected | error | revoked
+    # Space-separated, exactly what Google's token response returned -- an
+    # audit trail of what was actually granted, not just what was requested.
+    scopes_granted: Mapped[str]
+    encrypted_refresh_token: Mapped[str]
+    connected_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    last_synced_at: Mapped[datetime | None] = mapped_column(default=None)
+
+    items: Mapped[list["ConnectedItem"]] = relationship(back_populates="integration", cascade="all, delete-orphan")
+
+
+class ConnectedItem(Base):
+    """One file/sheet a user selected to sync from a connected Integration.
+    `dataset_id`/`document_id` is the bridge into the existing, unmodified
+    Dataset/Document tables -- once synced, a connected Sheet is just a
+    Dataset row like any upload, and everything downstream (agent tools,
+    citations, per-user isolation) already works without knowing this row
+    exists. `external_modified_at` plays the same change-detection role
+    content_hash plays for uploads (see app/upload/service.py), just backed
+    by the source's own last-modified signal instead of a content hash we'd
+    have to fetch the whole file to compute."""
+
+    __tablename__ = "connected_items"
+    __table_args__ = (Index("ix_connected_items_user_external", "user_id", "external_id"),)
+
+    id: Mapped[str] = mapped_column(primary_key=True, default=_uuid)
+    integration_id: Mapped[str] = mapped_column(ForeignKey("integrations.id", ondelete="CASCADE"), index=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    external_id: Mapped[str]
+    external_kind: Mapped[str]  # "drive_file" | "sheet"
+    display_name: Mapped[str]
+    external_modified_at: Mapped[datetime]
+    dataset_id: Mapped[str | None] = mapped_column(ForeignKey("datasets.id", ondelete="SET NULL"), default=None)
+    document_id: Mapped[str | None] = mapped_column(ForeignKey("documents.id", ondelete="SET NULL"), default=None)
+    sync_status: Mapped[str] = mapped_column(default="pending")  # pending | syncing | synced | error
+    last_synced_at: Mapped[datetime | None] = mapped_column(default=None)
+    last_error: Mapped[str | None] = mapped_column(default=None)
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+
+    integration: Mapped["Integration"] = relationship(back_populates="items")
+
+
 class Report(Base):
     """A generated PDF, kept on disk under data/reports/{user_id}/{id}.pdf --
     `storage_reference` is that path (relative to the configured reports

@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   ApiError,
   deleteSession,
@@ -17,6 +17,15 @@ import {
 } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { Button, Card, ErrorBanner, SectionHeading, Spinner } from "@/components/ui";
+import { IntegrationsPanel } from "@/components/IntegrationsPanel";
+
+const CONNECT_ERROR_MESSAGES: Record<string, string> = {
+  denied: "Google sign-in was cancelled or denied.",
+  invalid_state: "That connection link expired or was invalid. Please try connecting again.",
+  not_configured: "Google Drive/Sheets isn't configured on this server yet.",
+  google_error: "Google reported an error completing the connection. Please try again.",
+  no_refresh_token: "Google didn't grant the access DataWise needs. Please try again.",
+};
 
 const CURRENCY_OPTIONS: { code: CurrencyCode; label: string }[] = [
   { code: "NGN", label: "₦ Nigerian Naira" },
@@ -31,18 +40,34 @@ const CURRENCY_OPTIONS: { code: CurrencyCode; label: string }[] = [
 
 const DECIMAL_OPTIONS = [0, 1, 2, 3, 4];
 
-type SettingsTab = "profile" | "preferences" | "workspace";
+type SettingsTab = "profile" | "preferences" | "workspace" | "integrations";
 
 const TABS: { id: SettingsTab; label: string }[] = [
   { id: "profile", label: "Profile" },
   { id: "preferences", label: "Preferences" },
   { id: "workspace", label: "Workspace & Sessions" },
+  { id: "integrations", label: "Integrations" },
 ];
 
-export default function SettingsPage() {
+function SettingsPageInner() {
   const { user, setUser } = useAuth();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<SettingsTab>("profile");
+  const searchParams = useSearchParams();
+  const requestedTab = searchParams.get("tab");
+  const [activeTab, setActiveTab] = useState<SettingsTab>(
+    requestedTab === "integrations" ? "integrations" : "profile"
+  );
+
+  // Google OAuth callback (app/api/integrations.py's /google/callback)
+  // redirects here with ?tab=integrations&connected=google or
+  // &connect_error=<reason> -- surfaced as a one-time banner.
+  const connected = searchParams.get("connected");
+  const connectError = searchParams.get("connect_error");
+  const integrationsBanner = connected
+    ? { kind: "success" as const, message: "Google Drive & Sheets connected. Choose which files to sync below." }
+    : connectError
+      ? { kind: "error" as const, message: CONNECT_ERROR_MESSAGES[connectError] ?? "Couldn't complete the Google connection. Please try again." }
+      : null;
 
   // Preferences state
   const [currency, setCurrency] = useState<CurrencyCode>(user?.currency ?? "USD");
@@ -337,7 +362,18 @@ export default function SettingsPage() {
           </Card>
         </div>
       )}
+
+      {/* Integrations tab */}
+      {activeTab === "integrations" && <IntegrationsPanel banner={integrationsBanner} />}
     </div>
+  );
+}
+
+export default function SettingsPage() {
+  return (
+    <Suspense fallback={null}>
+      <SettingsPageInner />
+    </Suspense>
   );
 }
 

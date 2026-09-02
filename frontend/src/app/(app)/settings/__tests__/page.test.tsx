@@ -19,6 +19,7 @@ vi.mock("@/lib/auth-context", () => ({
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
   usePathname: () => "/settings",
+  useSearchParams: () => new URLSearchParams(),
 }));
 
 import * as api from "@/lib/api";

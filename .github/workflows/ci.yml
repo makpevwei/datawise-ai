@@ -157,6 +157,31 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: "backend/.python-version"
+
+      - name: Install dependencies
+        run: uv sync --all-extras
+
+      - name: Run production database migrations
+        # The production Postgres database lives on Render (see TODO.md /
+        # docs/deploy-pipeline.md) -- Cloud Run only runs the app code, it
+        # never touches schema. This runs BEFORE the Cloud Run deploy below
+        # so new code never starts serving traffic against a schema it
+        # doesn't expect yet. Same DATABASE_URL secret already used by the
+        # env-vars-file step further down -- alembic only needs it as a
+        # plain connection string, no GCP auth involved.
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: uv run alembic upgrade head
+
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
@@ -195,12 +220,16 @@ jobs:
           SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           SMTP_FROM_EMAIL: ${{ secrets.SMTP_FROM_EMAIL }}
+          GOOGLE_OAUTH_CLIENT_ID: ${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}
+          GOOGLE_OAUTH_CLIENT_SECRET: ${{ secrets.GOOGLE_OAUTH_CLIENT_SECRET }}
+          GOOGLE_OAUTH_REDIRECT_URI: ${{ secrets.GOOGLE_OAUTH_REDIRECT_URI }}
+          TOKEN_ENCRYPTION_KEY: ${{ secrets.TOKEN_ENCRYPTION_KEY }}
         run: |
           python3 -c "
           import json, os
           # JSON is valid YAML, so this needs only the stdlib -- no
           # dependency on pyyaml being present on the runner.
-          names = ['DATABASE_URL','JWT_SECRET_KEY','ENVIRONMENT','LLM_PROVIDER','LLM_API_KEY','OPENAI_API_KEY','CORS_ORIGINS','EMBEDDING_PROVIDER','FRONTEND_BASE_URL','UPLOAD_DIR','DOCUMENT_DIR','REPORTS_DIR','SMTP_HOST','SMTP_PORT','SMTP_USERNAME','SMTP_PASSWORD','SMTP_FROM_EMAIL']
+          names = ['DATABASE_URL','JWT_SECRET_KEY','ENVIRONMENT','LLM_PROVIDER','LLM_API_KEY','OPENAI_API_KEY','CORS_ORIGINS','EMBEDDING_PROVIDER','FRONTEND_BASE_URL','UPLOAD_DIR','DOCUMENT_DIR','REPORTS_DIR','SMTP_HOST','SMTP_PORT','SMTP_USERNAME','SMTP_PASSWORD','SMTP_FROM_EMAIL','GOOGLE_OAUTH_CLIENT_ID','GOOGLE_OAUTH_CLIENT_SECRET','GOOGLE_OAUTH_REDIRECT_URI','TOKEN_ENCRYPTION_KEY']
           with open('/tmp/deploy-env.yaml', 'w') as f:
               json.dump({n: os.environ[n] for n in names}, f)
           "

@@ -11,7 +11,7 @@ from app.api.rate_limit import limiter, user_id_or_ip
 from app.api.scoped_stores import ScopedDocumentStore
 from app.auth.dependencies import get_current_user
 from app.config import get_settings
-from app.db.models import Document, User
+from app.db.models import ConnectedItem, Document, User
 from app.db.session import get_db
 from app.documents.models import DocumentSummary, DocumentUploadError, DocumentUploadResult
 from app.documents.service import ingest_documents
@@ -32,6 +32,10 @@ class DocumentLibraryItem(BaseModel):
     version: int
     is_active: bool
     created_at: datetime
+    # "upload" | "google_drive" -- see DatasetLibraryItem.source in
+    # app/api/datasets.py for why this defaults to "upload" and is
+    # overwritten by the library endpoints below for connected items.
+    source: str = "upload"
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -53,6 +57,25 @@ def _active_document(db: DBSession, user_id: str, filename: str) -> Document | N
 def _max_version(db: DBSession, user_id: str, filename: str) -> int:
     rows = db.query(Document.version).filter(Document.user_id == user_id, Document.filename == filename).all()
     return max((r[0] for r in rows), default=0)
+
+
+def _connected_sources_for_documents(db: DBSession, document_ids: list[str]) -> dict[str, str]:
+    """document_id -> "google_drive" for every id that's the sync target of
+    a ConnectedItem -- see DatasetLibraryItem's equivalent in
+    app/api/datasets.py. A synced Sheet lands as a Dataset, never a
+    Document, so this is unconditionally "google_drive"."""
+    if not document_ids:
+        return {}
+    rows = db.query(ConnectedItem.document_id).filter(ConnectedItem.document_id.in_(document_ids)).all()
+    return {document_id: "google_drive" for (document_id,) in rows}
+
+
+def _with_sources(db: DBSession, rows: list[Document]) -> list[DocumentLibraryItem]:
+    sources = _connected_sources_for_documents(db, [r.id for r in rows])
+    items = [DocumentLibraryItem.model_validate(r) for r in rows]
+    for item in items:
+        item.source = sources.get(item.id, "upload")
+    return items
 
 
 @router.post("/check-duplicate", response_model=DuplicateCheckResult)
@@ -155,7 +178,7 @@ def list_document_library(
     if not include_inactive:
         query = query.filter(Document.is_active.is_(True))
     rows = query.order_by(Document.filename, Document.version.desc()).all()
-    return [DocumentLibraryItem.model_validate(r) for r in rows]
+    return _with_sources(db, rows)
 
 
 @router.get("/{document_id}/versions", response_model=list[DocumentLibraryItem])
@@ -169,7 +192,7 @@ def list_document_versions(document_id: str, db: DBSession = Depends(get_db), us
         .order_by(Document.version.desc())
         .all()
     )
-    return [DocumentLibraryItem.model_validate(v) for v in versions]
+    return _with_sources(db, versions)
 
 
 @router.post("/{document_id}/activate", response_model=DocumentLibraryItem)
