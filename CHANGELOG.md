@@ -4,6 +4,40 @@ Plain-English record of what's shipped, newest first. No version numbers yet
 (pre-1.0, deploys are continuous rather than tagged releases) — entries are
 grouped by date instead.
 
+## 2026-09-02 — Google Drive/Sheets connector (read-only)
+
+- **First "connected source" integration**: a company can now connect
+  Google Drive and Google Sheets, read-only, via standard Google OAuth.
+  Deliberately built as a generic pattern (not hardcoded to Google) so a
+  future connector — ERPNext, explicitly deferred this phase, and others
+  — can reuse the same `Integration`/`ConnectedItem` data model and the
+  same sync path into `Dataset`/`Document` without rework.
+- **Read-only enforced twice, independently**: only `drive.readonly` and
+  `spreadsheets.readonly` scopes are ever requested (Google itself
+  rejects a write call at the protocol level before this code is even
+  involved); separately, the one module allowed to call Drive/Sheets data
+  APIs is covered by a test that parses its own source and fails the
+  build if a write-method name ever appears in it — not just a comment.
+- **No new agent/RAG code needed**: a synced Sheet becomes a normal
+  `Dataset` row, a synced Drive doc a normal `Document` row, through the
+  same ingestion pipeline uploads already use — so the entire existing
+  agent, citation, verification, and per-user isolation layer already
+  works on connected data, unmodified.
+- Refresh tokens encrypted at rest (Fernet) — the first encryption-at-rest
+  primitive in this codebase. Standard versioning (new version on change,
+  nothing hard-deleted) via the source's own last-modified timestamp.
+- New Settings → Integrations tab (connect/browse/select/sync/disconnect)
+  and a `source` badge on My Data's dataset/document tables.
+- Production database migrations are now automated end-to-end: the
+  deploy job runs `alembic upgrade head` against the real production
+  Postgres before every Cloud Run deploy — previously only ran against
+  CI's ephemeral test database, a real gap this phase closed.
+- **Still pending**: the RAG accuracy test against a live connected
+  account (target ≥90%, not yet run — needs someone to actually connect
+  one), and Google's OAuth app verification (needed before any company
+  outside the test-user list can connect; consent screen intentionally
+  left in Testing for now). See TODO.md.
+
 ## 2026-08-30 — Rate limiting, CI gate, CI-triggered deploy
 
 - **Rate limiting** on every auth endpoint (register, login, forgot-password,
