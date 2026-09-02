@@ -107,13 +107,15 @@ def test_protected_endpoint_rejects_missing_and_invalid_tokens():
     assert response.status_code == 401
 
 
-def test_new_user_defaults_to_usd_and_two_decimal_places():
+def test_new_user_defaults_to_ngn_and_two_decimal_places():
+    # NGN, not USD -- DataWise AI's primary market (see User.currency's
+    # own docstring in app/db/models.py). Still changeable in Settings.
     email = _unique_email()
     register = client.post(
         "/api/v1/auth/register",
         json={"email": email, "password": "correct horse battery staple", "full_name": "Hedy Lamarr"},
     )
-    assert register.json()["user"]["currency"] == "USD"
+    assert register.json()["user"]["currency"] == "NGN"
     assert register.json()["user"]["decimal_places"] == 2
 
 
