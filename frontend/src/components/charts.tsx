@@ -113,8 +113,12 @@ export function StatCard({
       {canExpand && (
         <p className="mt-1 text-xs text-[var(--text-muted)]">{expanded ? "Tap to collapse" : "Tap for exact value"}</p>
       )}
+      {/* line-clamp-2, not truncate, same reasoning as the title above --
+          a source label like "NexaSphere_BI_Case_Study_Dataset.xlsx —
+          Fact_Sales" was getting cut off illegibly on narrow (mobile)
+          cards. title=description stays as a hover fallback on desktop. */}
       {description && (
-        <p className="mt-2 text-xs text-[var(--text-muted)] truncate" title={description}>{description}</p>
+        <p className="mt-2 line-clamp-2 text-xs text-[var(--text-muted)]" title={description}>{description}</p>
       )}
     </div>
   );

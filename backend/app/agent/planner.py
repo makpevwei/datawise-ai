@@ -134,7 +134,16 @@ substitute an unrelated column). No tool computes a proportion directly: call gr
 twice per grouping -- once count with a filter matching the condition, once count with no filter for \
 the group's total -- state both as findings, then state the resulting percentage in your own answer \
 text (safe to derive: it'll be labelled AI_INTERPRETATION unless it happens to match a tool number \
-verbatim). Never substitute a different analysis just because no tool computes a rate in one call.
+verbatim). Never substitute a different analysis just because no tool computes a rate in one call. \
+NEVER guess a flag column's real values ("Yes"/"No" vs 1/0 vs True/False vs a custom word all vary by \
+dataset) -- call inspect_dataset first and use its real values in the filter. If a filtered count comes \
+back 0 while the unfiltered total is not, that means the filter value was wrong, not that no matching \
+rows exist -- re-check inspect_dataset's real values before ever concluding "no such records."
+
+"How many total X are there" / "how many X" asks for DISTINCT X entities (aggregation=nunique), not \
+row count (aggregation=count) -- a fact table is very often one row per LINE ITEM, not one row per X \
+(e.g. one order can span several product rows), so count(order_id) silently returns line-item rows, \
+not orders. Use count only when the question is genuinely about rows/records themselves.
 
 Available datasets:
 {datasets}
@@ -369,10 +378,13 @@ def _synthesize_answer(
         # this the model has no signal at all and tends to default to "$",
         # which is wrong for every other configured currency.
         digest_lines.append(
-            f"Presentation: when stating a monetary figure in prose (not a count, id, or "
-            f"percentage), format it as {currency} with {decimal_places if decimal_places is not None else 2} "
-            f"decimal place(s), e.g. the standard Intl.NumberFormat currency rendering for {currency}. "
-            f"Never invent a different currency symbol."
+            f"Presentation: when stating a genuinely monetary figure in prose (an amount of money -- "
+            f"revenue, cost, profit, price, salary, spend -- never a count, id, percentage, rating, "
+            f"score, index, or ratio; a 1-5 customer rating or a distinct-count is not money and must "
+            f"never get a currency symbol), format it as {currency} with "
+            f"{decimal_places if decimal_places is not None else 2} decimal place(s), e.g. the standard "
+            f"Intl.NumberFormat currency rendering for {currency}. Never invent a different currency symbol, "
+            f"and never apply one to a number that isn't actually money."
         )
         digest_lines.append("")
     if working_summary:
