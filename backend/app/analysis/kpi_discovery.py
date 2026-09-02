@@ -171,6 +171,12 @@ def _kpi_display_name(aggregation: str, column: str) -> str:
     )
     # Title-case the column name for display
     display_col = column.replace("_", " ").replace("-", " ").title()
+    # A column whose own raw name already starts with the aggregation word
+    # (e.g. a real "Average_Unit_Cost_NGN" column) would otherwise double
+    # up into "Average Average Unit Cost" -- found live, a real bug, not
+    # a hypothetical. Skip the prefix when the column already carries it.
+    if display_col.lower().startswith(prefix.lower()):
+        return display_col
     return f"{prefix} {display_col}"
 
 

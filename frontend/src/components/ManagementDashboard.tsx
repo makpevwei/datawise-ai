@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getDashboardChartsMulti, getInsights, getKpiSuggestions } from "@/lib/api";
+import { useSelectedDatasets } from "@/lib/useSelectedDatasets";
 import type { ChartSpec, DatasetSummary, Insight, KPISuggestion } from "@/lib/types";
 import { Card, EmptyState, ErrorBanner, formatSourceLabel, SectionHeading, SourceLabelBadge, Spinner } from "./ui";
 import { DatasetPicker } from "./DatasetPicker";
@@ -78,7 +79,7 @@ export function ManagementDashboard({ datasets, currency, decimalPlaces }: {
   currency: string;
   decimalPlaces: number;
 }) {
-  const [selectedDatasetIds, setSelectedDatasetIds] = useState<string[] | null>(null);
+  const [selectedDatasetIds, setSelectedDatasetIds] = useSelectedDatasets();
   const effectiveIds = selectedDatasetIds ?? datasets.map((d) => d.id);
   const activeDatasets = datasets.filter((d) => effectiveIds.includes(d.id));
 

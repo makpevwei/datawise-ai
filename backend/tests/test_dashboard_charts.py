@@ -10,7 +10,7 @@ user interaction required (spec: "Required Chart 1 -- trend", "Required Chart
 import pandas as pd
 import pytest
 
-from app.analysis.dashboard_charts import discover_cross_dataset_charts, discover_dashboard_charts
+from app.analysis.dashboard_charts import _chart_title, discover_cross_dataset_charts, discover_dashboard_charts
 from app.profiling.service import profile_dataframe
 from app.semantic.models import DatasetKind
 from app.semantic.store import DatasetRecord, DatasetStore
@@ -20,6 +20,15 @@ from tests.factories import customers_df, orders_df
 def _record(df: pd.DataFrame, name: str = "orders") -> DatasetRecord:
     profile = profile_dataframe(df, name, name, f"{name}.csv", None, DatasetKind.UPLOADED)
     return DatasetRecord(profile=profile, dataframe=df)
+
+
+def test_chart_title_never_doubles_up_a_prefix_the_column_already_has():
+    # Found live: a real "Average_Unit_Cost_NGN" column produced "Average
+    # Average Unit Cost by Category" -- the same bug as
+    # kpi_discovery._kpi_display_name, independently here since chart
+    # titles are built by a separate function.
+    assert _chart_title("mean", "Average_Unit_Cost_NGN", "Category", "bar") == "Average Unit Cost by Category"
+    assert _chart_title("sum", "Unit_Cost_NGN", "Category", "bar") == "Total Unit Cost by Category"
 
 
 @pytest.fixture
