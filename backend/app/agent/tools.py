@@ -100,6 +100,29 @@ def _resolve_dataset_id(ctx: ToolContext, dataset_id: str) -> str:
     return dataset_id
 
 
+def _resolve_document_id(ctx: ToolContext, document_id: str) -> str:
+    """Same forgiving-resolution philosophy as _resolve_dataset_id, one
+    level over for documents. Found live: search_documents's document_ids
+    filter had no such fallback -- the LLM passed a document's filename
+    (e.g. 'rag-paper.docx') instead of its real id, which silently matched
+    nothing in DocumentStore.retrieve()'s plain `doc_id not in
+    document_ids` check, narrowing a two-document search down to just the
+    other, correctly-id'd document. No error was raised (an unmatched id
+    just filters everything from that document out), so this failed
+    silently -- the citation for a "who is the first author" question
+    ended up sourced from an unrelated document that happened to mention
+    the same name in a citation, not the paper's own byline."""
+    if ctx.document_store.get(document_id) is not None:
+        return document_id
+    normalized = document_id.strip().lower()
+    stem = normalized.rsplit(".", 1)[0]
+    for summary in ctx.document_store.list_summaries():
+        summary_name = summary.filename.strip().lower()
+        if summary_name == normalized or summary_name.rsplit(".", 1)[0] == stem:
+            return summary.id
+    return document_id
+
+
 def _get_record_or_raise(ctx: ToolContext, dataset_id: str) -> DatasetRecord:
     record = ctx.dataset_store.get(_resolve_dataset_id(ctx, dataset_id))
     if record is None:
@@ -444,14 +467,15 @@ def _generate_dashboard(args: dict, ctx: ToolContext) -> dict:
 
 
 def _search_documents(args: dict, ctx: ToolContext) -> dict:
-    results = ctx.document_store.retrieve(
-        query=args["query"], top_k=args.get("top_k", 5), document_ids=args.get("document_ids")
-    )
+    raw_ids = args.get("document_ids")
+    document_ids = [_resolve_document_id(ctx, d) for d in raw_ids] if raw_ids else None
+    results = ctx.document_store.retrieve(query=args["query"], top_k=args.get("top_k", 5), document_ids=document_ids)
     return {"results": [r.model_dump(mode="json") for r in results]}
 
 
 def _retrieve_document_evidence(args: dict, ctx: ToolContext) -> dict:
-    chunk = ctx.document_store.get_chunk(args["document_id"], args["chunk_id"])
+    document_id = _resolve_document_id(ctx, args["document_id"])
+    chunk = ctx.document_store.get_chunk(document_id, args["chunk_id"])
     if chunk is None:
         raise ToolExecutionError(f"Chunk '{args['chunk_id']}' not found in document '{args['document_id']}'.")
     return chunk.model_dump(mode="json")

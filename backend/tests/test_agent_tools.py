@@ -478,6 +478,26 @@ def test_retrieve_document_evidence_missing_chunk_raises(ctx):
         TOOLS["retrieve_document_evidence"].handler({"document_id": "doc1", "chunk_id": "nope"}, ctx)
 
 
+def test_search_documents_resolves_a_filename_instead_of_the_real_document_id(ctx):
+    # Real bug, found live: the LLM passed a document's filename
+    # ("rag-paper.docx") instead of its real id in document_ids, which
+    # silently filtered every chunk from that document out of the results
+    # (no error -- DocumentStore.retrieve just excludes an unmatched id),
+    # so a citation ended up sourced from an unrelated document instead.
+    result = TOOLS["search_documents"].handler(
+        {"query": "supply disruption revenue decline", "document_ids": ["report.pdf"]}, ctx
+    )
+    assert len(result["results"]) > 0
+    assert result["results"][0]["chunk"]["document_name"] == "report.pdf"
+
+
+def test_retrieve_document_evidence_resolves_a_filename_instead_of_the_real_document_id(ctx):
+    search = TOOLS["search_documents"].handler({"query": "supply disruption"}, ctx)
+    chunk_id = search["results"][0]["chunk"]["id"]
+    evidence = TOOLS["retrieve_document_evidence"].handler({"document_id": "report.pdf", "chunk_id": chunk_id}, ctx)
+    assert "supply disruption" in evidence["text"]
+
+
 def test_verify_claim_tool_confirms_matching_number(ctx):
     from app.agent.schemas import ToolInvocation
 
