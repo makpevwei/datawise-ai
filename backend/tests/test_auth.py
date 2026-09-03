@@ -4,9 +4,14 @@ tests/conftest.py) -- users created here are real rows, cleaned up via the
 fake_user-style pattern (each test creates and deletes its own)."""
 
 import uuid
+from unittest.mock import patch
 
+from email_validator import EmailNotValidError
 from fastapi.testclient import TestClient
+from pydantic import ValidationError
 
+from app.auth.schemas import UserCreate
+from app.config import Settings
 from app.main import app
 
 client = TestClient(app)
@@ -156,3 +161,39 @@ def test_settings_update_rejects_unsupported_currency():
         headers={"Authorization": f"Bearer {token}"},
     )
     assert response.status_code == 422
+
+
+def test_email_deliverability_check_is_skipped_outside_production():
+    # The default dev/CI environment must never depend on a live DNS
+    # lookup -- this is what keeps every other test in this file free to
+    # register against the reserved, deliberately mail-less "@example.com"
+    # domain without depending on network access.
+    with (
+        patch("app.auth.schemas.get_settings", return_value=Settings(_env_file=None, environment="development")),
+        patch("app.auth.schemas.validate_email") as mock_validate,
+    ):
+        user = UserCreate(email="whoever@example.com", password="correct horse battery staple", full_name="Test")
+        assert user.email == "whoever@example.com"
+        mock_validate.assert_not_called()
+
+
+def test_email_deliverability_check_rejects_an_undeliverable_domain_in_production():
+    with (
+        patch("app.auth.schemas.get_settings", return_value=Settings(_env_file=None, environment="production")),
+        patch("app.auth.schemas.validate_email", side_effect=EmailNotValidError("no mail servers for this domain")),
+    ):
+        try:
+            UserCreate(email="whoever@example.com", password="correct horse battery staple", full_name="Test")
+            raise AssertionError("expected a ValidationError for an undeliverable domain")
+        except ValidationError as exc:
+            assert "reachable" in str(exc)
+
+
+def test_email_deliverability_check_accepts_a_real_domain_in_production():
+    with (
+        patch("app.auth.schemas.get_settings", return_value=Settings(_env_file=None, environment="production")),
+        patch("app.auth.schemas.validate_email") as mock_validate,
+    ):
+        user = UserCreate(email="whoever@gmail.com", password="correct horse battery staple", full_name="Test")
+        assert user.email == "whoever@gmail.com"
+        mock_validate.assert_called_once()
