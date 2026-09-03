@@ -479,7 +479,13 @@ def _build_finding(raw: dict, ctx: ToolContext, tool_invocations: list[ToolInvoc
         target_label = EvidenceLabel.VERIFIED_FROM_WEB if citations and citations[0].source_type == "web" else EvidenceLabel.DOCUMENT_EVIDENCE
         grounded, note = verify_document_grounding(text, [c.excerpt for c in citations])
         if not grounded:
-            claimed_label, note = EvidenceLabel.AI_INTERPRETATION, note
+            # Found live (a RAG quality-bar test's "not in the data" tier):
+            # downgrading the label alone still left the original citation
+            # attached to a claim this exact check just determined the
+            # citation does NOT support -- a citation next to a claim
+            # flagged as ungrounded is worse than no citation at all, since
+            # it reads as evidence when it explicitly isn't. Clear it.
+            claimed_label, note, citations = EvidenceLabel.AI_INTERPRETATION, note, []
         elif is_document_shaped_claim:
             claimed_label = target_label
             note = f"Reclassified from {original_label.value}: this is a document-grounded statement, not a calculated data fact."
@@ -488,6 +494,44 @@ def _build_finding(raw: dict, ctx: ToolContext, tool_invocations: list[ToolInvoc
         claimed_label, verification_note = verify_finding_label(text, claimed_label, tool_invocations)
 
     return Finding(text=text, label=claimed_label, verification_note=verification_note, citations=citations)
+
+
+_GROUNDING_FAILURE_MARKERS = ("No citation was attached", "does not share enough wording")
+
+INSUFFICIENT_EVIDENCE_TEXT = "Insufficient evidence in the uploaded data."
+
+
+def _all_key_findings_failed_grounding(findings: list[Finding]) -> bool:
+    """True only when every one of this turn's key findings was downgraded
+    specifically because verify_document_grounding determined the cited
+    evidence doesn't support it (see the two note strings it raises) --
+    not merely "labelled AI_INTERPRETATION" in general, which is also the
+    legitimate label for a safely-derived value (e.g. a rate-question
+    percentage computed from two verified counts; see the RATE QUESTIONS
+    system-prompt section). Only this specific, mechanical failure
+    signature means the model attempted a document-grounded answer and
+    produced nothing that actually checks out.
+
+    Found live (a RAG "not in the data" quality-bar test): key_findings
+    already caught and correctly downgraded this exact failure, but
+    executive_summary -- the LLM's own freeform prose, and the first
+    thing a user reads -- is taken verbatim from the model's raw output
+    and was never checked against that outcome at all. Temperature is
+    already 0 everywhere in this codebase (app/config.py's default);
+    provider-level sampling isn't perfectly deterministic even at 0, so
+    this is a mechanical backstop for exactly the turns where that
+    non-determinism produces a confident-sounding but unverifiable claim,
+    not a substitute for the verification that already runs -- it forces
+    the one part of the answer that skipped it to agree with the part
+    that didn't."""
+    if not findings:
+        return False
+    return all(
+        f.label == EvidenceLabel.AI_INTERPRETATION
+        and f.verification_note is not None
+        and any(marker in f.verification_note for marker in _GROUNDING_FAILURE_MARKERS)
+        for f in findings
+    )
 
 
 def _build_claim_comparison(raw: dict, ctx: ToolContext, tool_invocations: list[ToolInvocation]) -> ClaimComparison:
@@ -626,6 +670,16 @@ def run_agent(
         )
     else:
         key_findings = [_build_finding(f, ctx, tool_invocations) for f in structured.get("key_findings", [])]
+        if _all_key_findings_failed_grounding(key_findings):
+            # executive_summary is the LLM's own raw prose and, unlike
+            # key_findings, was never checked against the verification
+            # outcome above -- without this, a user reads a confident
+            # sentence with no sign anything was flagged, even though
+            # every finding behind it just failed grounding. Force the
+            # visible answer to agree with what verification already
+            # found, rather than trusting synthesis to have gotten it
+            # right the first time.
+            structured["executive_summary"] = INSUFFICIENT_EVIDENCE_TEXT
         risks = [_build_finding(f, ctx, tool_invocations) for f in structured.get("risks", [])]
         recommendations = [_build_finding(f, ctx, tool_invocations) for f in structured.get("recommendations", [])]
         claim_comparisons = [
