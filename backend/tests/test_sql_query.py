@@ -155,12 +155,27 @@ def test_no_datasets_raises_a_clear_error():
 
 
 def test_a_runaway_query_is_cancelled_at_the_timeout_instead_of_hanging():
-    big = pd.DataFrame({"x": range(50_000)})
+    # Found flaky live in CI: an earlier version of this test used a plain
+    # `SELECT COUNT(*) FROM big a CROSS JOIN big b` over 50k rows (2.5B
+    # pairs) -- DuckDB's vectorized, multi-core execution finished that in
+    # under half a second on a fast CI runner (~5s on this project's own,
+    # much slower, dev machine), so the timeout never actually fired and
+    # the test failed with "DID NOT RAISE". A bare COUNT(*) over a cross
+    # join is about the cheapest possible per-pair operation there is, and
+    # how fast it runs is entirely a function of the CPU it happens to run
+    # on -- not a reliable way to build a "this takes a long time" test.
+    # `%` (modulo) has no algebraic shortcut across an unconditional cross
+    # join (unlike e.g. SUM(a.x*b.x), which DuckDB or a future version of
+    # it could rewrite as SUM(a.x)*SUM(b.x)) and is a genuinely
+    # per-pair-costly integer operation, so scaling the pair count up
+    # substantially (150k x 150k = 22.5B pairs) makes this robust across
+    # any plausible hardware with a wide safety margin -- and since the
+    # query is cancelled well before completion either way, that larger
+    # size costs nothing in actual test runtime.
+    big = pd.DataFrame({"x": range(150_000)})
     record = _record(big, "big", "big")
     start = time.monotonic()
     with pytest.raises(SqlQueryError, match="longer than"):
-        run_sql_query([record], "SELECT COUNT(*) FROM big a CROSS JOIN big b", timeout_seconds=0.5)
-    # Cancelled promptly, not left to run to completion (which, for a 2.5
-    # billion-row cross join, would take vastly longer than a test suite
-    # can afford to wait).
-    assert time.monotonic() - start < 10.0
+        run_sql_query([record], "SELECT SUM(a.x % (b.x + 1)) FROM big a CROSS JOIN big b", timeout_seconds=1.5)
+    # Cancelled promptly, not left to run to completion.
+    assert time.monotonic() - start < 20.0
