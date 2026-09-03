@@ -18,6 +18,19 @@ _NUMBER_RE = re.compile(r"(?<![A-Za-z])-?\d[\d,]*\.?\d*%?")
 
 NUMERIC_LABELS = (EvidenceLabel.VERIFIED_FROM_DATA, EvidenceLabel.CALCULATED, EvidenceLabel.DERIVED)
 
+# Tools whose output_summary is raw retrieved text (a passage, a search
+# hit, a chunk), not a deterministically computed result -- excluded from
+# the numeric evidence pool below. Found live (a RAG "not in the data"
+# quality-bar test): a fabricated number ("GPT-4 scored 88.0% on MMLU",
+# no citation at all) was still labelled VERIFIED_FROM_DATA and passed
+# verification, because search_documents' raw retrieved text (a dense
+# hyperparameter table, genuinely unrelated to the claim) happened to
+# contain some other number within the 2% tolerance below. A tool's own
+# computed output (calculate_metric's scalar_value, etc.) is trustworthy
+# by construction -- arbitrary retrieved document text is not, no matter
+# how confidently a claim cites "some number that appears in it."
+_NON_AUTHORITATIVE_TOOLS = frozenset({"search_documents", "retrieve_document_evidence", "web_research"})
+
 
 def extract_numbers(text: str) -> list[float]:
     numbers: list[float] = []
@@ -35,7 +48,7 @@ def extract_numbers(text: str) -> list[float]:
 def _numbers_from_tool_outputs(tool_invocations: list[ToolInvocation]) -> set[float]:
     pool: set[float] = set()
     for inv in tool_invocations:
-        if not inv.succeeded:
+        if not inv.succeeded or inv.tool_name in _NON_AUTHORITATIVE_TOOLS:
             continue
         pool.update(round(n, 2) for n in extract_numbers(inv.output_summary))
     return pool

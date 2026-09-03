@@ -384,6 +384,45 @@ def test_run_agent_grounds_a_numeric_claim_with_a_real_but_unrelated_citation(tm
     assert answer.executive_summary == "Insufficient evidence in the uploaded data."
 
 
+def test_run_agent_downgrades_verified_from_web_claimed_with_zero_citations(tmp_path):
+    # Found live: VERIFIED_FROM_WEB is not in NUMERIC_LABELS, so a claim
+    # self-labelled that way with NO citation at all previously fell to
+    # verify_finding_label and was returned completely unchecked -- a
+    # second, distinct escape hatch from the citations-with-a-real-chunk
+    # one fixed above. A label that inherently claims web/document
+    # grounding must go through verify_document_grounding even with zero
+    # citations attached; its own "no citation" branch correctly fails
+    # that case.
+    document_store = _document_store(tmp_path)
+    turn1 = LLMTurn(text="Answering from general knowledge.", tool_calls=[], stop_reason="end_turn")
+    synthesis = json.dumps(
+        {
+            "executive_summary": "The FDA approved the first CRISPR-based gene therapy.",
+            "key_findings": [
+                {
+                    "text": "The FDA approved the first CRISPR-based gene therapy.",
+                    "label": "VERIFIED_FROM_WEB",
+                    "citations": [],
+                }
+            ],
+            "risks": [], "recommendations": [], "claim_comparisons": [], "chart_tool_call_ids": [],
+        }
+    )
+    turn2 = LLMTurn(text=synthesis, tool_calls=[], stop_reason="end_turn")
+
+    llm = FakeLLMProvider([turn1, turn2])
+    answer = run_agent(
+        question="According to the biotechnology document, when was the first CRISPR gene therapy approved?",
+        session_id=None, llm=llm,
+        dataset_store=_dataset_store(tmp_path), document_store=document_store,
+        memory=ConversationMemory(),
+    )
+
+    assert answer.key_findings[0].label == "AI_INTERPRETATION"
+    assert answer.key_findings[0].citations == []
+    assert answer.executive_summary == "Insufficient evidence in the uploaded data."
+
+
 def test_run_agent_does_not_reclassify_a_genuinely_numeric_verified_from_data_claim(tmp_path):
     # Sanity check the reclassification fix doesn't fire on real calculated
     # claims just because a document happens to also be cited alongside them.

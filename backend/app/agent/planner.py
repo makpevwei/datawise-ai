@@ -487,9 +487,22 @@ def _build_finding(raw: dict, ctx: ToolContext, tool_invocations: list[ToolInvoc
     # "if not claim_words: return True" fallback already handles the
     # legitimate bare-numeric-quote case (e.g. a citation whose claim
     # text is just "41.0") without a special-case here.
-    if citations:
+    # A claim self-labelled DOCUMENT_EVIDENCE/VERIFIED_FROM_WEB is, by
+    # definition, claiming to be grounded in a document or web source --
+    # so it goes through the same check even with zero citations attached
+    # (verify_document_grounding's own "if not citation_excerpts" branch
+    # correctly fails that case). Found live: VERIFIED_FROM_WEB with no
+    # citations at all previously fell to the `else` branch below, which
+    # only checks NUMERIC_LABELS (VERIFIED_FROM_WEB isn't one) and so
+    # returned the self-claimed label completely unchecked -- a second,
+    # distinct escape hatch from the one citations-with-a-real-chunk fixes.
+    if citations or claimed_label in (EvidenceLabel.DOCUMENT_EVIDENCE, EvidenceLabel.VERIFIED_FROM_WEB):
         original_label = claimed_label
-        target_label = EvidenceLabel.VERIFIED_FROM_WEB if citations[0].source_type == "web" else EvidenceLabel.DOCUMENT_EVIDENCE
+        target_label = (
+            EvidenceLabel.VERIFIED_FROM_WEB
+            if (citations and citations[0].source_type == "web") or claimed_label == EvidenceLabel.VERIFIED_FROM_WEB
+            else EvidenceLabel.DOCUMENT_EVIDENCE
+        )
         grounded, note = verify_document_grounding(text, [c.excerpt for c in citations])
         if not grounded:
             # Found live (a RAG quality-bar test's "not in the data" tier):
