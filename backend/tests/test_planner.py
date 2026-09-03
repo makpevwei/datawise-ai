@@ -1,5 +1,5 @@
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from app.agent.memory import ConversationMemory
 from app.agent.planner import run_agent
@@ -11,8 +11,8 @@ from app.documents.store import DocumentStore
 from app.profiling.service import profile_dataframe
 from app.semantic.models import DatasetKind
 from app.semantic.store import DatasetStore
-from tests.fakes import FakeLLMProvider
 from tests.factories import orders_df
+from tests.fakes import FakeLLMProvider
 
 TOTAL_AMOUNT = sum(100.0 + i * 10 for i in range(1, 21))
 
@@ -34,7 +34,7 @@ def _document_store(tmp_path) -> DocumentStore:
         DocumentSummary(
             id="doc1", filename="management_report.pdf", document_type=DocumentType.PDF,
             chunk_count=len(chunks), char_count=sum(len(c.text) for c in chunks),
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         ),
         chunks,
     )
@@ -286,6 +286,54 @@ def test_run_agent_reclassifies_document_paraphrase_mislabeled_as_verified_from_
 
     assert answer.key_findings[0].label == "DOCUMENT_EVIDENCE"
     assert "reclassified" in answer.key_findings[0].verification_note.lower()
+
+
+def test_run_agent_clears_the_citation_when_it_does_not_actually_support_the_claim(tmp_path):
+    # Found live (a "not in the data" RAG quality-bar test): a claim
+    # unrelated to the cited chunk's actual content got correctly
+    # downgraded to AI_INTERPRETATION, but kept the citation attached --
+    # a citation next to a claim just flagged as ungrounded is worse than
+    # no citation, since it reads as if it's evidence when it explicitly
+    # isn't.
+    document_store = _document_store(tmp_path)
+    search_result = document_store.retrieve("supply disruption", top_k=1)[0]
+    chunk_id = search_result.chunk.id
+
+    search_call = ToolCall(id="call_1", name="search_documents", input={"query": "founding date"})
+    turn1 = LLMTurn(text=None, tool_calls=[search_call], stop_reason="tool_use")
+    turn2 = LLMTurn(text="Found the relevant passage.", tool_calls=[], stop_reason="end_turn")
+    synthesis = json.dumps(
+        {
+            "executive_summary": "The company was founded in 1998 by a group of engineers.",
+            "key_findings": [
+                {
+                    # Real chunk (real chunk_id), but its actual text has
+                    # nothing to do with this claim -- exactly the
+                    # hallucinated-but-plausibly-cited failure mode.
+                    "text": "The company was founded in 1998 by a group of engineers.",
+                    "label": "DOCUMENT_EVIDENCE",
+                    "citations": [{"document_id": "doc1", "chunk_id": chunk_id}],
+                }
+            ],
+            "risks": [], "recommendations": [], "claim_comparisons": [], "chart_tool_call_ids": [],
+        }
+    )
+    turn3 = LLMTurn(text=synthesis, tool_calls=[], stop_reason="end_turn")
+
+    llm = FakeLLMProvider([turn1, turn2, turn3])
+    answer = run_agent(
+        question="When was the company founded?", session_id=None, llm=llm,
+        dataset_store=_dataset_store(tmp_path), document_store=document_store,
+        memory=ConversationMemory(),
+    )
+
+    assert answer.key_findings[0].label == "AI_INTERPRETATION"
+    assert answer.key_findings[0].citations == []
+    assert answer.citations == []
+    # And since this was the only key finding and it failed grounding,
+    # the visible answer is forced to a plain refusal instead of the raw,
+    # unverified, confident-sounding LLM prose.
+    assert answer.executive_summary == "Insufficient evidence in the uploaded data."
 
 
 def test_run_agent_does_not_reclassify_a_genuinely_numeric_verified_from_data_claim(tmp_path):
