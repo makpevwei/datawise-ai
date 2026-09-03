@@ -350,7 +350,9 @@ function ChartSuggestionCard({
         <div className="mt-4">
           {error && <ErrorBanner message={error} />}
           {result?.chart_recommendation && (
-            <ChartFromSpec spec={result.chart_recommendation} currency={currency} decimalPlaces={decimalPlaces} />
+            <div className="overflow-x-auto">
+              <ChartFromSpec spec={result.chart_recommendation} currency={currency} decimalPlaces={decimalPlaces} />
+            </div>
           )}
           {result && !result.chart_recommendation && (
             <p className="text-sm text-[var(--text-secondary)]">{result.calculation_description}</p>
@@ -472,7 +474,9 @@ function AiDataAnalyst({
                       </p>
                     )}
                     {source && <p className="mb-3 text-[10px] text-[var(--text-muted)]">Source: {source}</p>}
-                    <ChartFromSpec spec={c} currency={currency} decimalPlaces={decimalPlaces} />
+                    <div className="overflow-x-auto">
+                      <ChartFromSpec spec={c} currency={currency} decimalPlaces={decimalPlaces} />
+                    </div>
                   </Card>
                 );
               })}

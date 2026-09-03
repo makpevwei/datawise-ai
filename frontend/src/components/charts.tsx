@@ -24,6 +24,20 @@ function formatChartValue(value: number, valueLabel: string | undefined, currenc
   return formatNumber(value);
 }
 
+/** Same job as formatChartValue, but abbreviated (via scaleNumber/
+ * scaleCurrency below) -- for the tight, fixed-width spaces inside a chart
+ * itself: axis labels, hover tooltips, per-bar value labels. A full-
+ * precision figure like "NGN 21,450,000.00" doesn't fit those, and inside
+ * an SVG with overflow-visible set it doesn't even get clipped -- it
+ * visually bleeds outside the chart's own card, found live on mobile.
+ * Full precision stays one hover/tap away via each caller's own `title`. */
+function formatChartValueShort(value: number, valueLabel: string | undefined, currency?: string, decimalPlaces?: number): string {
+  if (currency && valueLabel && looksMonetary(valueLabel)) {
+    return scaleCurrency(value, currency, decimalPlaces ?? 2).display;
+  }
+  return scaleNumber(value).display;
+}
+
 /** Scale large numbers to an executive-friendly abbreviated form that always
  *  fits a card, e.g. 109_809_274 -> "109.8M" | 274_776 -> "274.8K" | 905 -> "905".
  *  The full-precision value is always available (hover title + click-to-reveal).
@@ -172,8 +186,11 @@ export function BarChart({
               title={onBarClick ? `Drill down into ${d.label}` : undefined}
             />
           </div>
-          <div className="w-24 shrink-0 text-xs tabular-nums text-[var(--text-primary)]">
-            {formatChartValue(d.value, valueLabel, currency, decimalPlaces)}
+          <div
+            className="w-24 shrink-0 truncate text-xs tabular-nums text-[var(--text-primary)]"
+            title={formatChartValue(d.value, valueLabel, currency, decimalPlaces)}
+          >
+            {formatChartValueShort(d.value, valueLabel, currency, decimalPlaces)}
           </div>
         </div>
       ))}
@@ -234,7 +251,7 @@ export function LineChart({
               strokeWidth={1}
             />
             <text x={padding.left - 8} y={gy + 3} textAnchor="end" fontSize={10} fill="var(--text-muted)">
-              {formatChartValue(Math.round(value), valueLabel, currency, decimalPlaces)}
+              {formatChartValueShort(Math.round(value), valueLabel, currency, decimalPlaces)}
             </text>
           </g>
         );
@@ -270,7 +287,7 @@ export function LineChart({
                 fill="var(--text-primary)"
               />
               <text x={x(i)} y={y(d.value) - 19} textAnchor="middle" fontSize={11} fill="var(--surface-1)">
-                {formatChartValue(d.value, valueLabel, currency, decimalPlaces)}
+                {formatChartValueShort(d.value, valueLabel, currency, decimalPlaces)}
               </text>
             </g>
           )}
@@ -601,7 +618,7 @@ export function PointMapChart({
         <text x={px(points[hoverIndex].lng) + 10} y={py(points[hoverIndex].lat)} fontSize={11} fill="var(--text-primary)">
           {points[hoverIndex].label}
           {points[hoverIndex].value !== undefined
-            ? ` — ${formatChartValue(points[hoverIndex].value!, valueLabel, currency, decimalPlaces)}`
+            ? ` — ${formatChartValueShort(points[hoverIndex].value!, valueLabel, currency, decimalPlaces)}`
             : ""}
         </text>
       )}

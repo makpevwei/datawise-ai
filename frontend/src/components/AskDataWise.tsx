@@ -335,7 +335,9 @@ function AnswerCard({
                     {chart.reason && (
                       <p className="mb-2 text-xs font-medium text-[var(--text-secondary)]">{chart.reason}</p>
                     )}
-                    <ChartFromSpec spec={chart} currency={currency} decimalPlaces={decimalPlaces} />
+                    <div className="overflow-x-auto">
+                      <ChartFromSpec spec={chart} currency={currency} decimalPlaces={decimalPlaces} />
+                    </div>
                   </div>
                 ))}
               </div>
