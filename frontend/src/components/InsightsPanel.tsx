@@ -141,6 +141,20 @@ function InsightsWorkspace({ datasets, primaryDataset }: { datasets: DatasetSumm
     };
   }, [previewDatasetId]);
 
+  // Suggested Visualizations is a single flattened, MAX_CHARTS-capped list
+  // across every top-level-selected dataset, in that array's own order --
+  // so whichever dataset the user is actively browsing in Data Explorer
+  // could easily have none of its own suggestions survive the cap, simply
+  // because other datasets' suggestions happened to come first. Found
+  // live: the two selectors felt disconnected -- switching Data Explorer's
+  // preview dataset never visibly changed Suggested Visualizations at all.
+  // Reordering (not filtering) the previewed dataset's own suggestions to
+  // the front fixes this without touching Key Insights or Q&A, which stay
+  // driven solely by the top-level picker as designed.
+  const suggestedKpis = kpis
+    ? [...kpis].sort((a, b) => (a.dataset_id === previewDatasetId ? 0 : 1) - (b.dataset_id === previewDatasetId ? 0 : 1))
+    : null;
+
   return (
     <div className="flex flex-col gap-8">
       <AiDataAnalyst datasets={datasets} kpis={kpis ?? []} onAnswer={setAnswer} currency={currency} decimalPlaces={decimalPlaces} />
@@ -209,7 +223,7 @@ function InsightsWorkspace({ datasets, primaryDataset }: { datasets: DatasetSumm
         )}
         {kpis && kpis.length > 0 && (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {kpis.slice(0, MAX_CHARTS).map((kpi, i) => (
+            {(suggestedKpis ?? kpis).slice(0, MAX_CHARTS).map((kpi, i) => (
               <ChartSuggestionCard key={`${kpi.name}-${i}`} kpi={kpi} currency={currency} decimalPlaces={decimalPlaces} />
             ))}
           </div>
