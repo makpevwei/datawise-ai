@@ -336,6 +336,54 @@ def test_run_agent_clears_the_citation_when_it_does_not_actually_support_the_cla
     assert answer.executive_summary == "Insufficient evidence in the uploaded data."
 
 
+def test_run_agent_grounds_a_numeric_claim_with_a_real_but_unrelated_citation(tmp_path):
+    # Found live: a numeric claim ("GPT-4 scored 86.5% on the MMLU
+    # benchmark") labelled VERIFIED_FROM_DATA and citing a real chunk
+    # from a genuinely unrelated part of the document was wrongly
+    # verified in production -- numeric claims used to skip
+    # verify_document_grounding entirely (the lexical-overlap check
+    # above) and fall back to checking the claimed number against ANY
+    # number anywhere in that turn's raw tool output text, a coincidental
+    # magnitude match rather than a topical one. A numeric claim with a
+    # real citation must be checked exactly the same way a non-numeric
+    # one already is.
+    document_store = _document_store(tmp_path)
+    search_result = document_store.retrieve("supply disruption", top_k=1)[0]
+    chunk_id = search_result.chunk.id
+
+    search_call = ToolCall(id="call_1", name="search_documents", input={"query": "founding year"})
+    turn1 = LLMTurn(text=None, tool_calls=[search_call], stop_reason="tool_use")
+    turn2 = LLMTurn(text="Found the relevant passage.", tool_calls=[], stop_reason="end_turn")
+    synthesis = json.dumps(
+        {
+            "executive_summary": "The company was founded in 1998.",
+            "key_findings": [
+                {
+                    # Real chunk, real citation -- but its actual content
+                    # (a supply-disruption note) has nothing to do with a
+                    # founding year.
+                    "text": "The company was founded in 1998.",
+                    "label": "VERIFIED_FROM_DATA",
+                    "citations": [{"document_id": "doc1", "chunk_id": chunk_id}],
+                }
+            ],
+            "risks": [], "recommendations": [], "claim_comparisons": [], "chart_tool_call_ids": [],
+        }
+    )
+    turn3 = LLMTurn(text=synthesis, tool_calls=[], stop_reason="end_turn")
+
+    llm = FakeLLMProvider([turn1, turn2, turn3])
+    answer = run_agent(
+        question="When was the company founded?", session_id=None, llm=llm,
+        dataset_store=_dataset_store(tmp_path), document_store=document_store,
+        memory=ConversationMemory(),
+    )
+
+    assert answer.key_findings[0].label == "AI_INTERPRETATION"
+    assert answer.key_findings[0].citations == []
+    assert answer.executive_summary == "Insufficient evidence in the uploaded data."
+
+
 def test_run_agent_does_not_reclassify_a_genuinely_numeric_verified_from_data_claim(tmp_path):
     # Sanity check the reclassification fix doesn't fire on real calculated
     # claims just because a document happens to also be cited alongside them.
