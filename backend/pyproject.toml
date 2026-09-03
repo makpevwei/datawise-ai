@@ -43,6 +43,7 @@ dependencies = [
     "google-auth-oauthlib>=1.2.0",
     "google-api-python-client>=2.150.0",
     "requests>=2.32.0",
+    "duckdb>=1.5.5",
 ]
 
 [dependency-groups]

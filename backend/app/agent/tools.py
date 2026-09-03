@@ -18,6 +18,7 @@ from app.ai.types import ToolSchema
 from app.analysis.engine import AnalysisError, compute_correlation, run_analysis
 from app.analysis.insights import compute_iqr_anomalies, generate_insights, numeric_series
 from app.analysis.kpi_discovery import discover_kpis
+from app.analysis.sql_query import SqlQueryError, run_sql_query
 from app.config import Settings
 from app.documents.store import DocumentStore
 from app.geography.countries import looks_like_country_column
@@ -190,6 +191,26 @@ def _join_datasets(args: dict, ctx: ToolContext) -> dict:
     except JoinError as exc:
         raise ToolExecutionError(str(exc)) from exc
     return result.model_dump(mode="json")
+
+
+def _run_sql_query(args: dict, ctx: ToolContext) -> dict:
+    """Escape hatch for the case join_datasets/calculate_metric/
+    group_and_aggregate don't cover well: a question spanning three or
+    more datasets, or a join whose condition isn't a plain equality on one
+    column pair. Deliberately NOT the default path -- calculate_metric and
+    group_and_aggregate stay the first choice for a single dataset (see
+    each tool's own description), since only those get semantic column
+    resolution (app/semantic/resolver.py); here the LLM must reference the
+    exact column names this call hands back."""
+    dataset_ids = args.get("dataset_ids") or []
+    if not dataset_ids:
+        raise ToolExecutionError("dataset_ids must list at least one dataset to query against.")
+    records = [_get_record_or_raise(ctx, d) for d in dataset_ids]
+    try:
+        result = run_sql_query(records, args["query"])
+    except SqlQueryError as exc:
+        raise ToolExecutionError(str(exc)) from exc
+    return dataclasses.asdict(result)
 
 
 # -- Analysis -------------------------------------------------------------
@@ -566,6 +587,42 @@ TOOLS: dict[str, Tool] = {
             },
         ),
         handler=_join_datasets,
+    ),
+    "run_sql_query": Tool(
+        schema=ToolSchema(
+            name="run_sql_query",
+            description=(
+                "Run a read-only SQL SELECT across one or more datasets -- the escape hatch for a "
+                "question calculate_metric/group_and_aggregate/join_datasets can't answer directly: "
+                "three or more datasets in one query, a join on more than one column, or a join "
+                "condition that isn't plain equality. For a single dataset or a simple two-dataset "
+                "equi-join, prefer calculate_metric/group_and_aggregate/join_datasets instead -- they "
+                "get semantic column-name resolution (typos, synonyms, naming-convention differences) "
+                "that this tool does not: reference the exact column names returned in tables_schema. "
+                "Each dataset_id is registered as a table under the short name returned in table_names "
+                "-- call inspect_schema first if unsure what those will look like. Only a single "
+                "SELECT/WITH statement is permitted; no writes, no file/network "
+                "access, no DDL. Results are capped at 500 rows (truncated=true if more matched) and "
+                "the query is cancelled if it runs past 20 seconds."
+            ),
+            parameters={
+                "type": "object",
+                "properties": {
+                    "dataset_ids": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Every dataset the query needs to reference, by id.",
+                    },
+                    "query": {
+                        "type": "string",
+                        "description": "A single SELECT (or WITH ... SELECT) statement, referencing the table names from table_names/tables_schema in the response.",
+                    },
+                },
+                "required": ["dataset_ids", "query"],
+                "additionalProperties": False,
+            },
+        ),
+        handler=_run_sql_query,
     ),
     "calculate_metric": Tool(
         schema=ToolSchema(
