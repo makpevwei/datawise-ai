@@ -44,6 +44,31 @@ describe("currency-aware value formatting (Settings currency must reach every fi
     expect(screen.getByText("$2,000.00")).toBeInTheDocument();
   });
 
+  it("ChartFromSpec abbreviates a large bar-chart value so it never overflows its fixed-width label -- exact value still on title", () => {
+    // Real bug, found live on mobile: a full-precision figure like
+    // "NGN 21,450,000.00" rendered inside BarChart's fixed w-24 (96px)
+    // value box has nowhere to wrap and visually bled outside the card.
+    render(
+      <ChartFromSpec
+        spec={makeSpec({
+          chart_type: "bar",
+          data: [
+            { region: "North", revenue: 21_450_000 },
+            { region: "South", revenue: 2000 },
+          ],
+        })}
+        currency="NGN"
+        decimalPlaces={2}
+      />,
+    );
+    const abbreviated = screen.getByText(/NGN\s*21\.4M/);
+    expect(abbreviated).toBeInTheDocument();
+    expect(abbreviated).toHaveAttribute("title", expect.stringMatching(/NGN\s*21,450,000\.00/));
+    // A value below the abbreviation threshold is unaffected -- still the
+    // exact figure, not needlessly abbreviated.
+    expect(screen.getByText(/NGN\s*2,000\.00/)).toBeInTheDocument();
+  });
+
   it("ChartFromSpec renders plain numbers when no currency is passed (unauthenticated/default state)", () => {
     render(<ChartFromSpec spec={makeSpec({ chart_type: "bar" })} />);
     expect(screen.getByText("1,000")).toBeInTheDocument();

@@ -216,7 +216,9 @@ export function ManagementDashboard({ datasets, currency, decimalPlaces }: {
                         Source: {chartSourceLabel(chart)}
                       </p>
                     )}
-                    <ChartFromSpec spec={chart} currency={currency} decimalPlaces={decimalPlaces} />
+                    <div className="overflow-x-auto">
+                      <ChartFromSpec spec={chart} currency={currency} decimalPlaces={decimalPlaces} />
+                    </div>
                   </Card>
                 ))}
               </div>
