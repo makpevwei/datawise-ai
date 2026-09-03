@@ -133,42 +133,52 @@ export default function AnalysesPage() {
 
             <div className="flex flex-col divide-y divide-[var(--border)]">
               {sessions.map((s) => (
-                <div key={s.id} className="flex items-center justify-between gap-4 py-3.5 first:pt-0 last:pb-0">
-                  <div className="flex min-w-0 items-center gap-3">
+                <div
+                  key={s.id}
+                  className="flex flex-col gap-2 py-3.5 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+                >
+                  <div className="flex min-w-0 items-start gap-3 sm:items-center">
                     <input
                       type="checkbox"
                       checked={selectedIds.has(s.id)}
                       onChange={() => toggleSelection(s.id)}
-                      className="h-4 w-4 shrink-0 rounded border-[var(--border)]"
+                      className="mt-0.5 h-4 w-4 shrink-0 rounded border-[var(--border)] sm:mt-0"
                     />
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-[var(--text-primary)]">{s.title}</p>
+                      {/* The question itself is the "View" affordance now —
+                          clicking it opens /ask?session= exactly like the old
+                          separate "View" link did, just without a redundant
+                          control next to an identically-destined "Edit /
+                          Continue" link. line-clamp-2 (not truncate) so a
+                          long question stays fully readable on narrow
+                          screens, matching the mobile-truncation fix already
+                          used for card/chart titles elsewhere in the app. */}
+                      <Link
+                        href={`/ask?session=${s.id}`}
+                        title={s.title}
+                        className="line-clamp-2 text-sm font-medium text-[var(--text-primary)] hover:text-[var(--series-1)] hover:underline"
+                      >
+                        {s.title}
+                      </Link>
                       <p className="mt-0.5 text-xs text-[var(--text-secondary)]">
                         {s.message_count} message{s.message_count === 1 ? "" : "s"} · last activity{" "}
                         {new Date(s.last_activity_at).toLocaleString()}
                       </p>
                     </div>
                   </div>
-                  <div className="flex shrink-0 items-center gap-4">
+                  <div className="flex shrink-0 items-center gap-4 pl-7 sm:pl-0">
                     <span
                       className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${STATUS_STYLES[s.status] ?? STATUS_STYLES.active}`}
                     >
                       {s.status}
                     </span>
-                    {/* View opens the session in read-only display mode —
-                        the existing /ask?session= route already renders the
-                        full conversation history; the textarea input allows
-                        continuation so both "View" and "Edit / Continue" point
-                        to the same URL, which is correct: the user can simply
-                        read through the prior conversation or type a follow-up. */}
-                    <Link
-                      href={`/ask?session=${s.id}`}
-                      className="text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:underline"
-                    >
-                      View
-                    </Link>
+                    {/* Same destination and behavior as before (pre-fills the
+                        question box so the user can either type something
+                        new or change this one and resubmit) — just relabeled
+                        now that "View" no longer needs distinguishing from
+                        it. */}
                     <Link href={`/ask?session=${s.id}`} className="text-xs font-medium text-[var(--series-1)] hover:underline">
-                      Edit / Continue
+                      Edit
                     </Link>
                     <button
                       onClick={() => handleDelete(s.id)}
