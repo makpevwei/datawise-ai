@@ -164,7 +164,7 @@ def test_extract_html_valid_document_with_headings_and_paragraphs():
 def test_extract_html_malformed_document_is_still_parsed():
     # Unclosed tags, mismatched nesting -- html.parser is lenient by design.
     html = b"<html><body><h1>Notes<p>Unclosed heading and paragraph<li>loose list item</body>"
-    segments, warnings = extract_html(html, "malformed.html")
+    segments, _warnings = extract_html(html, "malformed.html")
     assert segments  # extraction did not raise; something usable was recovered
     assert any("loose list item" in s.text for s in segments)
 
@@ -202,6 +202,32 @@ def test_extract_html_ignores_script_and_style_content():
     assert "color: red" not in all_text
     assert "a comment that should also never appear" not in all_text
     assert "Real visible paragraph text." in all_text
+
+
+def test_extract_html_gives_a_navigable_location_even_with_no_headings_at_all():
+    # Real bug, found live: a page with no <h1>-<h6> anywhere (a bare table
+    # of warning messages, real-world example) produced ChunkLocation()
+    # for every segment -- heading=None and every other field also unset,
+    # which serializes to an empty {}. A citation naming the right file
+    # but nothing about where inside it is not a citation you can act on.
+    html = b"""
+    <html><body>
+        <table>
+            <tr><th>Warning</th><th>Procedure</th></tr>
+            <tr><td>Low Oil Pressure</td><td>Stop the car immediately.</td></tr>
+        </table>
+        <p>A paragraph with no heading above it at all.</p>
+    </body></html>
+    """
+    segments, _ = extract_html(html, "warnings.html")
+    for s in segments:
+        assert s.location.heading is None
+        # Falls back to a concrete, distinguishing position instead of an
+        # entirely empty location.
+        assert s.location.line_start is not None
+        assert s.location.line_end is not None
+    # Distinct segments get distinct positions, not the same placeholder.
+    assert len({s.location.line_start for s in segments}) == len(segments)
 
 
 def test_extract_html_rejects_empty_file():

@@ -371,6 +371,22 @@ def extract_html(content: bytes, filename: str) -> tuple[list[Segment], list[str
     segments: list[Segment] = []
     current_heading: str | None = None
     heading_tags = {"h1", "h2", "h3", "h4", "h5", "h6"}
+    # A citation with heading=None AND no other ChunkLocation field set
+    # serializes to an empty {} -- unnavigable, found live: a real page
+    # (a plain warning-messages table with no <h1>-<h6> at all) produced
+    # citations naming the right file but no location inside it at all.
+    # HTML has no source line numbers once BeautifulSoup has parsed it, so
+    # line_start/line_end here means "the Nth extracted element" instead
+    # of a source line -- still a concrete, navigable position, and only
+    # used as a fallback when a real heading isn't available.
+    element_index = 0
+
+    def _location() -> ChunkLocation:
+        nonlocal element_index
+        element_index += 1
+        if current_heading:
+            return ChunkLocation(heading=current_heading)
+        return ChunkLocation(line_start=element_index, line_end=element_index)
 
     for element in soup.find_all(["h1", "h2", "h3", "h4", "h5", "h6", "p", "li", "table"]):
         if element.name in heading_tags:
@@ -386,11 +402,11 @@ def extract_html(content: bytes, filename: str) -> tuple[list[Segment], list[str
                     rows.append("  |  ".join(cells))
             table_text = "\n".join(rows)
             if table_text.strip():
-                segments.append(Segment(text=table_text, location=ChunkLocation(heading=current_heading)))
+                segments.append(Segment(text=table_text, location=_location()))
             continue
         para_text = element.get_text(" ", strip=True)
         if para_text:
-            segments.append(Segment(text=para_text, location=ChunkLocation(heading=current_heading)))
+            segments.append(Segment(text=para_text, location=_location()))
 
     if not segments:
         raise ExtractionError(f"{filename}: no extractable text found in the HTML.")

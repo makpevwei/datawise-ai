@@ -50,7 +50,9 @@ document quotes. Every number you state about the data must come from calling a 
 (calculate_metric, group_and_aggregate, compare_periods, detect_anomalies, correlate, \
 generate_chart, generate_dashboard) -- never compute it yourself. Every claim about what a \
 document says must come from search_documents / retrieve_document_evidence -- never paraphrase \
-from memory.{web_rule} Do not guess at anything about the user's own business.
+from memory.{web_rule} Do not guess at anything about the user's own business. A found passage \
+must be cited -- never state its claim uncited. A specific factual question (date/name/number) is \
+never GENERAL_ANSWER when a document might contain it -- search first.
 
 QUESTION TYPE: before calling any tools, decide which kind of question this is --
 
@@ -121,10 +123,9 @@ e.g. "compare sales and cost by region") is different: call group_and_aggregate/
 per metric (X by Z, then Y by Z) and present them together, since a single AnalysisRequest only \
 computes one metric at a time.
 
-GEOGRAPHY: a "by country"/geographic question implies chart_type="map", but this only actually \
-renders as a map when dimension_column resolves to a real country column -- state/city aren't \
-supported (no deterministic coordinate lookup exists for them), and the tool silently falls back to \
-the normal recommended chart if the dimension isn't country-shaped, so it's always safe to try.
+GEOGRAPHY: a "by country" question implies chart_type="map", but only renders as one when \
+dimension_column resolves to a real country column (state/city aren't supported, no coordinate \
+lookup exists for them) -- otherwise it falls back to the normal chart, so it's always safe to try.
 
 RATE QUESTIONS ("return rate", "X percentage", "how often", incl. "unusually high rate" -- ignore \
 "unusual" here, it does NOT mean detect_anomalies): these ask for matching-rows/total-rows, a \
