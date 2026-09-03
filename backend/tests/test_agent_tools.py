@@ -149,6 +149,41 @@ def test_join_datasets_produces_new_dataset(ctx):
     assert result["join_type"] == "inner"
 
 
+def test_run_sql_query_joins_the_two_registered_datasets_and_matches_pandas_ground_truth(ctx):
+    orders = orders_df(20)
+    customers = customers_df()
+    expected_total = orders.merge(customers, on="customer_id")["amount"].sum()
+
+    result = TOOLS["run_sql_query"].handler(
+        {
+            "dataset_ids": ["orders", "customers"],
+            "query": "SELECT SUM(o.amount) AS total FROM orders o JOIN customers c ON o.customer_id = c.customer_id",
+        },
+        ctx,
+    )
+
+    assert result["rows"] == [{"total": expected_total}]
+    assert set(result["table_names"].values()) == {"orders", "customers"}
+
+
+def test_run_sql_query_resolves_dataset_ids_the_same_forgiving_way_other_tools_do(ctx):
+    # dataset_ids goes through the same _resolve_dataset_id fallback as
+    # every other tool's dataset_id -- a plain name (or name-without-
+    # extension) must work, not just the real id.
+    result = TOOLS["run_sql_query"].handler({"dataset_ids": ["orders.csv"], "query": "SELECT COUNT(*) AS n FROM orders"}, ctx)
+    assert result["rows"][0]["n"] == 20
+
+
+def test_run_sql_query_rejects_a_write_statement(ctx):
+    with pytest.raises(ToolExecutionError):
+        TOOLS["run_sql_query"].handler({"dataset_ids": ["customers"], "query": "DELETE FROM customers"}, ctx)
+
+
+def test_run_sql_query_requires_at_least_one_dataset_id(ctx):
+    with pytest.raises(ToolExecutionError):
+        TOOLS["run_sql_query"].handler({"dataset_ids": [], "query": "SELECT 1"}, ctx)
+
+
 def test_calculate_metric_sums_correctly(ctx):
     result = TOOLS["calculate_metric"].handler({"dataset_id": "orders", "metric_column": "amount", "aggregation": "sum"}, ctx)
     expected = sum(100.0 + i * 10 for i in range(1, 21))

@@ -90,9 +90,9 @@ If the tools genuinely cannot support a data-specific answer even though data ex
 columns, no matching records), say so plainly: "Insufficient evidence in the uploaded data."
 
 Only call the tools that are actually relevant to this question -- do not call join_datasets, \
-search_documents, or web_research just because they exist. If join_datasets refuses a join as \
-many-to-many, inspect cardinality (find_relationships/inspect_schema) before deciding whether to \
-retry with allow_fan_out=true; do not retry blindly.
+run_sql_query, search_documents, or web_research just because they exist. If join_datasets refuses \
+a join as many-to-many, inspect cardinality (find_relationships/inspect_schema) before deciding \
+whether to retry with allow_fan_out=true; do not retry blindly.
 
 COLUMN NAMES: metric_column/dimension_column/date_column don't need to be the exact schema \
 spelling -- pass the natural business term from the question ("product", "sales", "prodcut") and \
