@@ -28,7 +28,6 @@ from app.agent.schemas import (
 )
 from app.agent.tools import TOOLS, ResearchBudget, ToolContext, ToolExecutionError, verify_claim_tool
 from app.agent.verification import (
-    extract_numbers,
     verify_claim_comparison,
     verify_document_grounding,
     verify_finding_label,
@@ -465,18 +464,32 @@ def _build_finding(raw: dict, ctx: ToolContext, tool_invocations: list[ToolInvoc
 
     citations = [c for c in (_resolve_citation(r, ctx, tool_invocations) for r in raw.get("citations", []) or []) if c]
 
-    # A claim that cites a real document/web chunk but has no digits to
-    # mechanically check against tool output is, by construction, a
-    # document-grounded statement -- regardless of what label the LLM
-    # picked. Phase 4 spec: "a document-grounded statement must not be
-    # labelled VERIFIED_FROM_DATA." (Baseline eval known-issue #3: this
-    # exact mislabeling reached production uncaught because the numeric
-    # verifier has nothing to check on a claim with no numbers in it.)
-    is_document_shaped_claim = claimed_label not in (EvidenceLabel.DOCUMENT_EVIDENCE, EvidenceLabel.VERIFIED_FROM_WEB) and bool(citations) and not extract_numbers(text)
-
-    if claimed_label in (EvidenceLabel.DOCUMENT_EVIDENCE, EvidenceLabel.VERIFIED_FROM_WEB) or is_document_shaped_claim:
+    # Any real citation only ever comes from a document/web chunk lookup
+    # (_resolve_citation) -- a calculate_metric-style tabular claim never
+    # has one, since there's no chunk to cite. So citations being
+    # non-empty is, by construction, a document/web-grounded statement,
+    # regardless of what label the LLM picked or whether the claim
+    # happens to contain a number. Phase 4 spec: "a document-grounded
+    # statement must not be labelled VERIFIED_FROM_DATA." (Baseline eval
+    # known-issue #3.)
+    #
+    # Numeric claims used to be excluded from this check and fell back to
+    # verify_finding_label instead (matching the claimed number against
+    # ANY number in ANY of this turn's tool outputs, with a 2% tolerance)
+    # -- found live (a RAG "not in the data" quality-bar test): that
+    # let a fabricated number ("GPT-4 scored 86.5% on MMLU") get labelled
+    # VERIFIED_FROM_DATA because a real search_documents call that turn
+    # happened to retrieve a genuinely-cited passage (a hyperparameter
+    # table) containing some unrelated number that was merely numerically
+    # close -- topically irrelevant, but the tool-output check has no
+    # concept of topic, only magnitude. verify_document_grounding's own
+    # lexical-overlap check doesn't have that blind spot, and its
+    # "if not claim_words: return True" fallback already handles the
+    # legitimate bare-numeric-quote case (e.g. a citation whose claim
+    # text is just "41.0") without a special-case here.
+    if citations:
         original_label = claimed_label
-        target_label = EvidenceLabel.VERIFIED_FROM_WEB if citations and citations[0].source_type == "web" else EvidenceLabel.DOCUMENT_EVIDENCE
+        target_label = EvidenceLabel.VERIFIED_FROM_WEB if citations[0].source_type == "web" else EvidenceLabel.DOCUMENT_EVIDENCE
         grounded, note = verify_document_grounding(text, [c.excerpt for c in citations])
         if not grounded:
             # Found live (a RAG quality-bar test's "not in the data" tier):
@@ -486,7 +499,7 @@ def _build_finding(raw: dict, ctx: ToolContext, tool_invocations: list[ToolInvoc
             # flagged as ungrounded is worse than no citation at all, since
             # it reads as evidence when it explicitly isn't. Clear it.
             claimed_label, note, citations = EvidenceLabel.AI_INTERPRETATION, note, []
-        elif is_document_shaped_claim:
+        elif claimed_label not in (EvidenceLabel.DOCUMENT_EVIDENCE, EvidenceLabel.VERIFIED_FROM_WEB):
             claimed_label = target_label
             note = f"Reclassified from {original_label.value}: this is a document-grounded statement, not a calculated data fact."
         verification_note = note
