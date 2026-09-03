@@ -21,6 +21,7 @@ MISSING_THRESHOLD_PCT = 30.0
 DUPLICATE_ROW_THRESHOLD_PCT = 5.0
 SIGNIFICANT_CHANGE_THRESHOLD_PCT = 15.0
 MAX_MISSING_INSIGHTS = 3
+FRESHNESS_THRESHOLD_DAYS = 30
 
 
 def _new_id() -> str:
@@ -132,6 +133,55 @@ def _data_quality_insights(record: DatasetRecord) -> list[Insight]:
         )
 
     return insights
+
+
+def _data_freshness_insight(record: DatasetRecord) -> list[Insight]:
+    """Warns when a dataset's most recent record predates today by a
+    material margin -- a KPI computed from stale data can read as current
+    when it isn't. Deliberately informational, not a defect judgment: a
+    deliberately historical/bounded dataset (a closed quarter, a finished
+    case study) isn't "wrong" for being old, but a user reading a number
+    as if it reflects right-now should be told it doesn't.
+
+    Uses the same "the first date column is the primary one" convention
+    already established by _significant_change_insight, for consistency
+    -- there's no semantic ranking of which date column is "the" business
+    date, and picking the first one avoids a metadata/audit date column
+    (e.g. a row-insertion timestamp) masking genuine staleness in the
+    actual transaction date.
+    """
+    profile, df = record.profile, record.dataframe
+    if not profile.date_columns:
+        return []
+    date_col = profile.date_columns[0]
+
+    parsed = pd.to_datetime(df[date_col], errors="coerce")
+    latest = parsed.max()
+    if pd.isna(latest):
+        return []
+    if latest.tzinfo is not None:
+        latest = latest.tz_localize(None)
+
+    days_old = (pd.Timestamp.now().normalize() - latest.normalize()).days
+    if days_old < FRESHNESS_THRESHOLD_DAYS:
+        return []
+
+    return [
+        Insight(
+            id=_new_id(),
+            dataset_id=profile.id,
+            category="data_quality",
+            finding=f"The newest record in '{date_col}' is {days_old} days old ({latest.date()}).",
+            evidence=Evidence(
+                description=f"Most recent value in '{date_col}' compared against today.",
+                supporting_values={"latest_date": str(latest.date()), "days_old": days_old},
+            ),
+            calculation=f"today - {latest.date()} = {days_old} days",
+            interpretation="Figures calculated from this dataset describe that period, not today -- "
+            "re-upload or reconnect it if you need current performance.",
+            confidence_label=SourceLabel.VERIFIED_FROM_DATA,
+        )
+    ]
 
 
 def _distribution_insight(record: DatasetRecord) -> list[Insight]:
@@ -346,6 +396,7 @@ def generate_insights(record: DatasetRecord) -> list[Insight]:
     insights.extend(_significant_change_insight(record))
     insights.extend(_anomaly_insight(record))
     insights.extend(_data_quality_insights(record))
+    insights.extend(_data_freshness_insight(record))
     insights.extend(_distribution_insight(record))
 
     # When no confirmed business insight can be calculated, return an empty

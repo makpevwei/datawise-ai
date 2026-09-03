@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { askAgent, createReport, exportAnalysisPdf, getAgentStatus, getKpiSuggestions, getReportPdf, getSession } from "@/lib/api";
-import type { AgentAnswer, AgentFinding, ClaimComparison, DatasetSummary, KPISuggestion, TraceStep } from "@/lib/types";
+import type { AgentAnswer, AgentFinding, ClaimComparison, DatasetSummary, EvidenceLabel, KPISuggestion, TraceStep } from "@/lib/types";
 import { buildStarterQuestions, BUSINESS_STARTER_QUESTIONS, GENERIC_STARTER_QUESTIONS } from "@/lib/starterQuestions";
 import { useAuth } from "@/lib/auth-context";
 import { useSelectedDatasets } from "@/lib/useSelectedDatasets";
@@ -357,7 +357,7 @@ function AnswerCard({
 
           <FindingList title="Key Findings" findings={answer.key_findings} />
           <FindingList title="Risks" findings={answer.risks} />
-          <FindingList title="Recommended Areas to Investigate" findings={answer.recommendations} />
+          <RecommendationList findings={answer.recommendations} />
 
           {answer.claim_comparisons.length > 0 && (
             <div>
@@ -405,6 +405,20 @@ function AnswerCard({
   );
 }
 
+function FindingItem({ finding }: { finding: AgentFinding }) {
+  return (
+    <li className="flex flex-col gap-1">
+      <div className="flex items-start gap-2">
+        <SourceLabelBadge label={finding.label} />
+        <span className="text-sm text-[var(--text-primary)]">{finding.text}</span>
+      </div>
+      {finding.verification_note && (
+        <p className="ml-1 text-xs italic text-[var(--text-muted)]">{finding.verification_note}</p>
+      )}
+    </li>
+  );
+}
+
 function FindingList({ title, findings }: { title: string; findings: AgentFinding[] }) {
   if (findings.length === 0) return null;
   return (
@@ -412,17 +426,67 @@ function FindingList({ title, findings }: { title: string; findings: AgentFindin
       <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">{title}</p>
       <ul className="flex flex-col gap-2">
         {findings.map((f, i) => (
-          <li key={i} className="flex flex-col gap-1">
-            <div className="flex items-start gap-2">
-              <SourceLabelBadge label={f.label} />
-              <span className="text-sm text-[var(--text-primary)]">{f.text}</span>
-            </div>
-            {f.verification_note && (
-              <p className="ml-1 text-xs italic text-[var(--text-muted)]">{f.verification_note}</p>
-            )}
-          </li>
+          <FindingItem key={i} finding={f} />
         ))}
       </ul>
+    </div>
+  );
+}
+
+// A recommendation grounded in this dataset (VERIFIED_FROM_DATA/CALCULATED/
+// DERIVED/DOCUMENT_EVIDENCE) and one sourced from general/web knowledge
+// (VERIFIED_FROM_WEB/AI_INTERPRETATION/GENERAL_ANSWER) look identical in a
+// flat list -- only a small per-item badge tells them apart, easy to miss
+// while skimming. Splitting into two visually distinct sections, the
+// general-knowledge one explicitly disclaimed, makes that distinction hard
+// to miss instead -- the underlying EvidenceLabel this reads is the same
+// mechanically-verified label every other finding already carries, no new
+// backend logic needed.
+const GENERAL_KNOWLEDGE_LABELS: EvidenceLabel[] = [
+  "VERIFIED_FROM_WEB",
+  "AI_INTERPRETATION",
+  "GENERAL_ANSWER",
+  "INSUFFICIENT_DATA",
+];
+
+function RecommendationList({ findings }: { findings: AgentFinding[] }) {
+  if (findings.length === 0) return null;
+  const grounded = findings.filter((f) => !GENERAL_KNOWLEDGE_LABELS.includes(f.label));
+  const general = findings.filter((f) => GENERAL_KNOWLEDGE_LABELS.includes(f.label));
+
+  return (
+    <div className="flex flex-col gap-4">
+      {grounded.length > 0 && (
+        <div>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
+            Recommended Areas to Investigate
+          </p>
+          <ul className="flex flex-col gap-2">
+            {grounded.map((f, i) => (
+              <FindingItem key={i} finding={f} />
+            ))}
+          </ul>
+        </div>
+      )}
+      {general.length > 0 && (
+        <div className="rounded-lg border border-[var(--border)] bg-[var(--background)] p-3">
+          <div className="mb-1 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
+              What Usually Works
+            </p>
+            <span className="text-[10px] text-[var(--text-muted)]">From outside sources, not from your data</span>
+          </div>
+          <p className="mb-2 text-[10px] italic text-[var(--text-muted)]">
+            General practice for the pattern above, not specific to your business -- every figure elsewhere
+            on this page still comes from your own data.
+          </p>
+          <ul className="flex flex-col gap-2">
+            {general.map((f, i) => (
+              <FindingItem key={i} finding={f} />
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
