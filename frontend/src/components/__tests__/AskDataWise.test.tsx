@@ -225,6 +225,59 @@ describe("AskDataWise", () => {
     expect(screen.getByText(/management_report\.pdf/)).toBeInTheDocument();
   });
 
+  it("separates data-grounded recommendations from general/web-knowledge ones", async () => {
+    // Real gap fixed: previously both rendered in one flat list,
+    // distinguished only by a small per-item badge -- easy to miss while
+    // skimming which recommendation actually came from this data.
+    vi.spyOn(api, "getAgentStatus").mockResolvedValue({ configured: true });
+    vi.spyOn(api, "askAgent").mockResolvedValue(
+      baseAnswer({
+        recommendations: [
+          {
+            text: "Investigate the Lagos region's outsized contribution to growth.",
+            label: "CALCULATED",
+            verification_note: null,
+            citations: [],
+          },
+          {
+            text: "Regularly reviewing pricing strategy is a common practice.",
+            label: "VERIFIED_FROM_WEB",
+            verification_note: null,
+            citations: [],
+          },
+        ],
+      }),
+    );
+
+    render(<AskDataWise datasets={[dataset]} />);
+    fireEvent.click(screen.getByRole("button", { name: /total number of records/i }));
+    fireEvent.click(screen.getByRole("button", { name: /analyze/i }));
+
+    await waitFor(() => expect(screen.getByText(/Lagos region/)).toBeInTheDocument());
+    expect(screen.getByText("Recommended Areas to Investigate")).toBeInTheDocument();
+    expect(screen.getByText("What Usually Works")).toBeInTheDocument();
+    expect(screen.getByText(/From outside sources, not from your data/)).toBeInTheDocument();
+    expect(screen.getByText(/Regularly reviewing pricing strategy/)).toBeInTheDocument();
+  });
+
+  it("shows only the grounded recommendations section when nothing is web-sourced", async () => {
+    vi.spyOn(api, "getAgentStatus").mockResolvedValue({ configured: true });
+    vi.spyOn(api, "askAgent").mockResolvedValue(
+      baseAnswer({
+        recommendations: [
+          { text: "Look into the Q2 dip in the West region.", label: "CALCULATED", verification_note: null, citations: [] },
+        ],
+      }),
+    );
+
+    render(<AskDataWise datasets={[dataset]} />);
+    fireEvent.click(screen.getByRole("button", { name: /total number of records/i }));
+    fireEvent.click(screen.getByRole("button", { name: /analyze/i }));
+
+    await waitFor(() => expect(screen.getByText(/Q2 dip/)).toBeInTheDocument());
+    expect(screen.queryByText("What Usually Works")).not.toBeInTheDocument();
+  });
+
   it("shows an error banner when the request fails", async () => {
     vi.spyOn(api, "getAgentStatus").mockResolvedValue({ configured: true });
     vi.spyOn(api, "askAgent").mockRejectedValue(new Error("network exploded"));

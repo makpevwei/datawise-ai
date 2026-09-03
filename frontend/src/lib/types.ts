@@ -304,7 +304,12 @@ export type EvidenceLabel =
   | "DOCUMENT_EVIDENCE"
   | "VERIFIED_FROM_WEB"
   | "AI_INTERPRETATION"
-  | "INSUFFICIENT_DATA";
+  | "INSUFFICIENT_DATA"
+  // A general business/conceptual answer not grounded in the user's own
+  // data or documents at all (app/agent/schemas.py's EvidenceLabel enum
+  // already carries this -- this type was missing it, found while adding
+  // RecommendationList's general-knowledge bucket in AskDataWise.tsx).
+  | "GENERAL_ANSWER";
 
 export type CrossCheckLabel =
   | "SUPPORTED_BY_DATA"

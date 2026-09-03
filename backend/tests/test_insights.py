@@ -70,6 +70,38 @@ def test_no_insufficient_data_finding_in_output():
             f"Unexpected INSUFFICIENT_DATA finding: {insight.finding!r}"
 
 
+def test_freshness_warning_fires_for_an_old_dataset():
+    # orders_df's dates are all in 2024 -- unconditionally far past the
+    # 30-day threshold regardless of when this test runs.
+    df = orders_df(20)
+    insights = generate_insights(_record(df))
+    freshness = [i for i in insights if i.category == "data_quality" and "days old" in i.finding]
+    assert len(freshness) == 1
+    assert "2024" in freshness[0].finding
+    assert freshness[0].confidence_label == "VERIFIED_FROM_DATA"
+
+
+def test_no_freshness_warning_for_a_dataset_with_no_date_column():
+    df = pd.DataFrame({"region": ["North", "South"], "amount": [100, 200]})
+    insights = generate_insights(_record(df, "no_dates"))
+    assert not any("days old" in i.finding for i in insights)
+
+
+def test_no_freshness_warning_when_the_newest_record_is_recent():
+    import datetime
+
+    recent = pd.Timestamp.now().normalize() - pd.Timedelta(days=2)
+    df = pd.DataFrame(
+        {
+            "date": [(recent - datetime.timedelta(days=i)).strftime("%Y-%m-%d") for i in range(20)],
+            "region": ["North", "South"] * 10,
+            "amount": [100.0 + i for i in range(20)],
+        }
+    )
+    insights = generate_insights(_record(df, "fresh"))
+    assert not any("days old" in i.finding for i in insights)
+
+
 def test_every_insight_carries_evidence_and_calculation():
     df = orders_df(20)
     insights = generate_insights(_record(df))
