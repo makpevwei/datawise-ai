@@ -244,8 +244,8 @@ function InsightsWorkspace({ datasets, primaryDataset }: { datasets: DatasetSumm
                 <label
                   key={d.id}
                   className={`flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition-colors ${previewDatasetId === d.id
-                    ? "border-[var(--series-1)] bg-[var(--series-1)]/10 font-medium text-[var(--series-1)]"
-                    : "border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--series-1)]/50 hover:text-[var(--text-primary)]"
+                    ? "border-[var(--brand)] bg-[var(--brand-subtle)] font-medium text-[var(--brand)]"
+                    : "border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--brand)]/50 hover:text-[var(--text-primary)]"
                     }`}
                 >
                   <input
@@ -431,7 +431,7 @@ function AiDataAnalyst({
           onChange={(e) => setQuestion(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleAsk()}
           placeholder="Ask anything about this dataset..."
-          className="flex-1 rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--series-1)]"
+          className="flex-1 rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--brand)]"
         />
         {question && (
           <Button variant="secondary" onClick={() => setQuestion("")} disabled={loading}>

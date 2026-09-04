@@ -128,7 +128,7 @@ export function ManagementDashboard({ datasets, currency, decimalPlaces }: {
       <EmptyState
         title="Upload your business data to begin"
         description="DataWise will analyze your data, calculate KPIs, identify important findings, and generate evidence-backed recommendations."
-        action={<Link className="text-sm font-medium text-[var(--series-1)] hover:underline" href="/my-data">Upload dataset</Link>}
+        action={<Link className="text-sm font-medium text-[var(--brand)] hover:underline" href="/my-data">Upload dataset</Link>}
       />
     );
   }
@@ -190,7 +190,7 @@ export function ManagementDashboard({ datasets, currency, decimalPlaces }: {
                 <p className="text-sm font-medium text-[var(--text-primary)]">No default charts available.</p>
                 <p className="mt-1 text-xs text-[var(--text-secondary)]">
                   The selected data does not have both a numeric metric and a date or category column.{" "}
-                  <Link href="/ask" className="text-[var(--series-1)] hover:underline">
+                  <Link href="/ask" className="text-[var(--brand)] hover:underline">
                     Ask DataWise
                   </Link>{" "}
                   to create a custom analysis.
@@ -244,7 +244,7 @@ export function ManagementDashboard({ datasets, currency, decimalPlaces }: {
             ) : (
               <div className="grid gap-4 lg:grid-cols-2">
                 {confirmedFindings.slice(0, MAX_FINDINGS).map((insight) => (
-                  <Card key={insight.id} className="border-l-4 border-l-[var(--series-1)]">
+                  <Card key={insight.id} className="border-l-4 border-l-[var(--brand)]">
                     <div className="mb-2 flex items-center justify-between gap-2">
                       <p className="text-sm font-semibold text-[var(--text-primary)]">Finding</p>
                       <SourceLabelBadge label={insight.confidence_label} />
@@ -284,7 +284,7 @@ export function ManagementDashboard({ datasets, currency, decimalPlaces }: {
         </div>
         <Link
           href="/ask"
-          className="shrink-0 rounded-lg bg-[var(--series-1)] px-3.5 py-2 text-center text-sm font-medium text-white hover:opacity-90"
+          className="shrink-0 rounded-lg bg-[var(--brand)] px-3.5 py-2 text-center text-sm font-medium text-[var(--brand-foreground)] hover:bg-[var(--brand-hover)]"
         >
           Ask a business question
         </Link>

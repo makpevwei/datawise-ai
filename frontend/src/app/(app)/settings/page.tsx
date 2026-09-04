@@ -155,7 +155,7 @@ function SettingsPageInner() {
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === tab.id
-              ? "border-b-2 border-[var(--series-1)] text-[var(--series-1)]"
+              ? "border-b-2 border-[var(--brand)] text-[var(--brand)]"
               : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
               }`}
           >
@@ -255,7 +255,7 @@ function SettingsPageInner() {
                   <Link
                     key={item.label}
                     href={item.href}
-                    className="flex flex-col gap-1 rounded-xl border border-[var(--border)] bg-[var(--background)] p-4 hover:border-[var(--series-1)]/50"
+                    className="flex flex-col gap-1 rounded-xl border border-[var(--border)] bg-[var(--background)] p-4 hover:border-[var(--brand)]/50"
                   >
                     <p className="text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{item.label}</p>
                     <p className="text-2xl font-semibold tabular-nums text-[var(--text-primary)]">{item.value}</p>
@@ -271,7 +271,7 @@ function SettingsPageInner() {
               <SectionHeading title="Analysis Sessions" subtitle="Your saved conversation threads and analyses." />
               <Link
                 href="/ask"
-                className="shrink-0 rounded-lg bg-[var(--series-1)] px-3 py-1.5 text-sm font-medium text-white hover:opacity-90"
+                className="shrink-0 rounded-lg bg-[var(--brand)] px-3 py-1.5 text-sm font-medium text-white hover:opacity-90"
               >
                 + New Analysis
               </Link>
@@ -293,7 +293,7 @@ function SettingsPageInner() {
                         </p>
                       </div>
                       <div className="flex shrink-0 items-center gap-3 text-xs">
-                        <Link href={`/ask?session=${s.id}`} className="font-medium text-[var(--series-1)] hover:underline">
+                        <Link href={`/ask?session=${s.id}`} className="font-medium text-[var(--brand)] hover:underline">
                           Continue
                         </Link>
                         {clearConfirm === s.id ? (

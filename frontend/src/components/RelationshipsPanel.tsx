@@ -69,7 +69,7 @@ function RelationshipExplainer() {
 
       <button
         onClick={() => setShowJoins((v) => !v)}
-        className="text-xs font-medium text-[var(--series-1)] hover:underline"
+        className="text-xs font-medium text-[var(--brand)] hover:underline"
       >
         {showJoins ? "Hide" : "Learn about"} join types
       </button>
@@ -186,13 +186,13 @@ export function RelationshipsPanel({
       <div className="flex items-center gap-2 text-xs">
         <button
           onClick={() => setFilter("high")}
-          className={`rounded-full px-3 py-1 font-medium ${filter === "high" ? "bg-[var(--series-1)]/10 text-[var(--series-1)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"}`}
+          className={`rounded-full px-3 py-1 font-medium ${filter === "high" ? "bg-[var(--brand)]/10 text-[var(--brand)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"}`}
         >
           High Confidence
         </button>
         <button
           onClick={() => setFilter("all")}
-          className={`rounded-full px-3 py-1 font-medium ${filter === "all" ? "bg-[var(--series-1)]/10 text-[var(--series-1)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"}`}
+          className={`rounded-full px-3 py-1 font-medium ${filter === "all" ? "bg-[var(--brand)]/10 text-[var(--brand)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"}`}
         >
           All
         </button>
@@ -340,7 +340,7 @@ function RelationshipCard({ rel, onJoined }: { rel: RelationshipSuggestion; onJo
         <ul className="flex flex-col gap-1 text-sm text-[var(--text-secondary)]">
           {rel.reasons.map((reason, i) => (
             <li key={i} className="flex gap-2">
-              <span className="text-[var(--series-1)]">✓</span>
+              <span className="text-[var(--brand)]">✓</span>
               {reason}
             </li>
           ))}
@@ -399,7 +399,7 @@ function RelationshipCard({ rel, onJoined }: { rel: RelationshipSuggestion; onJo
                 <label
                   key={jt.value}
                   className={`flex cursor-pointer flex-col gap-0.5 rounded-lg border p-2.5 text-xs ${joinType === jt.value
-                    ? "border-[var(--series-1)] bg-[var(--series-1)]/5"
+                    ? "border-[var(--brand)] bg-[var(--brand)]/5"
                     : "border-[var(--border)]"
                     }`}
                 >

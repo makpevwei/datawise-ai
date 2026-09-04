@@ -56,7 +56,7 @@ export function DatasetPicker({
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-1)] px-3 py-1.5 text-sm text-[var(--text-primary)] hover:border-[var(--series-1)]"
+        className="flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-1)] px-3 py-1.5 text-sm text-[var(--text-primary)] hover:border-[var(--brand)]"
       >
         <span>
           {allSelected
@@ -79,10 +79,10 @@ export function DatasetPicker({
             />
           )}
           <div className="mb-2 flex items-center gap-3 text-xs">
-            <button type="button" onClick={() => onChange(null)} className="text-[var(--series-1)] hover:underline">
+            <button type="button" onClick={() => onChange(null)} className="text-[var(--brand)] hover:underline">
               Select All
             </button>
-            <button type="button" onClick={() => onChange([])} className="text-[var(--series-1)] hover:underline">
+            <button type="button" onClick={() => onChange([])} className="text-[var(--brand)] hover:underline">
               Clear All
             </button>
           </div>

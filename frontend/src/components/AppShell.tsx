@@ -5,14 +5,27 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { Spinner } from "@/components/ui";
+import { Logo } from "@/components/Logo";
+import {
+  IconLayoutDashboard,
+  IconSparkles,
+  IconDatabase,
+  IconClock,
+  IconFileText,
+  IconTrendingUp,
+  IconGear,
+  IconPlus,
+  IconMenu,
+  IconX,
+} from "@/components/icons";
 
 const NAV_ITEMS = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/ask", label: "Ask DataWise" },
-  { href: "/my-data", label: "My Data" },
-  { href: "/analyses", label: "Analyses" },
-  { href: "/reports", label: "Reports" },
-  { href: "/insights", label: "Insights" },
+  { href: "/dashboard", label: "Dashboard", icon: IconLayoutDashboard },
+  { href: "/ask", label: "Ask DataWise", icon: IconSparkles },
+  { href: "/my-data", label: "My Data", icon: IconDatabase },
+  { href: "/analyses", label: "Analyses", icon: IconClock },
+  { href: "/reports", label: "Reports", icon: IconFileText },
+  { href: "/insights", label: "Insights", icon: IconTrendingUp },
 ];
 
 /** Compact top-right account dropdown menu — stays accessible regardless
@@ -50,10 +63,10 @@ function AccountMenu({ userName, userEmail }: { userName: string; userEmail: str
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="true"
         aria-expanded={open}
-        className="flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-1)] px-3 py-1.5 text-sm font-medium text-[var(--text-primary)] transition-colors hover:border-[var(--series-1)]/50 hover:bg-[var(--background)]"
+        className="flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-1)] px-3 py-1.5 text-sm font-medium text-[var(--text-primary)] transition-colors hover:border-[var(--brand)]/50 hover:bg-[var(--background)]"
       >
         <span
-          className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--series-1)]/15 text-xs font-semibold text-[var(--series-1)]"
+          className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--brand-subtle)] text-xs font-semibold text-[var(--brand)]"
           aria-hidden="true"
         >
           {initial}
@@ -157,29 +170,30 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const sidebarContent = (
     <>
       <div className="mb-6 px-2">
-        <p className="text-sm font-semibold tracking-tight text-[var(--text-primary)]">DATAWISE AI</p>
-        <p className="text-xs text-[var(--text-secondary)]">Your AI Business Analyst</p>
+        <Logo withTagline />
       </div>
 
       <Link
         href="/ask"
-        className="mb-4 rounded-lg bg-[var(--series-1)] px-3 py-2 text-center text-sm font-medium text-white transition-colors hover:opacity-90"
+        className="mb-4 flex items-center justify-center gap-1.5 rounded-lg bg-[var(--brand)] px-3 py-2 text-center text-sm font-medium text-[var(--brand-foreground)] transition-colors hover:bg-[var(--brand-hover)]"
       >
-        + New Analysis
+        <IconPlus size={15} /> New Analysis
       </Link>
 
       <nav className="flex flex-col gap-1">
         {NAV_ITEMS.map((item) => {
           const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+          const Icon = item.icon;
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${active
-                  ? "bg-[var(--series-1)]/10 text-[var(--series-1)]"
+              className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${active
+                  ? "bg-[var(--brand-subtle)] text-[var(--brand)]"
                   : "text-[var(--text-secondary)] hover:bg-[var(--background)] hover:text-[var(--text-primary)]"
                 }`}
             >
+              <Icon size={17} className="shrink-0" />
               {item.label}
             </Link>
           );
@@ -192,11 +206,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="px-3 py-1.5 text-sm text-[var(--text-secondary)]">{user.full_name}</div>
         <Link
           href="/settings"
-          className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${pathname === "/settings"
-              ? "bg-[var(--series-1)]/10 text-[var(--series-1)]"
+          className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${pathname === "/settings"
+              ? "bg-[var(--brand-subtle)] text-[var(--brand)]"
               : "text-[var(--text-secondary)] hover:bg-[var(--background)] hover:text-[var(--text-primary)]"
             }`}
         >
+          <IconGear size={17} className="shrink-0" />
           Preferences
         </Link>
         <button
@@ -218,16 +233,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Mobile top bar */}
       <div className="flex items-center justify-between border-b border-[var(--border)] bg-[var(--surface-1)] px-4 py-3 md:hidden">
-        <p className="text-sm font-semibold tracking-tight text-[var(--text-primary)]">DATAWISE AI</p>
+        <Logo size={20} />
         <div className="flex items-center gap-2">
           <AccountMenu userName={user.full_name} userEmail={user.email} />
           <button
             onClick={() => setMobileNavOpen(true)}
             aria-label="Open menu"
             aria-expanded={mobileNavOpen}
-            className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-sm text-[var(--text-primary)]"
+            className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-primary)]"
           >
-            Menu
+            <IconMenu size={18} />
           </button>
         </div>
       </div>
@@ -239,9 +254,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <button
               onClick={() => setMobileNavOpen(false)}
               aria-label="Close menu"
-              className="mb-4 self-end rounded-lg border border-[var(--border)] px-2.5 py-1 text-xs text-[var(--text-secondary)]"
+              className="mb-4 self-end rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-secondary)]"
             >
-              Close
+              <IconX size={14} />
             </button>
             {sidebarContent}
           </aside>

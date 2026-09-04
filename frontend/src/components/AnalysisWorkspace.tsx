@@ -205,7 +205,7 @@ function DatasetAnalysisPanel({ datasetId }: { datasetId: string }) {
                 key={kpi.name}
                 onClick={() => runKpi(kpi)}
                 title={kpi.rationale}
-                className="rounded-full border border-[var(--border)] px-3 py-1.5 text-xs font-medium text-[var(--text-primary)] hover:border-[var(--series-1)] hover:text-[var(--series-1)]"
+                className="rounded-full border border-[var(--border)] px-3 py-1.5 text-xs font-medium text-[var(--text-primary)] hover:border-[var(--brand)] hover:text-[var(--brand)]"
               >
                 {kpi.name}
                 {kpi.preview_value !== null && (
@@ -294,7 +294,7 @@ function DatasetAnalysisPanel({ datasetId }: { datasetId: string }) {
 
           {drillPath.length > 0 && (
             <div className="mt-4 flex flex-wrap items-center gap-1.5 text-xs">
-              <button onClick={() => handleBreadcrumbClick(-1)} className="text-[var(--series-1)] hover:underline">
+              <button onClick={() => handleBreadcrumbClick(-1)} className="text-[var(--brand)] hover:underline">
                 All
               </button>
               {drillPath.map((p, i) => (
@@ -302,7 +302,7 @@ function DatasetAnalysisPanel({ datasetId }: { datasetId: string }) {
                   <span className="text-[var(--text-muted)]">›</span>
                   <button
                     onClick={() => handleBreadcrumbClick(i)}
-                    className={i === drillPath.length - 1 ? "font-medium text-[var(--text-primary)]" : "text-[var(--series-1)] hover:underline"}
+                    className={i === drillPath.length - 1 ? "font-medium text-[var(--text-primary)]" : "text-[var(--brand)] hover:underline"}
                   >
                     {p.label}
                   </button>
@@ -424,7 +424,7 @@ function FilterBuilder({
       {filters.length < 3 && (
         <button
           onClick={() => setFilters([...filters, { column: "", operator: "eq", value: "" }])}
-          className="w-fit text-xs text-[var(--series-1)] hover:underline"
+          className="w-fit text-xs text-[var(--brand)] hover:underline"
         >
           + add filter
         </button>

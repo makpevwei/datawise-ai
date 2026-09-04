@@ -178,8 +178,8 @@ export function UploadPanel({ onUploaded }: { onUploaded: () => void }) {
         onClick={() => inputRef.current?.click()}
         className={`flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed px-6 py-16 text-center transition-colors ${
           dragOver
-            ? "border-[var(--series-1)] bg-[var(--series-1)]/5"
-            : "border-[var(--border)] hover:border-[var(--series-1)]/50"
+            ? "border-[var(--brand)] bg-[var(--brand)]/5"
+            : "border-[var(--border)] hover:border-[var(--brand)]/50"
         }`}
       >
         <input

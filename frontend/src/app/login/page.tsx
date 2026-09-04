@@ -53,7 +53,7 @@ export default function LoginPage() {
                 autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--series-1)]"
+                className="rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--brand)]"
               />
             </label>
             <label className="flex flex-col gap-1.5 text-sm">
@@ -65,7 +65,7 @@ export default function LoginPage() {
                   autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2 pr-10 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--series-1)]"
+                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2 pr-10 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--brand)]"
                 />
                 <button
                   type="button"
@@ -91,7 +91,7 @@ export default function LoginPage() {
               </div>
             </label>
             <p className="text-xs text-[var(--text-muted)]">
-              <Link href="/forgot-password" className="font-medium text-[var(--series-1)] hover:underline">
+              <Link href="/forgot-password" className="font-medium text-[var(--brand)] hover:underline">
                 Forgot your password?
               </Link>
             </p>
@@ -102,8 +102,8 @@ export default function LoginPage() {
         </div>
 
         {/* Demo access note — clearly visible to new evaluators */}
-        <div className="mt-4 rounded-xl border border-[var(--series-1)]/30 bg-[var(--series-1)]/5 px-4 py-3">
-          <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-[var(--series-1)]">Demo Access</p>
+        <div className="mt-4 rounded-xl border border-[var(--brand)]/30 bg-[var(--brand)]/5 px-4 py-3">
+          <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-[var(--brand)]">Demo Access</p>
           <p className="mb-2 text-xs text-[var(--text-secondary)]">Use these credentials to explore DataWise AI.</p>
           <div className="flex flex-col gap-1 text-xs text-[var(--text-primary)]">
             <div className="flex gap-2">
@@ -119,7 +119,7 @@ export default function LoginPage() {
 
         <p className="mt-5 text-center text-sm text-[var(--text-secondary)]">
           Don&apos;t have an account?{" "}
-          <Link href="/signup" className="font-medium text-[var(--series-1)] hover:underline">
+          <Link href="/signup" className="font-medium text-[var(--brand)] hover:underline">
             Create one
           </Link>
         </p>

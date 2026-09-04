@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { IconAlertTriangle } from "@/components/icons";
 
 export function Card({
   children,
@@ -108,13 +109,24 @@ export function EmptyState({
   title,
   description,
   action,
+  icon,
 }: {
   title: string;
   description: string;
   action?: ReactNode;
+  /** A context icon from @/components/icons -- e.g. IconUploadCloud for
+   * "no datasets", IconDatabase for "no connected sources". Optional so
+   * ad hoc callers keep working; every first-class empty state should
+   * pass one so the screen reads as purposeful, not a bare text block. */
+  icon?: ReactNode;
 }) {
   return (
     <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-[var(--border)] px-6 py-16 text-center">
+      {icon && (
+        <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--brand-subtle)] text-[var(--brand)]">
+          {icon}
+        </span>
+      )}
       <p className="text-sm font-medium text-[var(--text-primary)]">{title}</p>
       <p className="max-w-sm text-sm text-[var(--text-secondary)]">{description}</p>
       {action}
@@ -124,8 +136,9 @@ export function EmptyState({
 
 export function ErrorBanner({ message }: { message: string }) {
   return (
-    <div className="rounded-lg border border-[var(--status-critical)]/30 bg-[var(--status-critical)]/10 px-4 py-3 text-sm text-[var(--status-critical)]">
-      {message}
+    <div className="flex items-start gap-2.5 rounded-lg border border-[var(--status-critical)]/30 bg-[var(--status-critical)]/10 px-4 py-3 text-sm text-[var(--status-critical)]">
+      <IconAlertTriangle size={16} className="mt-0.5 shrink-0" />
+      <span>{message}</span>
     </div>
   );
 }
@@ -309,7 +322,7 @@ export function Tabs({
           onClick={() => onChange(tab.id)}
           className={`whitespace-nowrap border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
             active === tab.id
-              ? "border-[var(--series-1)] text-[var(--text-primary)]"
+              ? "border-[var(--brand)] text-[var(--text-primary)]"
               : "border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
           } ${tab.disabled ? "cursor-not-allowed opacity-40" : "cursor-pointer"}`}
         >
@@ -335,10 +348,10 @@ export function Button({
 }) {
   const styles = {
     primary:
-      "bg-[var(--series-1)] text-white hover:opacity-90 disabled:opacity-40",
+      "bg-[var(--brand)] text-[var(--brand-foreground)] hover:bg-[var(--brand-hover)] disabled:opacity-40",
     secondary:
       "border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--background)] disabled:opacity-40",
-    ghost: "text-[var(--series-1)] hover:underline disabled:opacity-40",
+    ghost: "text-[var(--brand)] hover:underline disabled:opacity-40",
   }[variant];
   return (
     <button

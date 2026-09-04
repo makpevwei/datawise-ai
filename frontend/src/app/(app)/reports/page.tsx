@@ -91,7 +91,7 @@ export default function ReportsPage() {
           title="No reports have been generated yet."
           description="Export a PDF from an Ask DataWise answer to see it here."
           action={
-            <Link href="/ask" className="text-sm font-medium text-[var(--series-1)] hover:underline">
+            <Link href="/ask" className="text-sm font-medium text-[var(--brand)] hover:underline">
               Go to Ask DataWise
             </Link>
           }
@@ -111,11 +111,11 @@ export default function ReportsPage() {
                   </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-4">
-                  <button onClick={() => handleOpen(r)} className="text-xs font-medium text-[var(--series-1)] hover:underline">
+                  <button onClick={() => handleOpen(r)} className="text-xs font-medium text-[var(--brand)] hover:underline">
                     Open
                   </button>
                   {r.session_id && (
-                    <Link href={`/ask?session=${r.session_id}`} className="text-xs font-medium text-[var(--series-1)] hover:underline">
+                    <Link href={`/ask?session=${r.session_id}`} className="text-xs font-medium text-[var(--brand)] hover:underline">
                       Continue Analysis
                     </Link>
                   )}
@@ -125,7 +125,7 @@ export default function ReportsPage() {
                   <button
                     onClick={() => handleEmail(r)}
                     disabled={emailingId === r.id}
-                    className="text-xs font-medium text-[var(--series-1)] hover:underline disabled:opacity-40"
+                    className="text-xs font-medium text-[var(--brand)] hover:underline disabled:opacity-40"
                   >
                     {emailingId === r.id ? "Sending…" : "Email"}
                   </button>
