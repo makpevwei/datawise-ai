@@ -13,6 +13,7 @@ from app.agent.graph import (
     WEB_TOOLS,
     _heuristic_route,
     _llm_route,
+    _looks_like_a_greeting,
     run_agentic_graph,
 )
 from app.agent.memory import ConversationMemory
@@ -83,6 +84,32 @@ def test_heuristic_never_escalates_to_web_when_not_configured():
     assert "WEB" not in route
 
 
+def test_heuristic_routes_a_bare_greeting_to_general_or_greeting_even_with_datasets_available():
+    # Regression: previously the heuristic had no concept of "no resource
+    # needed" -- a workspace with only datasets forced DATA_ONLY on every
+    # question regardless of content.
+    assert _heuristic_route("hi", has_datasets=True, has_documents=False, has_web=True) == "GENERAL_OR_GREETING"
+    assert _heuristic_route("thanks!", has_datasets=True, has_documents=True, has_web=True) == "GENERAL_OR_GREETING"
+
+
+@pytest.mark.parametrize(
+    "text",
+    ["hi", "Hi", "hello", "hey", "good morning", "thanks", "thank you", "  hi  ", "hi!"],
+)
+def test_looks_like_a_greeting_matches_bare_greetings(text):
+    assert _looks_like_a_greeting(text) is True
+
+
+@pytest.mark.parametrize(
+    "text",
+    ["what is total revenue?", "hi, what is our churn rate", "what is RAG?", "hi there, quick question about sales"],
+)
+def test_looks_like_a_greeting_does_not_match_real_questions(text):
+    # Conservative by design: never misroute an actual question, even one
+    # that happens to start with a greeting-ish word.
+    assert _looks_like_a_greeting(text) is False
+
+
 @pytest.mark.parametrize("route", list(ROUTE_TOOLS.keys()))
 def test_every_route_category_has_a_nonempty_tool_set(route):
     assert ROUTE_TOOLS[route]  # every category has at least verify_claim + something
@@ -95,6 +122,17 @@ def test_route_tool_sets_are_scoped_correctly():
     assert ROUTE_TOOLS["DOCUMENTS_ONLY"] >= DOCUMENT_TOOLS
     assert not (ROUTE_TOOLS["DOCUMENTS_ONLY"] & DATA_TOOLS)
     assert ROUTE_TOOLS["DATA_AND_DOCUMENTS_AND_WEB"] >= (DATA_TOOLS | DOCUMENT_TOOLS | WEB_TOOLS)
+
+
+def test_general_or_greeting_excludes_data_tools_but_keeps_document_search():
+    # The core fix: a general-knowledge/greeting question must never be
+    # able to reach a data-analysis tool (that's what let the model
+    # "helpfully" profile an unrelated dataset instead of just answering),
+    # but document search stays available since a real uploaded document
+    # might plausibly cover the concept being asked about.
+    assert not (ROUTE_TOOLS["GENERAL_OR_GREETING"] & DATA_TOOLS)
+    assert ROUTE_TOOLS["GENERAL_OR_GREETING"] >= DOCUMENT_TOOLS
+    assert not (ROUTE_TOOLS["GENERAL_OR_GREETING"] & WEB_TOOLS)
 
 
 # -- LLM-based routing ---------------------------------------------------------
@@ -162,20 +200,21 @@ def test_graph_with_no_llm_degrades_honestly_without_routing(tmp_path):
     assert not any(step.stage == "routing" for step in answer.trace)
 
 
-def test_graph_skips_the_llm_router_call_when_only_one_resource_category_is_available(tmp_path, monkeypatch):
-    # The LLM router exists to narrow scope when there's a real choice to
-    # make (datasets vs. documents, or whether web research applies). With
-    # only a dataset store and no web research configured, the heuristic
-    # already resolves DATA_ONLY with total confidence -- paying for an
-    # extra LLM round-trip to confirm that on every single question is
-    # exactly the avoidable latency this route is meant to cut. Only two
-    # turns are scripted (agent loop, then synthesis); if the router call
-    # were still made, it would consume the first one and this would fail
-    # (either an unparseable-route/no-more-turns text where a real answer
-    # was expected, or an outright call-count mismatch).
+def test_graph_still_calls_the_llm_router_when_only_one_resource_category_is_available(tmp_path, monkeypatch):
+    # Regression: this case (only a dataset store, no documents, no web)
+    # is exactly the demo-account scenario that produced the original bug
+    # -- "what is RAG?" got silently forced onto DATA_ONLY and answered
+    # with unrelated dataset stats, because the LLM router was skipped
+    # entirely whenever only one resource category existed. A single
+    # available resource category is not the same thing as "this question
+    # obviously needs that category" -- the router must still run so a
+    # greeting/general-knowledge question can land on GENERAL_OR_GREETING
+    # instead. Only a bare, unambiguous greeting (see the heuristic test
+    # above) still skips the LLM call.
     monkeypatch.setattr("app.agent.graph._web_research_configured", lambda: False)
     llm = FakeLLMProvider(
         [
+            LLMTurn(text="DATA_ONLY", tool_calls=[], stop_reason="end_turn"),  # router
             LLMTurn(text="direct answer, no tools needed", tool_calls=[], stop_reason="end_turn"),  # agent loop
             LLMTurn(text=_empty_synthesis(), tool_calls=[], stop_reason="end_turn"),  # synthesis
         ]
@@ -189,10 +228,66 @@ def test_graph_skips_the_llm_router_call_when_only_one_resource_category_is_avai
 
     assert answer.configured is True
     assert answer.executive_summary == "ok"
-    assert len(llm.calls) == 2
+    assert len(llm.calls) == 3
     routing_step = next(step for step in answer.trace if step.stage == "routing")
     assert "DATA_ONLY" in routing_step.label
+    assert routing_step.detail.startswith("(llm)")
+
+
+def test_graph_skips_the_llm_router_call_for_a_bare_greeting(tmp_path, monkeypatch):
+    monkeypatch.setattr("app.agent.graph._web_research_configured", lambda: False)
+    llm = FakeLLMProvider(
+        [
+            LLMTurn(text="Hi! I'm DataWise AI.", tool_calls=[], stop_reason="end_turn"),  # agent loop
+            LLMTurn(text=_empty_synthesis(), tool_calls=[], stop_reason="end_turn"),  # synthesis
+        ]
+    )
+
+    answer = run_agentic_graph(
+        question="hi", session_id=None, llm=llm,
+        dataset_store=_dataset_store(tmp_path), document_store=_empty_document_store(tmp_path),
+        memory=ConversationMemory(),
+    )
+
+    assert answer.configured is True
+    assert len(llm.calls) == 2
+    routing_step = next(step for step in answer.trace if step.stage == "routing")
+    assert "GENERAL_OR_GREETING" in routing_step.label
     assert "no LLM call needed" in routing_step.detail
+
+
+def test_graph_routes_a_general_knowledge_question_away_from_data_tools_even_with_only_datasets_available(tmp_path, monkeypatch):
+    # The exact reported bug, end to end: a workspace with datasets but no
+    # documents, asked a question with zero relation to those datasets.
+    # The fix must make it structurally impossible for the agent loop to
+    # reach for a data-analysis tool here, regardless of what the model
+    # would have chosen to do if offered one.
+    monkeypatch.setattr("app.agent.graph._web_research_configured", lambda: False)
+    llm = FakeLLMProvider(
+        [
+            LLMTurn(text="GENERAL_OR_GREETING", tool_calls=[], stop_reason="end_turn"),  # router
+            LLMTurn(
+                text="RAG (Retrieval-Augmented Generation) grounds an LLM's answer in retrieved evidence "
+                "instead of relying only on its training data.",
+                tool_calls=[], stop_reason="end_turn",
+            ),  # agent loop
+            LLMTurn(text=_empty_synthesis(), tool_calls=[], stop_reason="end_turn"),  # synthesis
+        ]
+    )
+
+    answer = run_agentic_graph(
+        question="what is rag", session_id=None, llm=llm,
+        dataset_store=_dataset_store(tmp_path), document_store=_empty_document_store(tmp_path),
+        memory=ConversationMemory(),
+    )
+
+    assert answer.configured is True
+    routing_step = next(step for step in answer.trace if step.stage == "routing")
+    assert "GENERAL_OR_GREETING" in routing_step.label
+    # The agent-loop call (calls[1]) must not have been offered any data tool.
+    _, _, tools_offered = llm.calls[1]
+    offered_names = {t.name for t in tools_offered}
+    assert not (offered_names & DATA_TOOLS)
 
 
 def test_graph_still_calls_the_llm_router_when_datasets_and_documents_are_both_available(tmp_path, monkeypatch):
