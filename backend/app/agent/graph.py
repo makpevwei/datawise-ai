@@ -28,6 +28,7 @@ from app.documents.store import DocumentStore
 from app.semantic.store import DatasetStore
 
 RouteCategory = Literal[
+    "GENERAL_OR_GREETING",
     "DATA_ONLY",
     "DOCUMENTS_ONLY",
     "DATA_AND_DOCUMENTS",
@@ -46,6 +47,15 @@ WEB_TOOLS = {"web_research"}
 ALWAYS_AVAILABLE = {"verify_claim"}
 
 ROUTE_TOOLS: dict[RouteCategory, set[str]] = {
+    # A greeting or a general/conceptual question not about the user's own
+    # data (e.g. "what is RAG?") never needs data-analysis tools -- keeping
+    # DATA_TOOLS out structurally is what stops the model from "helpfully"
+    # profiling an unrelated dataset when it can't find anything else to
+    # do with the tools it's been given. Document search stays available
+    # since the system prompt's own rule still requires checking whether
+    # an uploaded document happens to cover the concept before falling
+    # back to general knowledge.
+    "GENERAL_OR_GREETING": DOCUMENT_TOOLS | ALWAYS_AVAILABLE,
     "DATA_ONLY": DATA_TOOLS | ALWAYS_AVAILABLE,
     "DOCUMENTS_ONLY": DOCUMENT_TOOLS | ALWAYS_AVAILABLE,
     "DATA_AND_DOCUMENTS": DATA_TOOLS | DOCUMENT_TOOLS | ALWAYS_AVAILABLE,
@@ -55,8 +65,14 @@ ROUTE_TOOLS: dict[RouteCategory, set[str]] = {
 }
 
 ROUTER_SYSTEM_PROMPT = """Classify what resources are needed to answer the user's question about \
-their uploaded business data. Reply with EXACTLY ONE of these six words and nothing else:
+their uploaded business data. Reply with EXACTLY ONE of these seven words and nothing else:
 
+GENERAL_OR_GREETING - a greeting/small talk (e.g. "hi", "thanks"), or a general conceptual \
+question that is not asking about the user's OWN uploaded data or business (e.g. "what is RAG?", \
+"how do you calculate gross margin?", "what's a healthy inventory turnover ratio?"). Pick this \
+even when datasets are uploaded -- answering it never requires calculating anything from them. \
+Only pick a data/document category instead if the question asks about the user's own numbers, \
+records, or business (e.g. "what is OUR gross margin", "what is our churn rate").
 DATA_ONLY - only needs calculations/analysis over uploaded datasets (CSV/XLSX).
 DOCUMENTS_ONLY - only needs retrieval from uploaded documents (PDF/DOCX/PPTX/TXT/MD/PY).
 DATA_AND_DOCUMENTS - needs both, e.g. comparing a document's claim against calculated data.
@@ -67,8 +83,10 @@ DATA_AND_DOCUMENTS_AND_WEB - needs all three.
 Only pick a _WEB category if the question explicitly asks about something external to the \
 uploaded data/documents (e.g. "industry benchmark", "competitor", "current market conditions", \
 "latest news") -- never pick a _WEB category just because web research happens to be available.
-If unsure: prefer DATA_AND_DOCUMENTS when both datasets and documents are uploaded, DATA_ONLY \
-when only datasets are uploaded, DOCUMENTS_ONLY when only documents are uploaded.
+If unsure between GENERAL_OR_GREETING and a data/document category: pick GENERAL_OR_GREETING \
+unless the question clearly references the user's own data/business specifically. Otherwise, if \
+unsure: prefer DATA_AND_DOCUMENTS when both datasets and documents are uploaded, DATA_ONLY when \
+only datasets are uploaded, DOCUMENTS_ONLY when only documents are uploaded.
 
 Datasets uploaded: {has_datasets}
 Documents uploaded: {has_documents}
@@ -94,12 +112,34 @@ def _llm_route(llm: LLMProvider, question: str, has_datasets: bool, has_document
     return None
 
 
+_GREETING_PHRASES = frozenset({
+    "hi", "hello", "hey", "hiya", "yo",
+    "good morning", "good afternoon", "good evening",
+    "how are you", "how's it going", "hows it going", "what's up", "whats up",
+    "thanks", "thank you", "thanks!", "thank you!", "ok", "okay", "cool",
+})
+
+
+def _looks_like_a_greeting(question: str) -> bool:
+    """Very conservative, false-positive-averse check for rule 1's exact
+    case (a greeting/small-talk message with no question in it at all) --
+    used only to skip the LLM router call for the unambiguous case; never
+    used to override an LLM classification. A real data question never
+    collapses to one of these bare phrases, so this cannot misroute one."""
+    normalized = question.strip().lower().rstrip("!.?")
+    return normalized in _GREETING_PHRASES
+
+
 def _heuristic_route(question: str, has_datasets: bool, has_documents: bool, has_web: bool) -> RouteCategory:
     """Fallback when the LLM router is unavailable/unparseable. Defaults
     to the broadest available combination (matching Phase 3's original
     always-every-tool behavior) unless a web-ish term is clearly present,
     so this can only ever narrow scope on top of an explicit signal, never
-    silently drop a resource category a question needed."""
+    silently drop a resource category a question needed. The one exception
+    is an unambiguous greeting, which never needs any resource category."""
+    if _looks_like_a_greeting(question):
+        return "GENERAL_OR_GREETING"
+
     q = question.lower()
     web_terms = (
         "industry benchmark", "competitor", "market trend", "current market",
@@ -157,19 +197,21 @@ def _build_graph(
     has_web = _web_research_configured()
 
     def route_node(state: GraphState) -> dict:
-        # The LLM router can only ever narrow which tool categories the
-        # agent loop sees below the broadest heuristic default -- it has
-        # nothing to narrow when just one resource category (data XOR
-        # documents, no web) is available in the first place, since the
-        # heuristic already resolves that case deterministically and
-        # correctly. Paying for a full extra LLM round-trip on every single
-        # question just to confirm what's already unambiguous is exactly
-        # the avoidable latency this was built to cut -- so skip the LLM
-        # call entirely unless there's a real choice for it to make.
-        is_ambiguous = (has_datasets and has_documents) or has_web
-        if not is_ambiguous:
-            route = _heuristic_route(state["question"], has_datasets, has_documents, has_web)
-            return {"route": route, "route_source": "heuristic (unambiguous, no LLM call needed)"}
+        # A single-resource workspace (data XOR documents, no web) still
+        # needs classification, not just resource-availability lookup --
+        # the question itself might not be about that resource at all
+        # (a greeting, or a general/conceptual question like "what is
+        # RAG?"). Skipping the LLM router there previously meant every
+        # such question was silently forced onto DATA_ONLY, which cannot
+        # ever produce a GENERAL_OR_GREETING route: the model was left
+        # with only data-analysis tools for a question that had nothing
+        # to do with the data, and would resort to "helpfully" profiling
+        # it instead of just answering directly. The one case still safe
+        # to resolve without an LLM call is an unambiguous bare greeting,
+        # caught by _looks_like_a_greeting -- anything else always goes
+        # through the LLM classifier, which knows the seventh option.
+        if _looks_like_a_greeting(state["question"]):
+            return {"route": "GENERAL_OR_GREETING", "route_source": "heuristic (unambiguous greeting, no LLM call needed)"}
 
         route = _llm_route(llm, state["question"], has_datasets, has_documents, has_web)
         source = "llm"
