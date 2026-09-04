@@ -93,7 +93,7 @@ export default function AnalysesPage() {
           title="No analyses yet."
           description="Ask DataWise a question to start your first analysis."
           action={
-            <Link href="/ask" className="text-sm font-medium text-[var(--series-1)] hover:underline">
+            <Link href="/ask" className="text-sm font-medium text-[var(--brand)] hover:underline">
               Start an Analysis
             </Link>
           }
@@ -156,7 +156,7 @@ export default function AnalysesPage() {
                       <Link
                         href={`/ask?session=${s.id}`}
                         title={s.title}
-                        className="line-clamp-2 text-sm font-medium text-[var(--text-primary)] hover:text-[var(--series-1)] hover:underline"
+                        className="line-clamp-2 text-sm font-medium text-[var(--text-primary)] hover:text-[var(--brand)] hover:underline"
                       >
                         {s.title}
                       </Link>
@@ -177,7 +177,7 @@ export default function AnalysesPage() {
                         new or change this one and resubmit) — just relabeled
                         now that "View" no longer needs distinguishing from
                         it. */}
-                    <Link href={`/ask?session=${s.id}`} className="text-xs font-medium text-[var(--series-1)] hover:underline">
+                    <Link href={`/ask?session=${s.id}`} className="text-xs font-medium text-[var(--brand)] hover:underline">
                       Edit
                     </Link>
                     <button

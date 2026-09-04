@@ -68,7 +68,7 @@ function ResetPasswordForm() {
               <h2 className="mb-2 text-base font-semibold text-[var(--text-primary)]">Invalid link</h2>
               <p className="text-sm text-[var(--text-secondary)]">
                 This reset link is missing its token. Request a new one from the{" "}
-                <Link href="/forgot-password" className="font-medium text-[var(--series-1)] hover:underline">
+                <Link href="/forgot-password" className="font-medium text-[var(--brand)] hover:underline">
                   forgot password
                 </Link>{" "}
                 page.
@@ -92,7 +92,7 @@ function ResetPasswordForm() {
                     autoComplete="new-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--series-1)]"
+                    className="rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--brand)]"
                   />
                 </label>
                 <label className="flex flex-col gap-1.5 text-sm">
@@ -103,7 +103,7 @@ function ResetPasswordForm() {
                     autoComplete="new-password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--series-1)]"
+                    className="rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--brand)]"
                   />
                 </label>
                 <Button type="submit" disabled={loading}>
@@ -115,7 +115,7 @@ function ResetPasswordForm() {
         </div>
 
         <p className="mt-5 text-center text-sm text-[var(--text-secondary)]">
-          <Link href="/login" className="font-medium text-[var(--series-1)] hover:underline">
+          <Link href="/login" className="font-medium text-[var(--brand)] hover:underline">
             Back to sign in
           </Link>
         </p>

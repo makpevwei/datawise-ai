@@ -80,7 +80,7 @@ export default function DashboardPage() {
             </div>
             <Link
               href={`/ask?session=${continueSession.id}`}
-              className="rounded-lg bg-[var(--series-1)] px-3.5 py-2 text-sm font-medium text-white hover:opacity-90"
+              className="rounded-lg bg-[var(--brand)] px-3.5 py-2 text-sm font-medium text-white hover:opacity-90"
             >
               Continue
             </Link>
@@ -91,7 +91,7 @@ export default function DashboardPage() {
               title="No analyses yet."
               description="Ask DataWise a question to start your first analysis."
               action={
-                <Link href="/ask" className="text-sm font-medium text-[var(--series-1)] hover:underline">
+                <Link href="/ask" className="text-sm font-medium text-[var(--brand)] hover:underline">
                   Start an Analysis
                 </Link>
               }
@@ -108,7 +108,7 @@ export default function DashboardPage() {
               title="No datasets uploaded yet."
               description="Upload a dataset to start analyzing your business data."
               action={
-                <Link href="/my-data" className="text-sm font-medium text-[var(--series-1)] hover:underline">
+                <Link href="/my-data" className="text-sm font-medium text-[var(--brand)] hover:underline">
                   Upload Dataset
                 </Link>
               }

@@ -120,7 +120,7 @@ export function StatCard({
         type="button"
         onClick={canExpand ? () => setExpanded((v) => !v) : undefined}
         title={full ?? undefined}
-        className={`mt-2 block w-full truncate text-left font-semibold tabular-nums text-[var(--text-primary)] ${compact ? "text-xl" : "text-4xl"} ${canExpand ? "cursor-pointer hover:text-[var(--series-1)]" : "cursor-default"}`}
+        className={`mt-2 block w-full truncate text-left font-semibold tabular-nums text-[var(--text-primary)] ${compact ? "text-xl" : "text-4xl"} ${canExpand ? "cursor-pointer hover:text-[var(--brand)]" : "cursor-default"}`}
       >
         {display}
       </button>
@@ -630,7 +630,7 @@ function UnmatchedCountriesDisclosure({ values }: { values: string[] }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="text-xs text-[var(--text-muted)]">
-      <button onClick={() => setOpen((v) => !v)} className="text-[var(--series-1)] hover:underline">
+      <button onClick={() => setOpen((v) => !v)} className="text-[var(--brand)] hover:underline">
         {open ? "Hide" : "View"} unmatched values ({values.length})
       </button>
       {open && (

@@ -199,7 +199,7 @@ export function AskDataWise({
             }}
             placeholder="Ask anything about your data..."
             rows={3}
-            className="w-full resize-none rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--series-1)]"
+            className="w-full resize-none rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--brand)]"
           />
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex flex-wrap gap-1.5">
@@ -208,7 +208,7 @@ export function AskDataWise({
                   key={q}
                   onClick={() => setQuestion(q)}
                   disabled={loading}
-                  className="rounded-full border border-[var(--border)] px-2.5 py-1 text-xs text-[var(--text-secondary)] hover:border-[var(--series-1)] hover:text-[var(--series-1)] disabled:opacity-40"
+                  className="rounded-full border border-[var(--border)] px-2.5 py-1 text-xs text-[var(--text-secondary)] hover:border-[var(--brand)] hover:text-[var(--brand)] disabled:opacity-40"
                 >
                   {q}
                 </button>
@@ -347,7 +347,7 @@ function AnswerCard({
           <div>
             <button
               onClick={() => setShowTrace((v) => !v)}
-              className="text-xs font-medium text-[var(--series-1)] hover:underline"
+              className="text-xs font-medium text-[var(--brand)] hover:underline"
             >
               {showTrace ? "Hide" : "Show"} how DataWise worked ({answer.tool_invocations.length} tool call
               {answer.tool_invocations.length === 1 ? "" : "s"})

@@ -350,14 +350,14 @@ export default function MyDataPage() {
                           <div className="flex items-center gap-3">
                           <button
                             onClick={() => setSubTab("explore")}
-                            className="text-xs font-medium text-[var(--series-1)] hover:underline"
+                            className="text-xs font-medium text-[var(--brand)] hover:underline"
                           >
                             Open
                           </button>
-                          <Link href="/analyze" className="text-xs font-medium text-[var(--series-1)] hover:underline">
+                          <Link href="/analyze" className="text-xs font-medium text-[var(--brand)] hover:underline">
                             Analyze
                           </Link>
-                          <Link href="/ask" className="text-xs font-medium text-[var(--series-1)] hover:underline">
+                          <Link href="/ask" className="text-xs font-medium text-[var(--brand)] hover:underline">
                             Ask DataWise
                           </Link>
                           <button
@@ -394,7 +394,7 @@ export default function MyDataPage() {
                                     ) : (
                                       <button
                                         onClick={() => handleActivateDatasetVersion(v.id)}
-                                        className="font-medium text-[var(--series-1)] hover:underline"
+                                        className="font-medium text-[var(--brand)] hover:underline"
                                       >
                                         Activate
                                       </button>
@@ -547,7 +547,7 @@ export default function MyDataPage() {
                                     ) : (
                                       <button
                                         onClick={() => handleActivateDocumentVersion(v.id)}
-                                        className="font-medium text-[var(--series-1)] hover:underline"
+                                        className="font-medium text-[var(--brand)] hover:underline"
                                       >
                                         Activate
                                       </button>

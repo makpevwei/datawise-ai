@@ -62,7 +62,7 @@ export function DatasetExplorer({ datasets }: { datasets: DatasetSummary[] }) {
                 key={d.id}
                 onClick={() => setSelectedId(d.id)}
                 className={`cursor-pointer border-b border-[var(--border)] last:border-0 hover:bg-[var(--background)] ${
-                  effectiveId === d.id ? "bg-[var(--series-1)]/5" : ""
+                  effectiveId === d.id ? "bg-[var(--brand-subtle)]" : ""
                 }`}
               >
                 <td className="px-3 py-2 font-medium text-[var(--text-primary)]">{d.name}</td>
