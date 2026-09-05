@@ -13,26 +13,56 @@ import { DatasetPicker } from "./DatasetPicker";
 import {
   Button,
   Card,
+  CitationCard,
   CrossCheckBadge,
   ErrorBanner,
+  formatSourceLabel,
+  GROUNDED_EVIDENCE_LABELS,
+  GroundedBadge,
   SectionHeading,
+  SourceChip,
   SourceLabelBadge,
   Spinner,
 } from "./ui";
+import {
+  IconChartBar,
+  IconCheckCircle,
+  IconDatabase,
+  IconFileText,
+  IconGear,
+  IconGlobe,
+  IconLink,
+  IconShieldCheck,
+  IconSparkles,
+} from "./icons";
+import type { ComponentType } from "react";
 
 const UNSET = Symbol("unset");
 
 const STAGE_LABELS: Record<TraceStep["stage"], string> = {
-  understanding_question: "UNDERSTANDING QUESTION",
-  routing: "ROUTING",
-  datasets: "DATASETS",
-  documents: "DOCUMENTS",
-  relationships: "RELATIONSHIPS",
-  analysis: "ANALYSIS",
-  document_research: "DOCUMENT RESEARCH",
-  web_research: "WEB RESEARCH",
-  verification: "VERIFICATION",
-  answer: "ANSWER",
+  understanding_question: "Understanding the question",
+  routing: "Routing",
+  datasets: "Checking datasets",
+  documents: "Checking documents",
+  relationships: "Checking relationships",
+  analysis: "Running analysis",
+  document_research: "Researching documents",
+  web_research: "Researching the web",
+  verification: "Verifying evidence",
+  answer: "Composing the answer",
+};
+
+const STAGE_ICONS: Record<TraceStep["stage"], ComponentType<{ size?: number; className?: string }>> = {
+  understanding_question: IconSparkles,
+  routing: IconGear,
+  datasets: IconDatabase,
+  documents: IconFileText,
+  relationships: IconLink,
+  analysis: IconChartBar,
+  document_research: IconFileText,
+  web_research: IconGlobe,
+  verification: IconShieldCheck,
+  answer: IconCheckCircle,
 };
 
 export function AskDataWise({
@@ -306,6 +336,8 @@ function AnswerCard({
         <ErrorBanner message={answer.error ?? "Something went wrong."} />
       ) : (
         <div className="flex flex-col gap-5">
+          <AnswerProvenanceBar answer={answer} />
+
           {answer.executive_summary && (
             <div>
               <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
@@ -344,16 +376,7 @@ function AnswerCard({
             </div>
           )}
 
-          <div>
-            <button
-              onClick={() => setShowTrace((v) => !v)}
-              className="text-xs font-medium text-[var(--brand)] hover:underline"
-            >
-              {showTrace ? "Hide" : "Show"} how DataWise worked ({answer.tool_invocations.length} tool call
-              {answer.tool_invocations.length === 1 ? "" : "s"})
-            </button>
-            {showTrace && <AgentTrace trace={answer.trace} />}
-          </div>
+          <AgentReasoning trace={answer.trace} citationCount={answer.citations.length} showTrace={showTrace} setShowTrace={setShowTrace} />
 
           <FindingList title="Key Findings" findings={answer.key_findings} />
           <FindingList title="Risks" findings={answer.risks} />
@@ -377,19 +400,16 @@ function AnswerCard({
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
                 Sources
               </p>
-              <ul className="flex flex-col gap-1.5 text-xs text-[var(--text-secondary)]">
+              <div className="grid gap-2 sm:grid-cols-2">
                 {answer.citations.map((c) => (
-                  <li key={`${c.document_id}-${c.chunk_id}`}>
-                    <span className="font-medium text-[var(--text-primary)]">{c.document_name}</span>
-                    {Object.entries(c.location)
-                      .filter(([, v]) => v !== null && v !== undefined)
-                      .map(([k, v]) => ` (${k}: ${v})`)
-                      .join("")}
-                    : &ldquo;{c.excerpt.slice(0, 160)}
-                    {c.excerpt.length > 160 ? "…" : ""}&rdquo;
-                  </li>
+                  <CitationCard
+                    key={`${c.document_id}-${c.chunk_id}`}
+                    documentName={c.document_name}
+                    location={c.location}
+                    excerpt={c.excerpt}
+                  />
                 ))}
-              </ul>
+              </div>
             </div>
           )}
 
@@ -503,15 +523,92 @@ function ClaimComparisonRow({ comparison }: { comparison: ClaimComparison }) {
   );
 }
 
+/** Always-visible provenance strip -- rendered directly under the question,
+ * above the executive summary, never behind a click. The direct fix for the
+ * comparison-pass finding that DataWise's own (more rigorous, mechanically
+ * verified) evidence system was invisible until a user opened the trace. */
+function AnswerProvenanceBar({ answer }: { answer: AgentAnswer }) {
+  const allFindings = [...answer.key_findings, ...answer.risks, ...answer.recommendations];
+  const grounded = allFindings.some((f) => GROUNDED_EVIDENCE_LABELS.includes(f.label));
+
+  const documentNames = Array.from(new Set(answer.citations.map((c) => c.document_name)));
+  const datasetLabels = Array.from(
+    new Set(
+      answer.charts
+        .map((c) => formatSourceLabel(c.dataset_name, c.dataset_sheet))
+        .filter((label): label is string => Boolean(label))
+    )
+  );
+  const sourceLabels = [...datasetLabels, ...documentNames].slice(0, 4);
+  const extraCount = datasetLabels.length + documentNames.length - sourceLabels.length;
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <GroundedBadge grounded={grounded} />
+      {sourceLabels.map((label) => (
+        <SourceChip key={label} label={label} />
+      ))}
+      {extraCount > 0 && (
+        <span className="text-[10px] text-[var(--text-muted)]">+{extraCount} more</span>
+      )}
+    </div>
+  );
+}
+
+/** Compact, always-visible summary of what the agent did this turn (step /
+ * tool-call / citation counts), with the full step-by-step timeline still
+ * available on demand -- the existence and scale of the reasoning is never
+ * hidden, only its full detail. Replaces the previous all-or-nothing
+ * "Show/Hide how DataWise worked" text toggle over a raw monospace log. */
+function AgentReasoning({
+  trace,
+  citationCount,
+  showTrace,
+  setShowTrace,
+}: {
+  trace: TraceStep[];
+  citationCount: number;
+  showTrace: boolean;
+  setShowTrace: (fn: (v: boolean) => boolean) => void;
+}) {
+  const toolCalls = trace.filter((s) => s.stage !== "understanding_question" && s.stage !== "answer").length;
+  return (
+    <div className="rounded-lg border border-[var(--border)] bg-[var(--background)]">
+      <button
+        onClick={() => setShowTrace((v) => !v)}
+        className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left"
+      >
+        <span className="flex items-center gap-1.5 text-xs font-medium text-[var(--text-secondary)]">
+          <IconShieldCheck size={14} className="text-[var(--brand)]" />
+          {trace.length} step{trace.length === 1 ? "" : "s"} · {toolCalls} tool call{toolCalls === 1 ? "" : "s"}
+          {citationCount > 0 ? ` · ${citationCount} citation${citationCount === 1 ? "" : "s"} verified` : ""}
+        </span>
+        <span className="shrink-0 text-xs font-medium text-[var(--brand)]">
+          {showTrace ? "Hide detail" : "Show detail"}
+        </span>
+      </button>
+      {showTrace && <AgentTrace trace={trace} />}
+    </div>
+  );
+}
+
 function AgentTrace({ trace }: { trace: TraceStep[] }) {
   return (
-    <div className="mt-2 flex flex-col gap-1 rounded-lg bg-[var(--background)] p-3 font-mono text-xs">
-      {trace.map((step, i) => (
-        <div key={i}>
-          <span className="text-[var(--text-muted)]">{STAGE_LABELS[step.stage]}</span>
-          <div className="ml-2 text-[var(--text-primary)]">✓ {step.label}</div>
-        </div>
-      ))}
+    <div className="flex flex-col gap-2.5 border-t border-[var(--border)] px-3 py-3">
+      {trace.map((step, i) => {
+        const Icon = STAGE_ICONS[step.stage];
+        return (
+          <div key={i} className="flex items-start gap-2.5">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--brand-subtle)] text-[var(--brand)]">
+              <Icon size={13} />
+            </span>
+            <div className="min-w-0 pt-0.5">
+              <p className="text-xs font-semibold text-[var(--text-primary)]">{STAGE_LABELS[step.stage]}</p>
+              <p className="text-xs text-[var(--text-secondary)]">{step.label}</p>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

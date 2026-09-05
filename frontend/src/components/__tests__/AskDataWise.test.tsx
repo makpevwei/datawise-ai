@@ -15,9 +15,9 @@ vi.mock("@/lib/auth-context", () => ({
   }),
 }));
 
-import { AskDataWise } from "../AskDataWise";
 import * as api from "@/lib/api";
 import type { AgentAnswer, DatasetSummary } from "@/lib/types";
+import { AskDataWise } from "../AskDataWise";
 
 const dataset: DatasetSummary = {
   id: "d1",
@@ -177,10 +177,43 @@ describe("AskDataWise", () => {
     fireEvent.click(screen.getByRole("button", { name: /total number of records/i }));
     fireEvent.click(screen.getByRole("button", { name: /analyze/i }));
 
-    const toggle = await screen.findByRole("button", { name: /show how datawise worked/i });
+    const toggle = await screen.findByRole("button", { name: /show detail/i });
     fireEvent.click(toggle);
 
     expect(screen.getByText(/calculate_metric/)).toBeInTheDocument();
+  });
+
+  it("shows the grounded-in-your-data badge when a finding is mechanically verified against the data", async () => {
+    vi.spyOn(api, "getAgentStatus").mockResolvedValue({ configured: true });
+    vi.spyOn(api, "askAgent").mockResolvedValue(baseAnswer());
+
+    render(<AskDataWise datasets={[dataset]} />);
+    fireEvent.click(screen.getByRole("button", { name: /total number of records/i }));
+    fireEvent.click(screen.getByRole("button", { name: /analyze/i }));
+
+    await waitFor(() => expect(screen.getByText(/grounded in your data/i)).toBeInTheDocument());
+  });
+
+  it("shows the general-knowledge badge, not the grounded one, when every finding is web/AI-sourced", async () => {
+    // Regression guard: VERIFIED_FROM_WEB is mechanically verified too, but
+    // against the open web, not the user's own data -- it must not trip
+    // the "Grounded in your data" badge (see GROUNDED_EVIDENCE_LABELS'
+    // comment in ui.tsx).
+    vi.spyOn(api, "getAgentStatus").mockResolvedValue({ configured: true });
+    vi.spyOn(api, "askAgent").mockResolvedValue(
+      baseAnswer({
+        key_findings: [
+          { text: "Generally, churn drivers include price and support quality.", label: "VERIFIED_FROM_WEB", verification_note: null, citations: [] },
+        ],
+      }),
+    );
+
+    render(<AskDataWise datasets={[dataset]} />);
+    fireEvent.click(screen.getByRole("button", { name: /total number of records/i }));
+    fireEvent.click(screen.getByRole("button", { name: /analyze/i }));
+
+    await waitFor(() => expect(screen.getByText(/not verified from your data/i)).toBeInTheDocument());
+    expect(screen.queryByText(/^grounded in your data$/i)).not.toBeInTheDocument();
   });
 
   it("shows citations for document-grounded findings", async () => {
@@ -222,7 +255,9 @@ describe("AskDataWise", () => {
     fireEvent.click(screen.getByRole("button", { name: /analyze/i }));
 
     await waitFor(() => expect(screen.getByText("DOCUMENT EVIDENCE")).toBeInTheDocument());
-    expect(screen.getByText(/management_report\.pdf/)).toBeInTheDocument();
+    // Document name now appears in multiple places: SourceChip and CitationCard.
+    // Verify that it appears at least once (getAllByText returns an array).
+    expect(screen.getAllByText(/management_report\.pdf/)).toHaveLength(2);
   });
 
   it("separates data-grounded recommendations from general/web-knowledge ones", async () => {

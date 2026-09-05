@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { getDashboardChartsMulti, getInsights, getKpiSuggestions } from "@/lib/api";
 import { useSelectedDatasets } from "@/lib/useSelectedDatasets";
 import type { ChartSpec, DatasetSummary, Insight, KPISuggestion } from "@/lib/types";
-import { Card, EmptyState, ErrorBanner, formatSourceLabel, SectionHeading, SourceLabelBadge, Spinner } from "./ui";
+import { Card, EmptyState, ErrorBanner, formatSourceLabel, SectionHeading, SourceChip, SourceLabelBadge, Spinner } from "./ui";
 import { DatasetPicker } from "./DatasetPicker";
 import { ChartFromSpec, StatCard } from "./charts";
 
@@ -212,9 +212,9 @@ export function ManagementDashboard({ datasets, currency, decimalPlaces }: {
                     )}
                     {/* Source lineage */}
                     {chartSourceLabel(chart) && (
-                      <p className="mb-3 text-[10px] text-[var(--text-muted)]">
-                        Source: {chartSourceLabel(chart)}
-                      </p>
+                      <div className="mb-3">
+                        <SourceChip label={chartSourceLabel(chart)} />
+                      </div>
                     )}
                     <div className="overflow-x-auto">
                       <ChartFromSpec spec={chart} currency={currency} decimalPlaces={decimalPlaces} />

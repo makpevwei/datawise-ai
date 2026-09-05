@@ -8,7 +8,7 @@ import { useSelectedDatasets } from "@/lib/useSelectedDatasets";
 import { useEffect, useState } from "react";
 import { ChartFromSpec } from "./charts";
 import { DatasetPicker } from "./DatasetPicker";
-import { Button, Card, EmptyState, ErrorBanner, formatSourceLabel, SectionHeading, SourceLabelBadge, Spinner, Table } from "./ui";
+import { Button, Card, EmptyState, ErrorBanner, formatSourceLabel, SectionHeading, SourceChip, SourceLabelBadge, Spinner, Table } from "./ui";
 
 const CATEGORY_LABELS: Record<Insight["category"], string> = {
   top_performer: "Top Performer",
@@ -199,9 +199,9 @@ function InsightsWorkspace({ datasets, primaryDataset }: { datasets: DatasetSumm
                     </div>
                   </dl>
                   {datasetLabelById[insight.dataset_id] && (
-                    <p className="mt-3 border-t border-[var(--border)] pt-2 text-[10px] text-[var(--text-muted)]">
-                      Source: {datasetLabelById[insight.dataset_id]}
-                    </p>
+                    <div className="mt-3 border-t border-[var(--border)] pt-2">
+                      <SourceChip label={datasetLabelById[insight.dataset_id]} />
+                    </div>
                   )}
                 </Card>
               ))}
@@ -339,7 +339,7 @@ function ChartSuggestionCard({
     <Card>
       <p className="text-sm font-medium text-[var(--text-primary)]">{kpi.name}</p>
       <p className="mt-1 text-xs text-[var(--text-secondary)]">{kpi.rationale}</p>
-      {source && <p className="mt-1 text-[10px] text-[var(--text-muted)]">Source: {source}</p>}
+      {source && <div className="mt-1.5"><SourceChip label={source} /></div>}
       <dl className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[var(--text-muted)]">
         <div>
           <dt className="inline font-semibold">Metric:</dt> <dd className="inline">{kpi.metric_column ?? "count"}</dd>
@@ -487,7 +487,7 @@ function AiDataAnalyst({
                         {c.title || c.reason}
                       </p>
                     )}
-                    {source && <p className="mb-3 text-[10px] text-[var(--text-muted)]">Source: {source}</p>}
+                    {source && <div className="mb-3"><SourceChip label={source} /></div>}
                     <div className="overflow-x-auto">
                       <ChartFromSpec spec={c} currency={currency} decimalPlaces={decimalPlaces} />
                     </div>

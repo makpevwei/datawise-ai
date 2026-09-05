@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { IconAlertTriangle } from "@/components/icons";
+import { IconAlertTriangle, IconCheckCircle, IconDatabase, IconFileText } from "@/components/icons";
 
 export function Card({
   children,
@@ -220,6 +220,99 @@ export function formatSourceLabel(name: string | null | undefined, sheet?: strin
   if (sheet && name.includes(sheet)) return name;
   if (sheet) return `${name} — ${sheet}`;
   return name;
+}
+
+/** Small "where this came from" pill -- a consistent, iconified replacement
+ * for the plain "Source: X" text line previously repeated ad hoc across
+ * Dashboard chart cards and Insights' KPI/insight cards. */
+export function SourceChip({ label }: { label: string }) {
+  if (!label) return null;
+  return (
+    <span className="inline-flex max-w-full items-center gap-1 rounded-full bg-[var(--background)] px-2 py-0.5 text-[10px] text-[var(--text-muted)]">
+      <IconDatabase size={11} className="shrink-0" />
+      <span className="truncate">{label}</span>
+    </span>
+  );
+}
+
+/** Evidence labels that count as "grounded in your data" for the purposes
+ * of the always-visible provenance badge below: the user's own uploaded
+ * datasets and documents, mechanically verified (backend
+ * app/agent/verification.py) against a real tool result or cited excerpt.
+ * Deliberately excludes VERIFIED_FROM_WEB -- that label is mechanically
+ * verified too, but against the open web, not the user's data, so it
+ * belongs with the "general/outside" bucket for this specific badge. This
+ * mirrors AskDataWise.tsx's own GENERAL_KNOWLEDGE_LABELS split (where
+ * VERIFIED_FROM_WEB already sits in the general-knowledge section) --
+ * keep the two lists' treatment of VERIFIED_FROM_WEB in sync if either
+ * changes. */
+export const GROUNDED_EVIDENCE_LABELS = [
+  "VERIFIED_FROM_DATA",
+  "CALCULATED",
+  "DERIVED",
+  "DOCUMENT_EVIDENCE",
+];
+
+/** Always-visible "is this answer actually grounded" pill -- the direct
+ * response to the comparison-pass finding that DataWise's own (more
+ * rigorous, mechanically-verified) evidence system existed in the data
+ * but was invisible until a user clicked "Show how DataWise worked."
+ * Deliberately two honest states, not a pass/fail: an ungrounded answer
+ * is still shown, just clearly labelled, never hidden or blocked. */
+export function GroundedBadge({ grounded }: { grounded: boolean }) {
+  if (grounded) {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--status-good)]/15 px-2.5 py-1 text-xs font-semibold text-[var(--status-good)]">
+        <IconCheckCircle size={13} /> Grounded in your data
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--status-warning)]/20 px-2.5 py-1 text-xs font-semibold text-[color:#8a5a00] dark:text-[var(--status-warning)]">
+      <IconAlertTriangle size={13} /> General knowledge — not verified from your data
+    </span>
+  );
+}
+
+/** Renders a Citation's location map ("page": 3, "line_start": 12, ...) as
+ * a short human string -- shared by AskDataWise's citation cards so every
+ * caller formats a location the same way. */
+export function formatCitationLocation(location: Record<string, unknown>): string {
+  return Object.entries(location)
+    .filter(([, v]) => v !== null && v !== undefined && v !== "")
+    .map(([k, v]) => `${k.replace(/_/g, " ")}: ${v}`)
+    .join(" · ");
+}
+
+/** A single cited source, in the spirit of a NotebookLM-style source card:
+ * which file, which location in it, and the exact excerpt the claim was
+ * checked against -- replacing a plain citation text line with something
+ * that reads as evidence, not a footnote. */
+export function CitationCard({
+  documentName,
+  location,
+  excerpt,
+}: {
+  documentName: string;
+  location: Record<string, unknown>;
+  excerpt: string;
+}) {
+  const locationLabel = formatCitationLocation(location);
+  return (
+    <div className="flex gap-2.5 rounded-lg border border-[var(--border)] bg-[var(--surface-1)] p-3">
+      <IconFileText size={16} className="mt-0.5 shrink-0 text-[var(--text-muted)]" />
+      <div className="min-w-0">
+        <p className="flex flex-wrap items-baseline gap-x-1.5 text-xs">
+          <span className="font-semibold text-[var(--text-primary)]">{documentName}</span>
+          {locationLabel && <span className="text-[var(--text-muted)]">{locationLabel}</span>}
+        </p>
+        <p className="mt-1 text-xs italic text-[var(--text-secondary)]">
+          &ldquo;{excerpt.slice(0, 200)}
+          {excerpt.length > 200 ? "…" : ""}&rdquo;
+        </p>
+      </div>
+    </div>
+  );
 }
 
 export function Table({
