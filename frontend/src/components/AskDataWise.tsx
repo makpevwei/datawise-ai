@@ -1,29 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { askAgent, createReport, exportAnalysisPdf, getAgentStatus, getKpiSuggestions, getReportPdf, getSession } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
+import { buildStarterQuestions, BUSINESS_STARTER_QUESTIONS, GENERIC_STARTER_QUESTIONS } from "@/lib/starterQuestions";
+import type { AgentAnswer, AgentFinding, ClaimComparison, DatasetSummary, EvidenceLabel, KPISuggestion, TraceStep } from "@/lib/types";
+import { useSelectedDatasets } from "@/lib/useSelectedDatasets";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { askAgent, createReport, exportAnalysisPdf, getAgentStatus, getKpiSuggestions, getReportPdf, getSession } from "@/lib/api";
-import type { AgentAnswer, AgentFinding, ClaimComparison, DatasetSummary, EvidenceLabel, KPISuggestion, TraceStep } from "@/lib/types";
-import { buildStarterQuestions, BUSINESS_STARTER_QUESTIONS, GENERIC_STARTER_QUESTIONS } from "@/lib/starterQuestions";
-import { useAuth } from "@/lib/auth-context";
-import { useSelectedDatasets } from "@/lib/useSelectedDatasets";
+import type { ComponentType } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChartFromSpec } from "./charts";
 import { DatasetPicker } from "./DatasetPicker";
-import {
-  Button,
-  Card,
-  CitationCard,
-  CrossCheckBadge,
-  ErrorBanner,
-  formatSourceLabel,
-  GROUNDED_EVIDENCE_LABELS,
-  GroundedBadge,
-  SectionHeading,
-  SourceChip,
-  SourceLabelBadge,
-  Spinner,
-} from "./ui";
 import {
   IconChartBar,
   IconCheckCircle,
@@ -35,7 +22,21 @@ import {
   IconShieldCheck,
   IconSparkles,
 } from "./icons";
-import type { ComponentType } from "react";
+import {
+  Button,
+  Card,
+  CitationCard,
+  CrossCheckBadge,
+  ErrorBanner,
+  formatSourceLabel,
+  GROUNDED_EVIDENCE_LABELS,
+  GroundedBadge,
+  type ProvenanceState,
+  SectionHeading,
+  SourceChip,
+  SourceLabelBadge,
+  Spinner,
+} from "./ui";
 
 const UNSET = Symbol("unset");
 
@@ -529,7 +530,10 @@ function ClaimComparisonRow({ comparison }: { comparison: ClaimComparison }) {
  * verified) evidence system was invisible until a user opened the trace. */
 function AnswerProvenanceBar({ answer }: { answer: AgentAnswer }) {
   const allFindings = [...answer.key_findings, ...answer.risks, ...answer.recommendations];
-  const grounded = allFindings.some((f) => GROUNDED_EVIDENCE_LABELS.includes(f.label));
+  const hasGroundedFindings = allFindings.some((f) => GROUNDED_EVIDENCE_LABELS.includes(f.label));
+  const hasUngroundedFindings = allFindings.some((f) => !GROUNDED_EVIDENCE_LABELS.includes(f.label));
+
+  const provenance: ProvenanceState = hasGroundedFindings && hasUngroundedFindings ? "mixed" : hasGroundedFindings ? "grounded" : "ungrounded";
 
   const documentNames = Array.from(new Set(answer.citations.map((c) => c.document_name)));
   const datasetLabels = Array.from(
@@ -544,7 +548,7 @@ function AnswerProvenanceBar({ answer }: { answer: AgentAnswer }) {
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <GroundedBadge grounded={grounded} />
+      <GroundedBadge provenance={provenance} />
       {sourceLabels.map((label) => (
         <SourceChip key={label} label={label} />
       ))}

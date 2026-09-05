@@ -1,5 +1,5 @@
-import type { ReactNode } from "react";
 import { IconAlertTriangle, IconCheckCircle, IconDatabase, IconFileText } from "@/components/icons";
+import type { ReactNode } from "react";
 
 export function Card({
   children,
@@ -257,13 +257,23 @@ export const GROUNDED_EVIDENCE_LABELS = [
  * response to the comparison-pass finding that DataWise's own (more
  * rigorous, mechanically-verified) evidence system existed in the data
  * but was invisible until a user clicked "Show how DataWise worked."
- * Deliberately two honest states, not a pass/fail: an ungrounded answer
- * is still shown, just clearly labelled, never hidden or blocked. */
-export function GroundedBadge({ grounded }: { grounded: boolean }) {
-  if (grounded) {
+ * Deliberately three honest states: grounded, mixed, or ungrounded. An
+ * ungrounded answer is still shown, just clearly labelled, never hidden
+ * or blocked. */
+export type ProvenanceState = "grounded" | "mixed" | "ungrounded";
+
+export function GroundedBadge({ provenance }: { provenance: ProvenanceState }) {
+  if (provenance === "grounded") {
     return (
       <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--status-good)]/15 px-2.5 py-1 text-xs font-semibold text-[var(--status-good)]">
         <IconCheckCircle size={13} /> Grounded in your data
+      </span>
+    );
+  }
+  if (provenance === "mixed") {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--status-caution)]/15 px-2.5 py-1 text-xs font-semibold text-[var(--status-caution)]">
+        <IconAlertTriangle size={13} /> Mixed: some findings grounded, others from general knowledge
       </span>
     );
   }
@@ -413,11 +423,10 @@ export function Tabs({
           key={tab.id}
           disabled={tab.disabled}
           onClick={() => onChange(tab.id)}
-          className={`whitespace-nowrap border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
-            active === tab.id
+          className={`whitespace-nowrap border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${active === tab.id
               ? "border-[var(--brand)] text-[var(--text-primary)]"
               : "border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-          } ${tab.disabled ? "cursor-not-allowed opacity-40" : "cursor-pointer"}`}
+            } ${tab.disabled ? "cursor-not-allowed opacity-40" : "cursor-pointer"}`}
         >
           {tab.label}
         </button>

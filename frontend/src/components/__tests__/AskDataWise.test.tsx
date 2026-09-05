@@ -216,6 +216,40 @@ describe("AskDataWise", () => {
     expect(screen.queryByText(/^grounded in your data$/i)).not.toBeInTheDocument();
   });
 
+  it("shows the mixed-provenance badge when some findings are grounded in data and others are general knowledge", async () => {
+    // Important: mixed provenance (some data-verified, some web/AI) should be
+    // clearly marked, not masked as "fully grounded". This is the honest
+    // representation of an answer that blends rigorous data analysis with
+    // general business knowledge.
+    vi.spyOn(api, "getAgentStatus").mockResolvedValue({ configured: true });
+    vi.spyOn(api, "askAgent").mockResolvedValue(
+      baseAnswer({
+        key_findings: [
+          {
+            text: "Growth concentrated in Lagos region.",
+            label: "CALCULATED",
+            verification_note: null,
+            citations: [],
+          },
+          {
+            text: "Long-term market trends suggest continued growth.",
+            label: "VERIFIED_FROM_WEB",
+            verification_note: null,
+            citations: [],
+          },
+        ],
+      }),
+    );
+
+    render(<AskDataWise datasets={[dataset]} />);
+    fireEvent.click(screen.getByRole("button", { name: /total number of records/i }));
+    fireEvent.click(screen.getByRole("button", { name: /analyze/i }));
+
+    await waitFor(() => expect(screen.getByText(/mixed: some findings grounded/i)).toBeInTheDocument());
+    expect(screen.queryByText(/^grounded in your data$/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/not verified from your data/i)).not.toBeInTheDocument();
+  });
+
   it("shows citations for document-grounded findings", async () => {
     vi.spyOn(api, "getAgentStatus").mockResolvedValue({ configured: true });
     vi.spyOn(api, "askAgent").mockResolvedValue(
