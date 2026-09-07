@@ -83,9 +83,17 @@ def test_heuristic_never_escalates_to_web_when_not_configured():
     assert "WEB" not in route
 
 
-@pytest.mark.parametrize("route", list(ROUTE_TOOLS.keys()))
+@pytest.mark.parametrize("route", [r for r in ROUTE_TOOLS.keys() if r != "GENERAL_KNOWLEDGE"])
 def test_every_route_category_has_a_nonempty_tool_set(route):
-    assert ROUTE_TOOLS[route]  # every category has at least verify_claim + something
+    assert ROUTE_TOOLS[route]  # every category except GENERAL_KNOWLEDGE has at least verify_claim + something
+
+
+def test_general_knowledge_route_has_no_tools():
+    # GENERAL_KNOWLEDGE intentionally exposes zero tools -- the agent loop
+    # skips tool calls entirely and goes straight to synthesis, which labels
+    # findings GENERAL_ANSWER. verify_claim is excluded because it requires
+    # tool-invocation history to check against.
+    assert ROUTE_TOOLS["GENERAL_KNOWLEDGE"] == set()
 
 
 def test_route_tool_sets_are_scoped_correctly():
@@ -162,20 +170,15 @@ def test_graph_with_no_llm_degrades_honestly_without_routing(tmp_path):
     assert not any(step.stage == "routing" for step in answer.trace)
 
 
-def test_graph_skips_the_llm_router_call_when_only_one_resource_category_is_available(tmp_path, monkeypatch):
-    # The LLM router exists to narrow scope when there's a real choice to
-    # make (datasets vs. documents, or whether web research applies). With
-    # only a dataset store and no web research configured, the heuristic
-    # already resolves DATA_ONLY with total confidence -- paying for an
-    # extra LLM round-trip to confirm that on every single question is
-    # exactly the avoidable latency this route is meant to cut. Only two
-    # turns are scripted (agent loop, then synthesis); if the router call
-    # were still made, it would consume the first one and this would fail
-    # (either an unparseable-route/no-more-turns text where a real answer
-    # was expected, or an outright call-count mismatch).
+def test_graph_always_calls_the_llm_router_even_with_one_resource_category(tmp_path, monkeypatch):
+    # With GENERAL_KNOWLEDGE now a valid route, the LLM router must always
+    # run -- a user can ask "who is the president of Nigeria?" regardless of
+    # what data they have uploaded, and only the LLM can recognise that.
+    # Three turns: router + agent loop + synthesis.
     monkeypatch.setattr("app.agent.graph._web_research_configured", lambda: False)
     llm = FakeLLMProvider(
         [
+            LLMTurn(text="DATA_ONLY", tool_calls=[], stop_reason="end_turn"),   # router
             LLMTurn(text="direct answer, no tools needed", tool_calls=[], stop_reason="end_turn"),  # agent loop
             LLMTurn(text=_empty_synthesis(), tool_calls=[], stop_reason="end_turn"),  # synthesis
         ]
@@ -189,10 +192,10 @@ def test_graph_skips_the_llm_router_call_when_only_one_resource_category_is_avai
 
     assert answer.configured is True
     assert answer.executive_summary == "ok"
-    assert len(llm.calls) == 2
+    assert len(llm.calls) == 3
     routing_step = next(step for step in answer.trace if step.stage == "routing")
     assert "DATA_ONLY" in routing_step.label
-    assert "no LLM call needed" in routing_step.detail
+    assert "llm" in routing_step.detail
 
 
 def test_graph_still_calls_the_llm_router_when_datasets_and_documents_are_both_available(tmp_path, monkeypatch):
@@ -237,3 +240,81 @@ def test_graph_falls_back_to_heuristic_when_router_response_is_unparseable(tmp_p
     routing_step = next(step for step in answer.trace if step.stage == "routing")
     assert "heuristic" in routing_step.detail
     assert "DATA_AND_DOCUMENTS" in routing_step.label
+
+
+# -- GENERAL_KNOWLEDGE route --------------------------------------------------
+
+
+def test_llm_route_parses_general_knowledge_category():
+    llm = FakeLLMProvider([LLMTurn(text="GENERAL_KNOWLEDGE", tool_calls=[], stop_reason="end_turn")])
+    route = _llm_route(llm, "who is the president of Nigeria?", has_datasets=True, has_documents=False, has_web=False)
+    assert route == "GENERAL_KNOWLEDGE"
+
+
+def test_heuristic_never_returns_general_knowledge():
+    # The heuristic is the LLM-unavailable fallback -- it must always err
+    # toward data/docs, never GENERAL_KNOWLEDGE, which requires LLM judgment.
+    for has_ds, has_doc in [(True, False), (False, True), (True, True), (False, False)]:
+        result = _heuristic_route("who is the president of Nigeria?", has_datasets=has_ds, has_documents=has_doc, has_web=False)
+        assert result != "GENERAL_KNOWLEDGE", f"heuristic returned GENERAL_KNOWLEDGE for has_datasets={has_ds}, has_documents={has_doc}"
+
+
+def test_graph_routes_general_knowledge_with_no_tools(tmp_path):
+    # When the LLM router returns GENERAL_KNOWLEDGE, the agent loop must
+    # receive an empty tool set -- it goes straight to synthesis with no
+    # tool calls, and synthesis labels findings GENERAL_ANSWER.
+    gk_synthesis = json.dumps({
+        "executive_summary": "Bola Tinubu has been Nigeria's president since May 2023.",
+        "key_findings": [{"text": "Bola Tinubu is the president of Nigeria.", "label": "GENERAL_ANSWER", "citations": []}],
+        "risks": [], "recommendations": [], "claim_comparisons": [], "chart_tool_call_ids": [],
+    })
+    llm = FakeLLMProvider(
+        [
+            LLMTurn(text="GENERAL_KNOWLEDGE", tool_calls=[], stop_reason="end_turn"),  # router
+            LLMTurn(text="Bola Tinubu is the president of Nigeria.", tool_calls=[], stop_reason="end_turn"),  # agent loop
+            LLMTurn(text=gk_synthesis, tool_calls=[], stop_reason="end_turn"),  # synthesis
+        ]
+    )
+
+    answer = run_agentic_graph(
+        question="Who is the president of Nigeria?", session_id=None, llm=llm,
+        dataset_store=_dataset_store(tmp_path), document_store=_empty_document_store(tmp_path),
+        memory=ConversationMemory(),
+    )
+
+    assert answer.configured is True
+    routing_step = next(step for step in answer.trace if step.stage == "routing")
+    assert "GENERAL_KNOWLEDGE" in routing_step.label
+
+    # The agent-loop call must have been offered zero tools.
+    _, _, tools_offered = llm.calls[1]
+    assert tools_offered == []
+
+    # Every finding must carry GENERAL_ANSWER, not a data label.
+    from app.agent.schemas import EvidenceLabel
+    for finding in answer.key_findings:
+        assert finding.label == EvidenceLabel.GENERAL_ANSWER
+
+
+def test_graph_data_question_does_not_slip_into_general_knowledge(tmp_path):
+    # A business-adjacent question ("what is gross margin?") must NOT route
+    # to GENERAL_KNOWLEDGE even when the user has only datasets -- it should
+    # stay DATA_ONLY so the agent can check whether the data contains an
+    # answer before falling back to general knowledge.
+    llm = FakeLLMProvider(
+        [
+            LLMTurn(text="DATA_ONLY", tool_calls=[], stop_reason="end_turn"),  # router correctly picks DATA_ONLY
+            LLMTurn(text="no tools needed", tool_calls=[], stop_reason="end_turn"),  # agent loop
+            LLMTurn(text=_empty_synthesis(), tool_calls=[], stop_reason="end_turn"),  # synthesis
+        ]
+    )
+
+    answer = run_agentic_graph(
+        question="What is gross margin and how do I improve it?", session_id=None, llm=llm,
+        dataset_store=_dataset_store(tmp_path), document_store=_empty_document_store(tmp_path),
+        memory=ConversationMemory(),
+    )
+
+    routing_step = next(step for step in answer.trace if step.stage == "routing")
+    assert "GENERAL_KNOWLEDGE" not in routing_step.label
+    assert "DATA_ONLY" in routing_step.label

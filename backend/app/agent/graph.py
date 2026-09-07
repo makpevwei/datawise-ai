@@ -34,6 +34,16 @@ RouteCategory = Literal[
     "DATA_AND_WEB",
     "DOCUMENTS_AND_WEB",
     "DATA_AND_DOCUMENTS_AND_WEB",
+    # A question that has absolutely no connection to the user's uploaded
+    # data, documents, or business -- e.g. "who is the president of Nigeria",
+    # "what is the capital of France". Gets answered directly from general
+    # knowledge, with no tool calls, labelled GENERAL_ANSWER throughout.
+    # The router must be VERY conservative about assigning this category:
+    # when genuinely unsure, route to DATA_ONLY (or whichever data/doc
+    # category fits) rather than here. A real business question wrongly
+    # routed to GENERAL_KNOWLEDGE would bypass all grounding verification
+    # entirely -- that is worse than the problem this route is meant to fix.
+    "GENERAL_KNOWLEDGE",
 ]
 
 DATA_TOOLS = {
@@ -52,10 +62,16 @@ ROUTE_TOOLS: dict[RouteCategory, set[str]] = {
     "DATA_AND_WEB": DATA_TOOLS | WEB_TOOLS | ALWAYS_AVAILABLE,
     "DOCUMENTS_AND_WEB": DOCUMENT_TOOLS | WEB_TOOLS | ALWAYS_AVAILABLE,
     "DATA_AND_DOCUMENTS_AND_WEB": DATA_TOOLS | DOCUMENT_TOOLS | WEB_TOOLS | ALWAYS_AVAILABLE,
+    # No tools at all: the agent loop skips tool calls immediately and goes
+    # straight to synthesis, which labels findings GENERAL_ANSWER when the
+    # question is genuinely off-topic. verify_claim is excluded deliberately
+    # -- it requires tool-invocation history to check against, and with no
+    # data/doc/web tools in scope there is nothing to verify.
+    "GENERAL_KNOWLEDGE": set(),
 }
 
 ROUTER_SYSTEM_PROMPT = """Classify what resources are needed to answer the user's question about \
-their uploaded business data. Reply with EXACTLY ONE of these six words and nothing else:
+their uploaded business data. Reply with EXACTLY ONE of these seven words and nothing else:
 
 DATA_ONLY - only needs calculations/analysis over uploaded datasets (CSV/XLSX).
 DOCUMENTS_ONLY - only needs retrieval from uploaded documents (PDF/DOCX/PPTX/TXT/MD/PY).
@@ -63,6 +79,15 @@ DATA_AND_DOCUMENTS - needs both, e.g. comparing a document's claim against calcu
 DATA_AND_WEB - needs dataset calculations plus external/public web context.
 DOCUMENTS_AND_WEB - needs document retrieval plus external/public web context.
 DATA_AND_DOCUMENTS_AND_WEB - needs all three.
+GENERAL_KNOWLEDGE - ONLY for questions that are pure general-world-knowledge facts with \
+absolutely no connection to business data analysis, the user's uploaded files, or their own \
+business at all (e.g. "who is the president of Nigeria", "what is the capital of France", \
+"when was the Eiffel Tower built"). These are questions a printed encyclopedia would answer \
+identically regardless of what data the user has uploaded. DO NOT use this for any business \
+or analytical question, even a conceptual one (e.g. "what is customer churn?", "how do I \
+calculate gross margin?" are business questions -- use DATA_ONLY or DOCUMENTS_ONLY). When in \
+doubt, do NOT pick GENERAL_KNOWLEDGE -- default to DATA_ONLY instead. A real business question \
+wrongly sent here bypasses all data verification.
 
 Only pick a _WEB category if the question explicitly asks about something external to the \
 uploaded data/documents (e.g. "industry benchmark", "competitor", "current market conditions", \
@@ -157,20 +182,14 @@ def _build_graph(
     has_web = _web_research_configured()
 
     def route_node(state: GraphState) -> dict:
-        # The LLM router can only ever narrow which tool categories the
-        # agent loop sees below the broadest heuristic default -- it has
-        # nothing to narrow when just one resource category (data XOR
-        # documents, no web) is available in the first place, since the
-        # heuristic already resolves that case deterministically and
-        # correctly. Paying for a full extra LLM round-trip on every single
-        # question just to confirm what's already unambiguous is exactly
-        # the avoidable latency this was built to cut -- so skip the LLM
-        # call entirely unless there's a real choice for it to make.
-        is_ambiguous = (has_datasets and has_documents) or has_web
-        if not is_ambiguous:
-            route = _heuristic_route(state["question"], has_datasets, has_documents, has_web)
-            return {"route": route, "route_source": "heuristic (unambiguous, no LLM call needed)"}
-
+        # GENERAL_KNOWLEDGE is always a valid route the LLM needs to consider
+        # (a user can ask an off-topic question regardless of what data they
+        # have uploaded), so the LLM router call now runs unconditionally --
+        # the old optimisation that skipped it when only one resource category
+        # was available no longer applies. The heuristic is still the fallback
+        # for any LLM failure, and it never returns GENERAL_KNOWLEDGE (it
+        # always defaults to the broadest available data/doc category), which
+        # is the right conservative behaviour for an LLM-unavailable scenario.
         route = _llm_route(llm, state["question"], has_datasets, has_documents, has_web)
         source = "llm"
         if route is None:
