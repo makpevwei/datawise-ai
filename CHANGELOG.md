@@ -4,6 +4,33 @@ Plain-English record of what's shipped, newest first. No version numbers yet
 (pre-1.0, deploys are continuous rather than tagged releases) — entries are
 grouped by date instead.
 
+## 2026-09-07 — GENERAL_KNOWLEDGE routing route (agent)
+
+- **New `GENERAL_KNOWLEDGE` route** in `app/agent/graph.py` — a 7th
+  `RouteCategory` for questions that are pure general-world-knowledge facts
+  with no connection to the user's uploaded data, documents, or business
+  (e.g. "who is the president of Nigeria?", "what is the capital of France?").
+- Questions routed here receive **zero tools** in scope — the agent loop skips
+  tool calls entirely and goes straight to synthesis, which labels all findings
+  `GENERAL_ANSWER`. No new label, no new frontend component: reuses the
+  existing `GENERAL_ANSWER` EvidenceLabel and the existing "From outside
+  sources, not from your data" disclaimed section already rendered by
+  `AskDataWise.tsx`.
+- **Conservative by design**: the router prompt explicitly instructs the LLM to
+  default to `DATA_ONLY` when in doubt. The heuristic fallback (used when the
+  LLM is unavailable) never returns `GENERAL_KNOWLEDGE` — it always defaults
+  to the broadest available data/doc route. A real business question wrongly
+  sent here would bypass all grounding verification entirely.
+- **LLM router now always runs** (removed the previous short-circuit that
+  skipped it when only one resource type was present). GENERAL_KNOWLEDGE is
+  always a valid option regardless of what data is uploaded, so the router
+  must always have the chance to identify a genuinely off-topic question.
+- Live routing verified 5×: "who is the president of Nigeria?" →
+  `GENERAL_KNOWLEDGE` 5/5; "what is gross margin and how do I calculate it?"
+  → `DATA_ONLY` 5/5 (borderline business question stays correctly grounded).
+- 4 new unit tests in `test_agent_graph.py`; 1 new live test file
+  `test_general_knowledge_routing_live.py`.
+
 ## 2026-09-07 — Chart and UI component visual polish
 
 - **BarChart**: group-hover label/value colour fade, opacity dim (0.45) on

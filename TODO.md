@@ -95,6 +95,15 @@ outstanding gets lost between sessions.
 
 ## Medium priority — code health
 
+- **LLM router now always pays one extra LLM round-trip** per question (the
+  old skip-when-unambiguous optimisation was removed to make GENERAL_KNOWLEDGE
+  always reachable). For workspaces with only one resource type (datasets only,
+  no docs, no web) this is a new, consistent ~200–400ms overhead per question
+  that didn't exist before. Worth revisiting if latency becomes a concern:
+  a fast deterministic pre-filter (e.g. regex/keyword list of known off-topic
+  patterns) could restore the fast path for the unambiguous cases without
+  removing GENERAL_KNOWLEDGE support.
+
 - **LLM-driven KPI column classification (sum/mean/exclude) only covers
   the single-dataset KPI cards** (`app/analysis/kpi_discovery.py`'s
   `discover_kpis`), not the Management Dashboard's chart selection
