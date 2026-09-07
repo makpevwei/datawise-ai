@@ -4,6 +4,32 @@ Plain-English record of what's shipped, newest first. No version numbers yet
 (pre-1.0, deploys are continuous rather than tagged releases) — entries are
 grouped by date instead.
 
+## 2026-09-07 — Chart and UI component visual polish
+
+- **BarChart**: group-hover label/value colour fade, opacity dim (0.45) on
+  non-hovered bars, `shadow-sm → shadow-md` lift on hover.
+- **LineChart**: area gradient fill (`stopOpacity` 0.15→0.01), hover circle
+  grows r=3.5→6 with drop-shadow, dark tooltip box with formatted value.
+- **DonutChart**: hovered slice translates outward along its midpoint angle
+  ("lifted" effect consistent with BarChart's shadow lift), `drop-shadow`
+  filter, `opacity` + `transform` transitions on all paths. Center label
+  shows hovered slice's percentage (large, in the slice's own colour) and
+  truncated name (small, secondary) while hovering. Legend dot scales
+  1→1.4 and non-hovered rows fade to 0.45 opacity.
+- **GroupedBarChart**: `group-hover` label fade (text-secondary→text-primary),
+  `transition-all` + `shadow-sm → shadow-md` on each segment bar, opacity
+  dim (0.45) on non-hovered segments — same visual language as BarChart.
+- **EmptyState**: `border-dashed`, brand-subtle icon container, `py-20`,
+  `leading-relaxed` description.
+- **ErrorBanner**: left-border accent (`border-l-4`), `IconAlertTriangle`,
+  `shadow-sm`, `leading-relaxed`.
+- **Spinner**: split border colours (text-muted ring + brand top arc).
+- **StatCard / KPI cards**: `shadow-sm → shadow-md` on hover, `compact`
+  prop for dense grids, `line-clamp-2` labels, tap-to-expand with
+  "Tap for exact value / Tap to collapse" hint text.
+- All 92 frontend tests pass; ScatterChart and PointMapChart left as-is
+  (lower priority, not blocking).
+
 ## 2026-09-02 — Google Drive/Sheets connector (read-only)
 
 - **First "connected source" integration**: a company can now connect

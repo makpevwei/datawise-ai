@@ -158,6 +158,9 @@ outstanding gets lost between sessions.
 
 ## Lower priority
 
+- **ScatterChart / PointMapChart visual polish** — hover transitions and
+  tooltip polish deferred; lower priority, not blocking. Pick up when the
+  rest of the chart work is needed.
 - Frontend accessibility (a11y) audit — not done yet.
 - Cost monitoring: an OpenAI spending cap is set (done, earlier session) —
   worth periodically re-checking it's still current as usage grows.
