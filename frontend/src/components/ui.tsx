@@ -121,14 +121,14 @@ export function EmptyState({
   icon?: ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-[var(--border)] px-6 py-16 text-center">
+    <div className="flex flex-col items-center justify-center gap-4 rounded-xl border-2 border-dashed border-[var(--border)] bg-[var(--surface-1)]/30 px-8 py-20 text-center">
       {icon && (
-        <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--brand-subtle)] text-[var(--brand)]">
+        <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--brand-subtle)] text-[var(--brand)] mb-2">
           {icon}
         </span>
       )}
-      <p className="text-sm font-medium text-[var(--text-primary)]">{title}</p>
-      <p className="max-w-sm text-sm text-[var(--text-secondary)]">{description}</p>
+      <p className="text-base font-bold text-[var(--text-primary)]">{title}</p>
+      <p className="max-w-md text-sm text-[var(--text-secondary)] leading-relaxed">{description}</p>
       {action}
     </div>
   );
@@ -136,16 +136,16 @@ export function EmptyState({
 
 export function ErrorBanner({ message }: { message: string }) {
   return (
-    <div className="flex items-start gap-2.5 rounded-lg border border-[var(--status-critical)]/30 bg-[var(--status-critical)]/10 px-4 py-3 text-sm text-[var(--status-critical)]">
-      <IconAlertTriangle size={16} className="mt-0.5 shrink-0" />
-      <span>{message}</span>
+    <div className="flex items-start gap-3 rounded-lg border-l-4 border-l-[var(--status-critical)] border border-[var(--status-critical)]/20 bg-[var(--status-critical)]/8 px-4 py-3.5 text-sm font-medium text-[var(--status-critical)] shadow-sm">
+      <IconAlertTriangle size={18} className="mt-0.5 shrink-0" />
+      <span className="flex-1 leading-relaxed">{message}</span>
     </div>
   );
 }
 
 export function Spinner() {
   return (
-    <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-[var(--text-muted)] border-t-transparent" />
+    <span className="inline-block h-5 w-5 animate-spin rounded-full border-2.5 border-[var(--text-muted)] border-t-[var(--brand)]" />
   );
 }
 
@@ -424,8 +424,8 @@ export function Tabs({
           disabled={tab.disabled}
           onClick={() => onChange(tab.id)}
           className={`whitespace-nowrap border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${active === tab.id
-              ? "border-[var(--brand)] text-[var(--text-primary)]"
-              : "border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+            ? "border-[var(--brand)] text-[var(--text-primary)]"
+            : "border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
             } ${tab.disabled ? "cursor-not-allowed opacity-40" : "cursor-pointer"}`}
         >
           {tab.label}

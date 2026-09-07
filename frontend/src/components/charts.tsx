@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import type { ChartSpec } from "@/lib/types";
+import { useState } from "react";
 import { formatCurrency, formatNumber, looksMonetary } from "./ui";
 
 const SERIES_1 = "var(--series-1)";
@@ -104,7 +104,7 @@ export function StatCard({
   }
 
   return (
-    <div className={`rounded-xl border border-[var(--border)] bg-[var(--surface-1)] min-w-0 ${compact ? "p-4" : "p-6"}`}>
+    <div className={`rounded-xl border border-[var(--border)] bg-[var(--surface-1)] min-w-0 shadow-sm hover:shadow-md transition-shadow ${compact ? "p-4" : "p-6"}`}>
       {/* line-clamp-2, not truncate -- a single-line ellipsis was cutting
           "Total Years at Company" down to "TOTAL YEARS AT CO...", hiding
           the metric's real identity. Two lines fits every label seen in
@@ -112,7 +112,7 @@ export function StatCard({
           one that doesn't. */}
       <p
         title={label}
-        className={`font-medium text-[var(--text-secondary)] line-clamp-2 ${compact ? "min-h-8 text-xs uppercase tracking-wide" : "min-h-10 text-sm"}`}
+        className={`font-semibold text-[var(--text-secondary)] line-clamp-2 ${compact ? "min-h-8 text-xs uppercase tracking-widest" : "min-h-10 text-xs"} opacity-75`}
       >
         {label}
       </p>
@@ -120,19 +120,19 @@ export function StatCard({
         type="button"
         onClick={canExpand ? () => setExpanded((v) => !v) : undefined}
         title={full ?? undefined}
-        className={`mt-2 block w-full truncate text-left font-semibold tabular-nums text-[var(--text-primary)] ${compact ? "text-xl" : "text-4xl"} ${canExpand ? "cursor-pointer hover:text-[var(--brand)]" : "cursor-default"}`}
+        className={`mt-2.5 block w-full truncate text-left font-bold tabular-nums text-[var(--text-primary)] ${compact ? "text-lg" : "text-5xl"} ${canExpand ? "cursor-pointer hover:text-[var(--brand)] transition-colors" : "cursor-default"}`}
       >
         {display}
       </button>
       {canExpand && (
-        <p className="mt-1 text-xs text-[var(--text-muted)]">{expanded ? "Tap to collapse" : "Tap for exact value"}</p>
+        <p className="mt-1.5 text-xs text-[var(--text-muted)] font-medium">{expanded ? "Tap to collapse" : "Tap for exact value"}</p>
       )}
       {/* line-clamp-2, not truncate, same reasoning as the title above --
           a source label like "NexaSphere_BI_Case_Study_Dataset.xlsx —
           Fact_Sales" was getting cut off illegibly on narrow (mobile)
           cards. title=description stays as a hover fallback on desktop. */}
       {description && (
-        <p className="mt-2 line-clamp-2 text-xs text-[var(--text-muted)]" title={description}>{description}</p>
+        <p className="mt-2.5 line-clamp-2 text-xs text-[var(--text-muted)] font-medium" title={description}>{description}</p>
       )}
     </div>
   );
@@ -163,17 +163,17 @@ export function BarChart({
   const max = Math.max(...data.map((d) => Math.abs(d.value)), 1);
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-3">
       {data.map((d, i) => (
-        <div key={d.label} className="flex items-center gap-3">
-          <div className="w-32 shrink-0 truncate text-right text-xs text-[var(--text-secondary)]" title={d.label}>
+        <div key={d.label} className="flex items-center gap-4 group">
+          <div className="w-32 shrink-0 truncate text-right text-xs font-semibold text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors" title={d.label}>
             {d.label}
           </div>
           <div className="relative flex-1">
             <div
               role={onBarClick ? "button" : undefined}
               tabIndex={onBarClick ? 0 : undefined}
-              className={`rounded-full transition-opacity ${onBarClick ? "cursor-pointer" : ""}`}
+              className={`rounded-full transition-all ${onBarClick ? "cursor-pointer" : ""} shadow-sm hover:shadow-md`}
               style={{
                 height,
                 width: `${Math.max((Math.abs(d.value) / max) * 100, 2)}%`,
@@ -187,7 +187,7 @@ export function BarChart({
             />
           </div>
           <div
-            className="w-24 shrink-0 truncate text-xs tabular-nums text-[var(--text-primary)]"
+            className="w-24 shrink-0 truncate text-xs font-semibold tabular-nums text-[var(--text-primary)] group-hover:text-[var(--brand)] transition-colors"
             title={formatChartValue(d.value, valueLabel, currency, decimalPlaces)}
           >
             {formatChartValueShort(d.value, valueLabel, currency, decimalPlaces)}
@@ -237,6 +237,13 @@ export function LineChart({
 
   return (
     <svg width="100%" viewBox={`0 0 ${width} ${height}`} className="overflow-visible">
+      <defs>
+        <linearGradient id="lineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor={SERIES_1} stopOpacity="0.15" />
+          <stop offset="100%" stopColor={SERIES_1} stopOpacity="0.01" />
+        </linearGradient>
+      </defs>
+
       {Array.from({ length: gridLines + 1 }).map((_, i) => {
         const gy = padding.top + (innerH / gridLines) * i;
         const value = max - (range / gridLines) * i;
@@ -247,8 +254,9 @@ export function LineChart({
               x2={width - padding.right}
               y1={gy}
               y2={gy}
-              stroke="var(--gridline)"
-              strokeWidth={1}
+              stroke={i === gridLines ? "var(--gridline)" : "var(--border)"}
+              strokeWidth={i === gridLines ? 1.5 : 0.75}
+              opacity={i === gridLines ? 1 : 0.5}
             />
             <text x={padding.left - 8} y={gy + 3} textAnchor="end" fontSize={10} fill="var(--text-muted)">
               {formatChartValueShort(Math.round(value), valueLabel, currency, decimalPlaces)}
@@ -257,22 +265,24 @@ export function LineChart({
         );
       })}
 
-      <path d={pathD} fill="none" stroke={SERIES_1} strokeWidth={2} strokeLinecap="round" />
+      <path d={pathD + ` L${x(data.length - 1)},${padding.top + innerH} L${x(0)},${padding.top + innerH} Z`} fill="url(#lineGradient)" opacity="0.8" />
+      <path d={pathD} fill="none" stroke={SERIES_1} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
 
       {data.map((d, i) => (
         <g key={d.label}>
           <circle
             cx={x(i)}
             cy={y(d.value)}
-            r={hoverIndex === i ? 5 : 3}
+            r={hoverIndex === i ? 6 : 3.5}
             fill={SERIES_1}
-            stroke="var(--surface-1)"
-            strokeWidth={2}
+            stroke={hoverIndex === i ? "var(--surface-1)" : "var(--surface-1)"}
+            strokeWidth={hoverIndex === i ? 3 : 2}
+            filter={hoverIndex === i ? "drop-shadow(0 2px 4px rgba(0,0,0,0.1))" : "none"}
             onMouseEnter={() => setHoverIndex(i)}
             onMouseLeave={() => setHoverIndex(null)}
           />
           {i % Math.ceil(data.length / 6) === 0 && (
-            <text x={x(i)} y={height - 6} textAnchor="middle" fontSize={10} fill="var(--text-muted)">
+            <text x={x(i)} y={height - 6} textAnchor="middle" fontSize={11} fontWeight="500" fill="var(--text-secondary)">
               {d.label}
             </text>
           )}
@@ -285,8 +295,9 @@ export function LineChart({
                 height={22}
                 rx={4}
                 fill="var(--text-primary)"
+                filter="drop-shadow(0 4px 6px rgba(0,0,0,0.15))"
               />
-              <text x={x(i)} y={y(d.value) - 19} textAnchor="middle" fontSize={11} fill="var(--surface-1)">
+              <text x={x(i)} y={y(d.value) - 19} textAnchor="middle" fontSize={11} fontWeight="600" fill="var(--surface-1)">
                 {formatChartValueShort(d.value, valueLabel, currency, decimalPlaces)}
               </text>
             </g>
@@ -317,6 +328,10 @@ export function DonutChart({
 
   const radius = size / 2;
   const inner = radius * 0.62;
+  // Each hovered slice translates outward along its midpoint angle to give a
+  // "lifted" effect -- same visual language as BarChart's shadow-sm→shadow-md
+  // lift, adapted for radial geometry.
+  const HOVER_OFFSET = 6;
 
   const withOffsets = data.reduce<{ start: number; end: number; label: string; value: number }[]>(
     (acc, d) => {
@@ -330,6 +345,7 @@ export function DonutChart({
   const arcs = withOffsets.map((d, i) => {
     const startAngle = (d.start / total) * 2 * Math.PI - Math.PI / 2;
     const endAngle = (d.end / total) * 2 * Math.PI - Math.PI / 2;
+    const midAngle = (startAngle + endAngle) / 2;
     const large = endAngle - startAngle > Math.PI ? 1 : 0;
     const x1 = radius + radius * Math.cos(startAngle);
     const y1 = radius + radius * Math.sin(startAngle);
@@ -346,46 +362,108 @@ export function DonutChart({
       `A${inner},${inner} 0 ${large} 0 ${xi1},${yi1}`,
       "Z",
     ].join(" ");
-    return { path, color: DONUT_COLORS[i % DONUT_COLORS.length], ...d };
+    // Translate the hovered slice outward along its midpoint angle so it
+    // visually "lifts" away from the center -- mirrors BarChart's shadow lift.
+    const tx = Math.cos(midAngle) * HOVER_OFFSET;
+    const ty = Math.sin(midAngle) * HOVER_OFFSET;
+    return { path, color: DONUT_COLORS[i % DONUT_COLORS.length], midAngle, tx, ty, ...d };
   });
+
+  // Center label: show hovered slice's label (truncated) + percentage.
+  // Falls back to a blank center when nothing is hovered.
+  const hoveredArc = hovered !== null ? arcs[hovered] : null;
+  const centerPct = hoveredArc ? ((hoveredArc.value / total) * 100).toFixed(1) + "%" : null;
+  // Truncate long labels so they fit the donut hole (inner diameter = inner*2)
+  const MAX_CENTER_CHARS = Math.floor((inner * 2) / 6.5);
+  const centerLabel = hoveredArc
+    ? hoveredArc.label.length > MAX_CENTER_CHARS
+      ? hoveredArc.label.slice(0, MAX_CENTER_CHARS - 1) + "…"
+      : hoveredArc.label
+    : null;
 
   return (
     <div className="flex flex-wrap items-center gap-6">
-      <svg width={size} height={size}>
-        {arcs.map((arc, i) => (
-          <path
-            key={arc.label}
-            d={arc.path}
-            fill={arc.color}
-            stroke="var(--surface-1)"
-            strokeWidth={2}
-            opacity={hovered === null || hovered === i ? 1 : 0.45}
-            role={onSliceClick ? "button" : undefined}
-            tabIndex={onSliceClick ? 0 : undefined}
-            className={onSliceClick ? "cursor-pointer" : undefined}
-            onMouseEnter={() => setHovered(i)}
-            onMouseLeave={() => setHovered(null)}
-            onClick={onSliceClick ? () => onSliceClick(arc.label) : undefined}
-          >
-            {onSliceClick && <title>{`Drill down into ${arc.label}`}</title>}
-          </path>
-        ))}
+      <svg width={size} height={size} overflow="visible">
+        <defs>
+          <filter id="donutSliceShadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.18" />
+          </filter>
+        </defs>
+        {arcs.map((arc, i) => {
+          const isHovered = hovered === i;
+          return (
+            <path
+              key={arc.label}
+              d={arc.path}
+              fill={arc.color}
+              stroke="var(--surface-1)"
+              strokeWidth={isHovered ? 2.5 : 2}
+              opacity={hovered === null || isHovered ? 1 : 0.45}
+              filter={isHovered ? "url(#donutSliceShadow)" : "none"}
+              transform={isHovered ? `translate(${arc.tx}, ${arc.ty})` : "translate(0,0)"}
+              role={onSliceClick ? "button" : undefined}
+              tabIndex={onSliceClick ? 0 : undefined}
+              style={{ transition: "opacity 150ms ease, transform 150ms ease, filter 150ms ease" }}
+              className={onSliceClick ? "cursor-pointer" : undefined}
+              onMouseEnter={() => setHovered(i)}
+              onMouseLeave={() => setHovered(null)}
+              onClick={onSliceClick ? () => onSliceClick(arc.label) : undefined}
+            >
+              {onSliceClick && <title>{`Drill down into ${arc.label}`}</title>}
+            </path>
+          );
+        })}
+
+        {/* Center label: label name + percentage, visible only while a slice
+            is hovered. Two-line layout: percentage large on top, label small
+            below -- percentage is the highest-value data point so it leads. */}
+        {hoveredArc && centerPct && (
+          <g pointerEvents="none">
+            <text
+              x={radius}
+              y={radius - 4}
+              textAnchor="middle"
+              dominantBaseline="auto"
+              fontSize={Math.round(radius * 0.28)}
+              fontWeight="700"
+              fill={hoveredArc.color}
+            >
+              {centerPct}
+            </text>
+            <text
+              x={radius}
+              y={radius + 10}
+              textAnchor="middle"
+              dominantBaseline="hanging"
+              fontSize={Math.round(radius * 0.16)}
+              fontWeight="500"
+              fill="var(--text-secondary)"
+            >
+              {centerLabel}
+            </text>
+          </g>
+        )}
       </svg>
       <ul className="flex flex-col gap-1.5 text-sm">
         {arcs.map((arc, i) => (
           <li
             key={arc.label}
-            className={`flex items-center gap-2 ${onSliceClick ? "cursor-pointer" : ""}`}
+            className={`flex items-center gap-2 transition-opacity ${hovered !== null && hovered !== i ? "opacity-45" : "opacity-100"} ${onSliceClick ? "cursor-pointer" : ""}`}
             onMouseEnter={() => setHovered(i)}
             onMouseLeave={() => setHovered(null)}
             onClick={onSliceClick ? () => onSliceClick(arc.label) : undefined}
           >
             <span
-              className="h-2.5 w-2.5 shrink-0 rounded-full"
-              style={{ background: arc.color }}
+              className="h-2.5 w-2.5 shrink-0 rounded-full transition-transform"
+              style={{
+                background: arc.color,
+                transform: hovered === i ? "scale(1.4)" : "scale(1)",
+              }}
             />
-            <span className="text-[var(--text-primary)]">{arc.label}</span>
-            <span className="text-[var(--text-muted)]">
+            <span className={`transition-colors ${hovered === i ? "text-[var(--text-primary)] font-semibold" : "text-[var(--text-primary)]"}`}>
+              {arc.label}
+            </span>
+            <span className={`tabular-nums transition-colors ${hovered === i ? "text-[var(--text-secondary)] font-semibold" : "text-[var(--text-muted)]"}`}>
               {((arc.value / total) * 100).toFixed(1)}%
             </span>
           </li>
@@ -442,27 +520,37 @@ export function GroupedBarChart({
       <div className="flex flex-col gap-3">
         {labels.map((label) => {
           const rows = byLabel.get(label) ?? [];
+          // Determine if any segment in this row is currently hovered so we
+          // can apply the same group-hover label fade BarChart uses.
+          const rowIsHovered = rows.some((d) => hovered === `${label}::${d.series}`);
           return (
-            <div key={label} className="flex items-center gap-3">
-              <div className="w-32 shrink-0 truncate text-right text-xs text-[var(--text-secondary)]" title={label}>
+            <div key={label} className="flex items-center gap-3 group">
+              {/* Label fades from secondary → primary on row hover,
+                  identical to BarChart's group-hover:text-[var(--text-primary)] */}
+              <div
+                className={`w-32 shrink-0 truncate text-right text-xs font-semibold transition-colors ${rowIsHovered ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)]"}`}
+                title={label}
+              >
                 {label}
               </div>
               <div className={`flex flex-1 ${stacked ? "" : "gap-1"}`} style={{ height: stacked ? 20 : undefined }}>
                 {rows.map((d) => {
                   const seriesIndex = seriesNames.indexOf(d.series);
                   const key = `${label}::${d.series}`;
-                  const width = stacked
-                    ? `${(Math.abs(d.value) / maxValue) * 100}%`
-                    : `${Math.max((Math.abs(d.value) / maxValue) * 100, 2)}%`;
+                  const isThisHovered = hovered === key;
                   return (
                     <div
                       key={d.series}
-                      className={stacked ? "h-full" : "rounded-full"}
+                      // shadow-sm → shadow-md on hover matches BarChart's lift effect.
+                      // transition-all covers opacity + shadow together.
+                      className={`transition-all ${stacked ? "h-full" : "rounded-full"} ${isThisHovered ? "shadow-md" : "shadow-sm"}`}
                       style={{
                         height: stacked ? "100%" : 16,
-                        width: stacked ? width : `${Math.max((Math.abs(d.value) / maxValue) * 100, 2)}%`,
+                        width: stacked ? `${(Math.abs(d.value) / maxValue) * 100}%` : `${Math.max((Math.abs(d.value) / maxValue) * 100, 2)}%`,
                         background: DONUT_COLORS[seriesIndex % DONUT_COLORS.length],
-                        opacity: hovered === null || hovered === key ? 1 : 0.4,
+                        // Dim all segments that aren't the one under the cursor,
+                        // matching BarChart's opacity: hovered === null || hovered === i ? 1 : 0.45
+                        opacity: hovered === null || isThisHovered ? 1 : 0.45,
                       }}
                       onMouseEnter={() => setHovered(key)}
                       onMouseLeave={() => setHovered(null)}
