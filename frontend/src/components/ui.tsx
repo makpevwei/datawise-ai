@@ -272,14 +272,19 @@ export function GroundedBadge({ provenance }: { provenance: ProvenanceState }) {
   }
   if (provenance === "mixed") {
     return (
+      // "Mixed" kept short enough to fit a 390px pill without wrapping.
+      // Full meaning is: some findings are grounded in the uploaded data,
+      // others are from general knowledge -- the individual finding badges
+      // in the answer body show which is which.
       <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--status-caution)]/15 px-2.5 py-1 text-xs font-semibold text-[var(--status-caution)]">
-        <IconAlertTriangle size={13} /> Mixed: some findings grounded, others from general knowledge
+        <IconAlertTriangle size={13} /> Mixed: data + general knowledge
       </span>
     );
   }
   return (
+    // Kept short enough to fit a 390px pill without wrapping.
     <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--status-warning)]/20 px-2.5 py-1 text-xs font-semibold text-[color:#8a5a00] dark:text-[var(--status-warning)]">
-      <IconAlertTriangle size={13} /> General knowledge — not verified from your data
+      <IconAlertTriangle size={13} /> General knowledge — not from your data
     </span>
   );
 }
@@ -460,7 +465,9 @@ export function Button({
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed ${styles}`}
+      // py-2.5 → min height ~44px (meets WCAG 2.5.5 touch target minimum).
+      // Was py-2 (~36px), which failed on mobile for every primary CTA.
+      className={`inline-flex items-center gap-2 rounded-lg px-3.5 py-2.5 text-sm font-medium transition-colors disabled:cursor-not-allowed ${styles}`}
     >
       {children}
     </button>

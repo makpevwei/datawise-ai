@@ -166,7 +166,11 @@ export function BarChart({
     <div className="flex flex-col gap-3">
       {data.map((d, i) => (
         <div key={d.label} className="flex items-center gap-4 group">
-          <div className="w-32 shrink-0 truncate text-right text-xs font-semibold text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors" title={d.label}>
+          {/* w-24 (96px) instead of the previous w-32 (128px): frees ~32px
+              for the bar itself on a 390px screen (where the fixed columns
+              were consuming 240px of the ~350px usable width). Labels still
+              truncate with title= for hover on desktop. */}
+          <div className="w-24 shrink-0 truncate text-right text-xs font-semibold text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors" title={d.label}>
             {d.label}
           </div>
           <div className="relative flex-1">
@@ -527,8 +531,10 @@ export function GroupedBarChart({
             <div key={label} className="flex items-center gap-3 group">
               {/* Label fades from secondary → primary on row hover,
                   identical to BarChart's group-hover:text-[var(--text-primary)] */}
+              {/* w-24 (96px) instead of w-32 (128px) — same reasoning as
+                  BarChart's label column above. */}
               <div
-                className={`w-32 shrink-0 truncate text-right text-xs font-semibold transition-colors ${rowIsHovered ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)]"}`}
+                className={`w-24 shrink-0 truncate text-right text-xs font-semibold transition-colors ${rowIsHovered ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)]"}`}
                 title={label}
               >
                 {label}

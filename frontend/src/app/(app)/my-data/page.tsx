@@ -305,122 +305,176 @@ export default function MyDataPage() {
                   </>
                 )}
               </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead>
-                  <tr className="border-b border-[var(--border)] text-[var(--text-secondary)]">
-                    <th className="py-2 pr-2 font-medium"></th>
-                    <th className="py-2 pr-4 font-medium">Name</th>
-                    <th className="py-2 pr-4 font-medium">Type</th>
-                    <th className="py-2 pr-4 font-medium">Size</th>
-                    <th className="py-2 pr-4 font-medium">Rows</th>
-                    <th className="py-2 pr-4 font-medium">Status</th>
-                    <th className="py-2 pr-4 font-medium">Uploaded</th>
-                    <th className="py-2 font-medium">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {datasetLibrary.map((d) => (
-                    <Fragment key={d.id}>
-                      <tr className="border-b border-[var(--border)] last:border-0">
-                        <td className="py-2.5 pr-2">
-                          <input
-                            type="checkbox"
-                            checked={selectedDatasetIds.has(d.id)}
-                            onChange={() => toggleDatasetSelection(d.id)}
-                            className="h-4 w-4 rounded border-[var(--border)]"
-                          />
-                        </td>
-                        <td className="py-2.5 pr-4 text-[var(--text-primary)]">
-                          {d.display_name} <span className="text-xs text-[var(--text-muted)]">v{d.version}</span>
-                          <SourceBadge source={d.source} />
-                        </td>
-                        <td className="py-2.5 pr-4 uppercase text-[var(--text-secondary)]">{d.file_type}</td>
-                        <td className="py-2.5 pr-4 text-[var(--text-secondary)]">{formatBytes(d.file_size)}</td>
-                        <td className="py-2.5 pr-4 text-[var(--text-secondary)]">
-                          {d.row_count !== null ? formatNumber(d.row_count) : "—"}
-                        </td>
-                        <td className="py-2.5 pr-4">
-                          <StatusBadge status={d.processing_status} />
-                        </td>
-                        <td className="py-2.5 pr-4 text-[var(--text-secondary)]">
-                          {new Date(d.created_at).toLocaleDateString()}
-                        </td>
-                        <td className="py-2.5">
-                          <div className="flex items-center gap-3">
-                          <button
-                            onClick={() => setSubTab("explore")}
-                            className="text-xs font-medium text-[var(--brand)] hover:underline"
-                          >
-                            Open
-                          </button>
-                          <Link href="/analyze" className="text-xs font-medium text-[var(--brand)] hover:underline">
-                            Analyze
-                          </Link>
-                          <Link href="/ask" className="text-xs font-medium text-[var(--brand)] hover:underline">
-                            Ask DataWise
-                          </Link>
-                          <button
-                            onClick={() => toggleDatasetVersions(d.id)}
-                            className="text-xs font-medium text-[var(--text-secondary)] hover:underline"
-                          >
-                            {expandedDatasetId === d.id ? "Hide Versions" : "Versions"}
-                          </button>
-                          <button
-                            onClick={() => handleDeleteDataset(d)}
-                            className="text-xs font-medium text-[var(--status-critical)] hover:underline"
-                          >
-                            Delete
-                          </button>
-                          </div>
-                        </td>
-                      </tr>
+
+              {/* Mobile card list — one card per dataset, visible below sm breakpoint.
+                  Replaces the 8-column table that required horizontal scroll with no
+                  sticky Name column, making rows impossible to use on 390px. */}
+              <ul className="flex flex-col divide-y divide-[var(--border)] sm:hidden">
+                {datasetLibrary.map((d) => (
+                  <li key={d.id} className="flex items-start gap-3 py-3">
+                    <input
+                      type="checkbox"
+                      checked={selectedDatasetIds.has(d.id)}
+                      onChange={() => toggleDatasetSelection(d.id)}
+                      className="mt-0.5 h-4 w-4 shrink-0 rounded border-[var(--border)]"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <span className="truncate text-sm font-medium text-[var(--text-primary)]">{d.display_name}</span>
+                        <span className="text-xs text-[var(--text-muted)]">v{d.version}</span>
+                        <SourceBadge source={d.source} />
+                        <StatusBadge status={d.processing_status} />
+                      </div>
+                      <p className="mt-0.5 text-xs text-[var(--text-secondary)]">
+                        {d.file_type.toUpperCase()} · {formatBytes(d.file_size)}
+                        {d.row_count !== null ? ` · ${formatNumber(d.row_count)} rows` : ""}
+                        {" · "}{new Date(d.created_at).toLocaleDateString()}
+                      </p>
+                      {/* Action row — py-2 gives each link a ~36px tap target within its row */}
+                      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+                        <button
+                          onClick={() => setSubTab("explore")}
+                          className="py-1 text-xs font-medium text-[var(--brand)] hover:underline"
+                        >
+                          Open
+                        </button>
+                        <Link href="/analyze" className="py-1 text-xs font-medium text-[var(--brand)] hover:underline">
+                          Analyze
+                        </Link>
+                        <Link href="/ask" className="py-1 text-xs font-medium text-[var(--brand)] hover:underline">
+                          Ask DataWise
+                        </Link>
+                        <button
+                          onClick={() => toggleDatasetVersions(d.id)}
+                          className="py-1 text-xs font-medium text-[var(--text-secondary)] hover:underline"
+                        >
+                          {expandedDatasetId === d.id ? "Hide Versions" : "Versions"}
+                        </button>
+                        <button
+                          onClick={() => handleDeleteDataset(d)}
+                          className="py-1 text-xs font-medium text-[var(--status-critical)] hover:underline"
+                        >
+                          Delete
+                        </button>
+                      </div>
                       {expandedDatasetId === d.id && (
+                        <div className="mt-2 rounded-lg bg-[var(--surface-2)] px-3 py-2">
+                          {datasetVersionsLoading ? (
+                            <p className="text-xs text-[var(--text-muted)]">Loading versions…</p>
+                          ) : datasetVersions.length === 0 ? (
+                            <p className="text-xs text-[var(--text-muted)]">No versions found.</p>
+                          ) : (
+                            <div className="flex flex-col gap-1.5">
+                              {datasetVersions.map((v) => (
+                                <div key={v.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+                                  <span className="font-medium text-[var(--text-primary)]">v{v.version}</span>
+                                  {v.is_active ? (
+                                    <span className="rounded-full bg-[var(--status-good)]/15 px-2 py-0.5 font-medium text-[var(--status-good)]">Active</span>
+                                  ) : (
+                                    <button onClick={() => handleActivateDatasetVersion(v.id)} className="font-medium text-[var(--brand)] hover:underline">Activate</button>
+                                  )}
+                                  <span className="text-[var(--text-secondary)]">
+                                    {v.row_count !== null ? `${formatNumber(v.row_count)} rows` : "—"} · {new Date(v.created_at).toLocaleDateString()}
+                                  </span>
+                                  <button onClick={() => handleDeleteDatasetVersion(v.id)} className="text-[var(--status-critical)] hover:underline">Delete</button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+
+              {/* Desktop table — hidden below sm, full 8-column layout above */}
+              <div className="hidden overflow-x-auto sm:block">
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-[var(--border)] text-[var(--text-secondary)]">
+                      <th className="py-2 pr-2 font-medium"></th>
+                      <th className="py-2 pr-4 font-medium">Name</th>
+                      <th className="py-2 pr-4 font-medium">Type</th>
+                      <th className="py-2 pr-4 font-medium">Size</th>
+                      <th className="py-2 pr-4 font-medium">Rows</th>
+                      <th className="py-2 pr-4 font-medium">Status</th>
+                      <th className="py-2 pr-4 font-medium">Uploaded</th>
+                      <th className="py-2 font-medium">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {datasetLibrary.map((d) => (
+                      <Fragment key={d.id}>
                         <tr className="border-b border-[var(--border)] last:border-0">
-                          <td colSpan={8} className="bg-[var(--surface-2)] px-4 py-3">
-                            {datasetVersionsLoading ? (
-                              <p className="text-xs text-[var(--text-muted)]">Loading versions…</p>
-                            ) : datasetVersions.length === 0 ? (
-                              <p className="text-xs text-[var(--text-muted)]">No versions found.</p>
-                            ) : (
-                              <div className="flex flex-col gap-1.5">
-                                {datasetVersions.map((v) => (
-                                  <div key={v.id} className="flex items-center gap-3 text-xs">
-                                    <span className="font-medium text-[var(--text-primary)]">v{v.version}</span>
-                                    {v.is_active ? (
-                                      <span className="rounded-full bg-[var(--status-good)]/15 px-2 py-0.5 font-medium text-[var(--status-good)]">
-                                        Active
-                                      </span>
-                                    ) : (
-                                      <button
-                                        onClick={() => handleActivateDatasetVersion(v.id)}
-                                        className="font-medium text-[var(--brand)] hover:underline"
-                                      >
-                                        Activate
-                                      </button>
-                                    )}
-                                    <span className="text-[var(--text-secondary)]">
-                                      {v.row_count !== null ? `${formatNumber(v.row_count)} rows` : "—"} ·{" "}
-                                      {new Date(v.created_at).toLocaleDateString()}
-                                    </span>
-                                    <button
-                                      onClick={() => handleDeleteDatasetVersion(v.id)}
-                                      className="text-[var(--status-critical)] hover:underline"
-                                    >
-                                      Delete
-                                    </button>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
+                          <td className="py-2.5 pr-2">
+                            <input
+                              type="checkbox"
+                              checked={selectedDatasetIds.has(d.id)}
+                              onChange={() => toggleDatasetSelection(d.id)}
+                              className="h-4 w-4 rounded border-[var(--border)]"
+                            />
+                          </td>
+                          <td className="py-2.5 pr-4 text-[var(--text-primary)]">
+                            {d.display_name} <span className="text-xs text-[var(--text-muted)]">v{d.version}</span>
+                            <SourceBadge source={d.source} />
+                          </td>
+                          <td className="py-2.5 pr-4 uppercase text-[var(--text-secondary)]">{d.file_type}</td>
+                          <td className="py-2.5 pr-4 text-[var(--text-secondary)]">{formatBytes(d.file_size)}</td>
+                          <td className="py-2.5 pr-4 text-[var(--text-secondary)]">
+                            {d.row_count !== null ? formatNumber(d.row_count) : "—"}
+                          </td>
+                          <td className="py-2.5 pr-4">
+                            <StatusBadge status={d.processing_status} />
+                          </td>
+                          <td className="py-2.5 pr-4 text-[var(--text-secondary)]">
+                            {new Date(d.created_at).toLocaleDateString()}
+                          </td>
+                          <td className="py-2.5">
+                            <div className="flex items-center gap-3">
+                              <button onClick={() => setSubTab("explore")} className="text-xs font-medium text-[var(--brand)] hover:underline">Open</button>
+                              <Link href="/analyze" className="text-xs font-medium text-[var(--brand)] hover:underline">Analyze</Link>
+                              <Link href="/ask" className="text-xs font-medium text-[var(--brand)] hover:underline">Ask DataWise</Link>
+                              <button onClick={() => toggleDatasetVersions(d.id)} className="text-xs font-medium text-[var(--text-secondary)] hover:underline">
+                                {expandedDatasetId === d.id ? "Hide Versions" : "Versions"}
+                              </button>
+                              <button onClick={() => handleDeleteDataset(d)} className="text-xs font-medium text-[var(--status-critical)] hover:underline">Delete</button>
+                            </div>
                           </td>
                         </tr>
-                      )}
-                    </Fragment>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                        {expandedDatasetId === d.id && (
+                          <tr className="border-b border-[var(--border)] last:border-0">
+                            <td colSpan={8} className="bg-[var(--surface-2)] px-4 py-3">
+                              {datasetVersionsLoading ? (
+                                <p className="text-xs text-[var(--text-muted)]">Loading versions…</p>
+                              ) : datasetVersions.length === 0 ? (
+                                <p className="text-xs text-[var(--text-muted)]">No versions found.</p>
+                              ) : (
+                                <div className="flex flex-col gap-1.5">
+                                  {datasetVersions.map((v) => (
+                                    <div key={v.id} className="flex items-center gap-3 text-xs">
+                                      <span className="font-medium text-[var(--text-primary)]">v{v.version}</span>
+                                      {v.is_active ? (
+                                        <span className="rounded-full bg-[var(--status-good)]/15 px-2 py-0.5 font-medium text-[var(--status-good)]">Active</span>
+                                      ) : (
+                                        <button onClick={() => handleActivateDatasetVersion(v.id)} className="font-medium text-[var(--brand)] hover:underline">Activate</button>
+                                      )}
+                                      <span className="text-[var(--text-secondary)]">
+                                        {v.row_count !== null ? `${formatNumber(v.row_count)} rows` : "—"} · {new Date(v.created_at).toLocaleDateString()}
+                                      </span>
+                                      <button onClick={() => handleDeleteDatasetVersion(v.id)} className="text-[var(--status-critical)] hover:underline">Delete</button>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        )}
+                      </Fragment>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </Card>
@@ -472,107 +526,156 @@ export default function MyDataPage() {
                   </>
                 )}
               </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead>
-                  <tr className="border-b border-[var(--border)] text-[var(--text-secondary)]">
-                    <th className="py-2 pr-2 font-medium"></th>
-                    <th className="py-2 pr-4 font-medium">Name</th>
-                    <th className="py-2 pr-4 font-medium">Type</th>
-                    <th className="py-2 pr-4 font-medium">Size</th>
-                    <th className="py-2 pr-4 font-medium">Chunks</th>
-                    <th className="py-2 pr-4 font-medium">Status</th>
-                    <th className="py-2 pr-4 font-medium">Uploaded</th>
-                    <th className="py-2 font-medium">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {documentLibrary.map((d) => (
-                    <Fragment key={d.id}>
-                      <tr className="border-b border-[var(--border)] last:border-0">
-                        <td className="py-2.5 pr-2">
-                          <input
-                            type="checkbox"
-                            checked={selectedDocumentIds.has(d.id)}
-                            onChange={() => toggleDocumentSelection(d.id)}
-                            className="h-4 w-4 rounded border-[var(--border)]"
-                          />
-                        </td>
-                        <td className="py-2.5 pr-4 text-[var(--text-primary)]">
-                          {d.filename} <span className="text-xs text-[var(--text-muted)]">v{d.version}</span>
-                          <SourceBadge source={d.source} />
-                        </td>
-                        <td className="py-2.5 pr-4 uppercase text-[var(--text-secondary)]">{d.file_type}</td>
-                        <td className="py-2.5 pr-4 text-[var(--text-secondary)]">{formatBytes(d.file_size)}</td>
-                        <td className="py-2.5 pr-4 text-[var(--text-secondary)]">{d.chunk_count ?? "—"}</td>
-                        <td className="py-2.5 pr-4">
-                          <StatusBadge status={d.embedding_status} />
-                        </td>
-                        <td className="py-2.5 pr-4 text-[var(--text-secondary)]">
-                          {new Date(d.created_at).toLocaleDateString()}
-                        </td>
-                        <td className="py-2.5">
-                          <div className="flex items-center gap-3">
-                          <button
-                            onClick={() => toggleDocumentVersions(d.id)}
-                            className="text-xs font-medium text-[var(--text-secondary)] hover:underline"
-                          >
-                            {expandedDocumentId === d.id ? "Hide Versions" : "Versions"}
-                          </button>
-                          <button
-                            onClick={() => handleDeleteDocument(d.id)}
-                            className="text-xs font-medium text-[var(--status-critical)] hover:underline"
-                          >
-                            Delete
-                          </button>
-                          </div>
-                        </td>
-                      </tr>
+
+              {/* Mobile card list — same pattern as Datasets tab */}
+              <ul className="flex flex-col divide-y divide-[var(--border)] sm:hidden">
+                {documentLibrary.map((d) => (
+                  <li key={d.id} className="flex items-start gap-3 py-3">
+                    <input
+                      type="checkbox"
+                      checked={selectedDocumentIds.has(d.id)}
+                      onChange={() => toggleDocumentSelection(d.id)}
+                      className="mt-0.5 h-4 w-4 shrink-0 rounded border-[var(--border)]"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <span className="truncate text-sm font-medium text-[var(--text-primary)]">{d.filename}</span>
+                        <span className="text-xs text-[var(--text-muted)]">v{d.version}</span>
+                        <SourceBadge source={d.source} />
+                        <StatusBadge status={d.embedding_status} />
+                      </div>
+                      <p className="mt-0.5 text-xs text-[var(--text-secondary)]">
+                        {d.file_type.toUpperCase()} · {formatBytes(d.file_size)}
+                        {d.chunk_count != null ? ` · ${d.chunk_count} chunks` : ""}
+                        {" · "}{new Date(d.created_at).toLocaleDateString()}
+                      </p>
+                      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+                        <button
+                          onClick={() => toggleDocumentVersions(d.id)}
+                          className="py-1 text-xs font-medium text-[var(--text-secondary)] hover:underline"
+                        >
+                          {expandedDocumentId === d.id ? "Hide Versions" : "Versions"}
+                        </button>
+                        <button
+                          onClick={() => handleDeleteDocument(d.id)}
+                          className="py-1 text-xs font-medium text-[var(--status-critical)] hover:underline"
+                        >
+                          Delete
+                        </button>
+                      </div>
                       {expandedDocumentId === d.id && (
+                        <div className="mt-2 rounded-lg bg-[var(--surface-2)] px-3 py-2">
+                          {documentVersionsLoading ? (
+                            <p className="text-xs text-[var(--text-muted)]">Loading versions…</p>
+                          ) : documentVersions.length === 0 ? (
+                            <p className="text-xs text-[var(--text-muted)]">No versions found.</p>
+                          ) : (
+                            <div className="flex flex-col gap-1.5">
+                              {documentVersions.map((v) => (
+                                <div key={v.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+                                  <span className="font-medium text-[var(--text-primary)]">v{v.version}</span>
+                                  {v.is_active ? (
+                                    <span className="rounded-full bg-[var(--status-good)]/15 px-2 py-0.5 font-medium text-[var(--status-good)]">Active</span>
+                                  ) : (
+                                    <button onClick={() => handleActivateDocumentVersion(v.id)} className="font-medium text-[var(--brand)] hover:underline">Activate</button>
+                                  )}
+                                  <span className="text-[var(--text-secondary)]">
+                                    {v.chunk_count ?? "—"} chunks · {new Date(v.created_at).toLocaleDateString()}
+                                  </span>
+                                  <button onClick={() => handleDeleteDocumentVersion(v.id)} className="text-[var(--status-critical)] hover:underline">Delete</button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+
+              {/* Desktop table — hidden below sm */}
+              <div className="hidden overflow-x-auto sm:block">
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-[var(--border)] text-[var(--text-secondary)]">
+                      <th className="py-2 pr-2 font-medium"></th>
+                      <th className="py-2 pr-4 font-medium">Name</th>
+                      <th className="py-2 pr-4 font-medium">Type</th>
+                      <th className="py-2 pr-4 font-medium">Size</th>
+                      <th className="py-2 pr-4 font-medium">Chunks</th>
+                      <th className="py-2 pr-4 font-medium">Status</th>
+                      <th className="py-2 pr-4 font-medium">Uploaded</th>
+                      <th className="py-2 font-medium">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {documentLibrary.map((d) => (
+                      <Fragment key={d.id}>
                         <tr className="border-b border-[var(--border)] last:border-0">
-                          <td colSpan={8} className="bg-[var(--surface-2)] px-4 py-3">
-                            {documentVersionsLoading ? (
-                              <p className="text-xs text-[var(--text-muted)]">Loading versions…</p>
-                            ) : documentVersions.length === 0 ? (
-                              <p className="text-xs text-[var(--text-muted)]">No versions found.</p>
-                            ) : (
-                              <div className="flex flex-col gap-1.5">
-                                {documentVersions.map((v) => (
-                                  <div key={v.id} className="flex items-center gap-3 text-xs">
-                                    <span className="font-medium text-[var(--text-primary)]">v{v.version}</span>
-                                    {v.is_active ? (
-                                      <span className="rounded-full bg-[var(--status-good)]/15 px-2 py-0.5 font-medium text-[var(--status-good)]">
-                                        Active
-                                      </span>
-                                    ) : (
-                                      <button
-                                        onClick={() => handleActivateDocumentVersion(v.id)}
-                                        className="font-medium text-[var(--brand)] hover:underline"
-                                      >
-                                        Activate
-                                      </button>
-                                    )}
-                                    <span className="text-[var(--text-secondary)]">
-                                      {v.chunk_count ?? "—"} chunks · {new Date(v.created_at).toLocaleDateString()}
-                                    </span>
-                                    <button
-                                      onClick={() => handleDeleteDocumentVersion(v.id)}
-                                      className="text-[var(--status-critical)] hover:underline"
-                                    >
-                                      Delete
-                                    </button>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
+                          <td className="py-2.5 pr-2">
+                            <input
+                              type="checkbox"
+                              checked={selectedDocumentIds.has(d.id)}
+                              onChange={() => toggleDocumentSelection(d.id)}
+                              className="h-4 w-4 rounded border-[var(--border)]"
+                            />
+                          </td>
+                          <td className="py-2.5 pr-4 text-[var(--text-primary)]">
+                            {d.filename} <span className="text-xs text-[var(--text-muted)]">v{d.version}</span>
+                            <SourceBadge source={d.source} />
+                          </td>
+                          <td className="py-2.5 pr-4 uppercase text-[var(--text-secondary)]">{d.file_type}</td>
+                          <td className="py-2.5 pr-4 text-[var(--text-secondary)]">{formatBytes(d.file_size)}</td>
+                          <td className="py-2.5 pr-4 text-[var(--text-secondary)]">{d.chunk_count ?? "—"}</td>
+                          <td className="py-2.5 pr-4">
+                            <StatusBadge status={d.embedding_status} />
+                          </td>
+                          <td className="py-2.5 pr-4 text-[var(--text-secondary)]">
+                            {new Date(d.created_at).toLocaleDateString()}
+                          </td>
+                          <td className="py-2.5">
+                            <div className="flex items-center gap-3">
+                              <button onClick={() => toggleDocumentVersions(d.id)} className="text-xs font-medium text-[var(--text-secondary)] hover:underline">
+                                {expandedDocumentId === d.id ? "Hide Versions" : "Versions"}
+                              </button>
+                              <button onClick={() => handleDeleteDocument(d.id)} className="text-xs font-medium text-[var(--status-critical)] hover:underline">Delete</button>
+                            </div>
                           </td>
                         </tr>
-                      )}
-                    </Fragment>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                        {expandedDocumentId === d.id && (
+                          <tr className="border-b border-[var(--border)] last:border-0">
+                            <td colSpan={8} className="bg-[var(--surface-2)] px-4 py-3">
+                              {documentVersionsLoading ? (
+                                <p className="text-xs text-[var(--text-muted)]">Loading versions…</p>
+                              ) : documentVersions.length === 0 ? (
+                                <p className="text-xs text-[var(--text-muted)]">No versions found.</p>
+                              ) : (
+                                <div className="flex flex-col gap-1.5">
+                                  {documentVersions.map((v) => (
+                                    <div key={v.id} className="flex items-center gap-3 text-xs">
+                                      <span className="font-medium text-[var(--text-primary)]">v{v.version}</span>
+                                      {v.is_active ? (
+                                        <span className="rounded-full bg-[var(--status-good)]/15 px-2 py-0.5 font-medium text-[var(--status-good)]">Active</span>
+                                      ) : (
+                                        <button onClick={() => handleActivateDocumentVersion(v.id)} className="font-medium text-[var(--brand)] hover:underline">Activate</button>
+                                      )}
+                                      <span className="text-[var(--text-secondary)]">
+                                        {v.chunk_count ?? "—"} chunks · {new Date(v.created_at).toLocaleDateString()}
+                                      </span>
+                                      <button onClick={() => handleDeleteDocumentVersion(v.id)} className="text-[var(--status-critical)] hover:underline">Delete</button>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        )}
+                      </Fragment>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </Card>

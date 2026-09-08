@@ -212,7 +212,7 @@ describe("AskDataWise", () => {
     fireEvent.click(screen.getByRole("button", { name: /total number of records/i }));
     fireEvent.click(screen.getByRole("button", { name: /analyze/i }));
 
-    await waitFor(() => expect(screen.getByText(/not verified from your data/i)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/general knowledge — not from your data/i)).toBeInTheDocument());
     expect(screen.queryByText(/^grounded in your data$/i)).not.toBeInTheDocument();
   });
 
@@ -245,9 +245,9 @@ describe("AskDataWise", () => {
     fireEvent.click(screen.getByRole("button", { name: /total number of records/i }));
     fireEvent.click(screen.getByRole("button", { name: /analyze/i }));
 
-    await waitFor(() => expect(screen.getByText(/mixed: some findings grounded/i)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/mixed: data \+ general knowledge/i)).toBeInTheDocument());
     expect(screen.queryByText(/^grounded in your data$/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/not verified from your data/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/general knowledge — not from your data/i)).not.toBeInTheDocument();
   });
 
   it("shows citations for document-grounded findings", async () => {

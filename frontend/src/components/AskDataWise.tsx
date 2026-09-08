@@ -239,7 +239,9 @@ export function AskDataWise({
                   key={q}
                   onClick={() => setQuestion(q)}
                   disabled={loading}
-                  className="rounded-full border border-[var(--border)] px-2.5 py-1 text-xs text-[var(--text-secondary)] hover:border-[var(--brand)] hover:text-[var(--brand)] disabled:opacity-40"
+                  // py-2 → min height ~40px (up from ~22px at py-1), meeting
+                  // the touch-target minimum for the primary on-ramp on mobile.
+                  className="rounded-full border border-[var(--border)] px-3 py-2 text-xs text-[var(--text-secondary)] hover:border-[var(--brand)] hover:text-[var(--brand)] disabled:opacity-40"
                 >
                   {q}
                 </button>
@@ -414,7 +416,9 @@ function AnswerCard({
             </div>
           )}
 
-          <div className="flex items-center gap-3">
+          {/* flex-wrap so a long export-error message wraps below the button
+              instead of overflowing the card edge on 390px screens. */}
+          <div className="flex flex-wrap items-center gap-3">
             <Button variant="secondary" onClick={handleExport} disabled={exporting}>
               {exporting ? <Spinner /> : null} Export PDF
             </Button>
@@ -515,8 +519,11 @@ function RecommendationList({ findings }: { findings: AgentFinding[] }) {
 function ClaimComparisonRow({ comparison }: { comparison: ClaimComparison }) {
   return (
     <div className="rounded-lg border border-[var(--border)] p-3">
-      <div className="mb-1 flex items-start justify-between gap-2">
-        <p className="text-sm text-[var(--text-primary)]">&ldquo;{comparison.document_claim}&rdquo;</p>
+      {/* flex-wrap + min-w-0 on the quote: a long document claim and the
+          badge sit in the same row on desktop; on mobile the badge wraps
+          below rather than squeezing the quote text to nothing. */}
+      <div className="mb-1 flex flex-wrap items-start gap-2">
+        <p className="min-w-0 flex-1 text-sm text-[var(--text-primary)]">&ldquo;{comparison.document_claim}&rdquo;</p>
         <CrossCheckBadge label={comparison.label} />
       </div>
       <p className="text-xs text-[var(--text-secondary)]">{comparison.explanation}</p>
@@ -578,9 +585,11 @@ function AgentReasoning({
   const toolCalls = trace.filter((s) => s.stage !== "understanding_question" && s.stage !== "answer").length;
   return (
     <div className="rounded-lg border border-[var(--border)] bg-[var(--background)]">
+      {/* py-3 → ~44px touch target (up from py-2 ~32px). w-full makes the
+          full row tappable, so width was never the problem — height was. */}
       <button
         onClick={() => setShowTrace((v) => !v)}
-        className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left"
+        className="flex w-full items-center justify-between gap-2 px-3 py-3 text-left"
       >
         <span className="flex items-center gap-1.5 text-xs font-medium text-[var(--text-secondary)]">
           <IconShieldCheck size={14} className="text-[var(--brand)]" />

@@ -30,7 +30,7 @@ const NAV_ITEMS = [
 
 /** Compact top-right account dropdown menu — stays accessible regardless
  * of scroll depth because it is part of the sticky main-area header. */
-function AccountMenu({ userName, userEmail }: { userName: string; userEmail: string }) {
+function AccountMenu({ userName, userEmail, mobileCompact = false }: { userName: string; userEmail: string; mobileCompact?: boolean }) {
   const { logout } = useAuth();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -71,7 +71,10 @@ function AccountMenu({ userName, userEmail }: { userName: string; userEmail: str
         >
           {initial}
         </span>
-        <span>{userName}</span>
+        {/* In mobile compact mode only the avatar initial is shown, so long
+            names don't overflow the narrow top bar. The full name is always
+            visible inside the dropdown itself. */}
+        {!mobileCompact && <span>{userName}</span>}
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="12"
@@ -189,8 +192,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               key={item.href}
               href={item.href}
               className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${active
-                  ? "bg-[var(--brand-subtle)] text-[var(--brand)]"
-                  : "text-[var(--text-secondary)] hover:bg-[var(--background)] hover:text-[var(--text-primary)]"
+                ? "bg-[var(--brand-subtle)] text-[var(--brand)]"
+                : "text-[var(--text-secondary)] hover:bg-[var(--background)] hover:text-[var(--text-primary)]"
                 }`}
             >
               <Icon size={17} className="shrink-0" />
@@ -207,8 +210,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <Link
           href="/settings"
           className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${pathname === "/settings"
-              ? "bg-[var(--brand-subtle)] text-[var(--brand)]"
-              : "text-[var(--text-secondary)] hover:bg-[var(--background)] hover:text-[var(--text-primary)]"
+            ? "bg-[var(--brand-subtle)] text-[var(--brand)]"
+            : "text-[var(--text-secondary)] hover:bg-[var(--background)] hover:text-[var(--text-primary)]"
             }`}
         >
           <IconGear size={17} className="shrink-0" />
@@ -232,15 +235,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Mobile top bar */}
-      <div className="flex items-center justify-between border-b border-[var(--border)] bg-[var(--surface-1)] px-4 py-3 md:hidden">
+      <div className="flex items-center justify-between border-b border-[var(--border)] bg-[var(--surface-1)] px-4 py-2 md:hidden">
         <Logo size={20} />
-        <div className="flex items-center gap-2">
-          <AccountMenu userName={user.full_name} userEmail={user.email} />
+        <div className="flex items-center gap-1.5">
+          {/* AccountMenu in the mobile bar only shows the avatar initial,
+              not the full name — long names overflow the narrow top bar. */}
+          <AccountMenu userName={user.full_name} userEmail={user.email} mobileCompact />
+          {/* p-2.5 gives a ~44px tap target (10px pad + 18px icon + 10px pad).
+              Was p-1.5 (~30px), which failed the WCAG 2.5.5 minimum. */}
           <button
             onClick={() => setMobileNavOpen(true)}
             aria-label="Open menu"
             aria-expanded={mobileNavOpen}
-            className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-primary)]"
+            className="rounded-lg border border-[var(--border)] p-2.5 text-[var(--text-primary)]"
           >
             <IconMenu size={18} />
           </button>
@@ -251,12 +258,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="fixed inset-0 z-40 flex md:hidden">
           <div className="absolute inset-0 bg-black/40" onClick={() => setMobileNavOpen(false)} />
           <aside className="relative z-50 flex w-64 flex-col bg-[var(--surface-1)] px-4 py-5 shadow-xl">
+            {/* p-2.5 → ~44px tap target. Was p-1.5 (~26px). */}
             <button
               onClick={() => setMobileNavOpen(false)}
               aria-label="Close menu"
-              className="mb-4 self-end rounded-lg border border-[var(--border)] p-1.5 text-[var(--text-secondary)]"
+              className="mb-4 self-end rounded-lg border border-[var(--border)] p-2.5 text-[var(--text-secondary)]"
             >
-              <IconX size={14} />
+              <IconX size={16} />
             </button>
             {sidebarContent}
           </aside>
