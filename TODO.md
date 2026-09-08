@@ -165,6 +165,15 @@ outstanding gets lost between sessions.
   connection pool limits, and the in-memory rate limiter's multi-instance
   gap (above) all matter here.
 
+## Paused / future work
+
+- **PWA / Android (Phase B)** — Phase A mobile responsive fixes complete
+  (see 2026-09-07 CHANGELOG entry). Phase B (PWA manifest, service worker,
+  TWA packaging for Play Store) is the next step; not started yet.
+- **Telegram integration** — full plan complete and reviewed (see chat/commit
+  history), ready to implement, paused in favor of Android mobile work. No
+  code written yet.
+
 ## Lower priority
 
 - **ScatterChart / PointMapChart visual polish** — hover transitions and

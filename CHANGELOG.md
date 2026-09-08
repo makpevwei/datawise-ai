@@ -4,7 +4,31 @@ Plain-English record of what's shipped, newest first. No version numbers yet
 (pre-1.0, deploys are continuous rather than tagged releases) — entries are
 grouped by date instead.
 
-## 2026-09-07 — GENERAL_KNOWLEDGE routing route (agent)
+## 2026-09-07 — Phase A mobile responsive fixes
+
+- **Touch targets**: every interactive element that was below the WCAG 2.5.5
+  44px minimum is now at or close to it — `Button` globally (`py-2→py-2.5`),
+  hamburger and drawer-close buttons in `AppShell` (`p-1.5→p-2.5`), starter
+  question chips in AskDataWise (`py-1→py-2`), AgentReasoning expand button
+  (`py-2→py-3`).
+- **Mobile top bar**: `AccountMenu` now shows only the avatar initial on
+  mobile (new `mobileCompact` prop) — long full names no longer overflow the
+  narrow top bar; full name and email still appear inside the dropdown.
+- **GroundedBadge text shortened** to fit a 390px pill without wrapping:
+  "Mixed: data + general knowledge" and "General knowledge — not from your
+  data" (from 52-char and 43-char originals respectively).
+- **ClaimComparisonRow**: added `flex-wrap` + `min-w-0 flex-1` on the quote
+  paragraph so a long document claim wraps cleanly rather than squeezing the
+  `CrossCheckBadge` off-screen.
+- **Export PDF row**: `flex-wrap` added so a long error message wraps below
+  the button instead of overflowing the card on 390px.
+- **Chart label columns**: `BarChart` and `GroupedBarChart` label column
+  `w-32→w-24`, freeing ~32px for bars on narrow screens.
+- **My Data page**: both Datasets and Documents tabs now render a mobile card
+  list (`sm:hidden`) — one card per row with name, version, badges, metadata
+  summary, and action links — alongside the original 8-column table
+  (`hidden sm:block`). No state or handler changes; desktop layout unchanged.
+- 92/92 frontend tests pass; build clean across all 14 routes.
 
 - **New `GENERAL_KNOWLEDGE` route** in `app/agent/graph.py` — a 7th
   `RouteCategory` for questions that are pure general-world-knowledge facts
