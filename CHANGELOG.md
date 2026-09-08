@@ -4,6 +4,34 @@ Plain-English record of what's shipped, newest first. No version numbers yet
 (pre-1.0, deploys are continuous rather than tagged releases) — entries are
 grouped by date instead.
 
+## 2026-09-08 — Phase B: PWA (manifest, service worker, icons)
+
+- **App is now installable** on Android (Chrome "Add to Home Screen", Play
+  Store via TWA) and iOS (Safari "Add to Home Screen"). No new npm
+  dependencies — uses Next.js 16's built-in `app/manifest.ts` convention
+  and a hand-written service worker.
+- **Web App Manifest** (`/manifest.webmanifest`): `display: standalone`,
+  `start_url: /dashboard`, brand teal theme/background colors, three icons
+  (192px standard, 512px standard, 512px maskable for Android adaptive).
+- **App icons**: 192×512×512-maskable PNGs generated with `sharp` (already
+  a Next.js dep). Brand teal `#0f766e` background, white "D" lettermark,
+  rounded corners; maskable variant uses full-bleed with lettermark in the
+  80% safe zone so no Android icon shape clips it.
+- **Service worker** (`/sw.js`): network-first throughout. `/api/**` calls
+  are never intercepted — live answers only, grounding never bypassed by a
+  cache. `/_next/static/**` cache-first (immutable hashed filenames).
+  Navigation requests cached on success; offline fallback to `/offline.html`
+  (pre-cached on install). Old caches cleaned on activate.
+- **`ServiceWorkerRegistration` component**: `"use client"` boundary,
+  registers `/sw.js` with `updateViaCache: "none"`, handles SW updates with
+  `SKIP_WAITING`. Mounted outside `AuthProvider` so it runs on public routes.
+- **PWA metadata in `layout.tsx`**: `manifest`, `appleWebApp` (capable,
+  title, `black-translucent` status bar), `themeColor` correctly in
+  `viewport` export (fixes Next.js build warning).
+- **TWA-ready**: manifest fields match what Bubblewrap needs. Next step when
+  ready: run `bubblewrap init` + `bubblewrap build`, add Play Store
+  `assetlinks.json`. Noted in TODO.
+
 ## 2026-09-07 — Phase A mobile responsive fixes
 
 - **Touch targets**: every interactive element that was below the WCAG 2.5.5

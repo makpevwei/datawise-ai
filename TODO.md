@@ -167,9 +167,14 @@ outstanding gets lost between sessions.
 
 ## Paused / future work
 
-- **PWA / Android (Phase B)** — Phase A mobile responsive fixes complete
-  (see 2026-09-07 CHANGELOG entry). Phase B (PWA manifest, service worker,
-  TWA packaging for Play Store) is the next step; not started yet.
+- **PWA / Android — Phase C (Play Store via TWA)**: Phase B complete (manifest,
+  SW, icons deployed). To get into the Play Store:
+  1. Run `npx @bubblewrap/cli init --manifest https://datawise-ai-two.vercel.app/manifest.webmanifest`
+  2. Add `/.well-known/assetlinks.json` to `public/` with the TWA's SHA-256 signing key
+  3. Run `bubblewrap build` to produce the signed APK/AAB
+  4. Submit to Play Store (screenshots, store listing, review — ~1-2 weeks)
+  Not started. Deferred until the app is live on a custom domain (the
+  assetlinks.json must match the production URL exactly).
 - **Telegram integration** — full plan complete and reviewed (see chat/commit
   history), ready to implement, paused in favor of Android mobile work. No
   code written yet.
