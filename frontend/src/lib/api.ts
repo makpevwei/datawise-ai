@@ -48,16 +48,33 @@ function authHeaders(): Record<string, string> {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE_URL}${path}`, {
-    ...init,
-    headers: {
-      ...(init?.body && !(init.body instanceof FormData)
-        ? { "Content-Type": "application/json" }
-        : {}),
-      ...authHeaders(),
-      ...init?.headers,
-    },
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE_URL}${path}`, {
+      ...init,
+      headers: {
+        ...(init?.body && !(init.body instanceof FormData)
+          ? { "Content-Type": "application/json" }
+          : {}),
+        ...authHeaders(),
+        ...init?.headers,
+      },
+    });
+  } catch {
+    // fetch() rejects (vs. resolving with a non-2xx status) only when the
+    // request never reached an HTTP response at all -- the API server is
+    // down/unreachable, DNS failed, or the browser blocked it (CORS, mixed
+    // content). Surfacing this as an ApiError with status 0, instead of
+    // letting a raw TypeError bubble up, means callers' `instanceof
+    // ApiError` branches show *this* explanation rather than a vague
+    // generic fallback -- which is exactly what distinguishes "wrong
+    // password" (a real 401 from the server) from "can't reach the server
+    // at all" on the login screen.
+    throw new ApiError(
+      "Can't reach the DataWise server. It may be starting up or temporarily unavailable -- please try again in a moment.",
+      0,
+    );
+  }
   if (!res.ok) {
     let detail = res.statusText;
     try {
