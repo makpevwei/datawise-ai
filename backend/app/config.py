@@ -1,7 +1,10 @@
+import json
 from functools import lru_cache
 from pathlib import Path
+from typing import Annotated
 
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import field_validator
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 # config.py lives at backend/app/config.py. The backend always runs with
 # cwd=backend/ (uv run, uvicorn, pytest), so a bare env_file=".env" only
@@ -26,7 +29,48 @@ class Settings(BaseSettings):
     environment: str = "development"
     api_v1_prefix: str = "/api/v1"
 
-    cors_origins: list[str] = ["http://localhost:3000"]
+    # Annotated[..., NoDecode] turns OFF pydantic-settings' automatic
+    # JSON-decoding of this env var. Without it, the env source tries to
+    # json.loads() the raw CORS_ORIGINS string *before* the validator below
+    # ever runs -- so a plain, non-JSON value raises SettingsError at the
+    # source level and the validator never gets a chance to normalize it.
+    # With NoDecode, the raw string reaches _parse_cors_origins untouched.
+    cors_origins: Annotated[list[str], NoDecode] = ["http://localhost:3000"]
+
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def _parse_cors_origins(cls, value: object) -> object:
+        """Accept the forms a human actually types into a deploy dashboard,
+        not just the JSON array pydantic-settings demands by default.
+
+        A plain `list[str]` field makes pydantic-settings parse the
+        CORS_ORIGINS env var as JSON -- so `https://app.example.com` or
+        `https://a.com,https://b.com` (the obvious things to type in
+        Render's env-var UI) each raise SettingsError. Because
+        get_settings() runs at import time in app.main, that error crashes
+        the whole backend at startup: uvicorn never binds, the health check
+        fails, the deploy is marked failed, and the frontend -- which needs
+        this API for every page -- hangs or errors. An empty CORS_ORIGINS=
+        (easy to leave set in a dashboard) crashed it too.
+
+        So, before validation, normalize a string into a list ourselves:
+          - "" / whitespace            -> []  (no origins, no crash)
+          - '["https://a","https://b"]' -> parsed as JSON (back-compat)
+          - "https://a, https://b"      -> split on commas, trimmed
+        A value that's already a list (e.g. the in-code default) is passed
+        through untouched.
+        """
+        if isinstance(value, str):
+            text = value.strip()
+            if not text:
+                return []
+            if text.startswith("["):
+                # Looks like the documented JSON-array form; let json parse
+                # it so a genuinely malformed array still fails loudly
+                # rather than being silently misread as one long origin.
+                return json.loads(text)
+            return [origin.strip() for origin in text.split(",") if origin.strip()]
+        return value
 
     # Used to build the link inside a password-reset email (e.g.
     # "{frontend_base_url}/reset-password?token=..."). Falls back to the
