@@ -5,7 +5,7 @@ services:
     plan: starter
     rootDir: backend
     buildCommand: pip install uv && uv sync --no-dev
-    startCommand: uv run alembic upgrade head && uv run uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    startCommand: uv run alembic upgrade head && uv run python scripts/seed_demo_user.py && uv run uvicorn app.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
     disk:
       name: datawise-data
